@@ -13,3 +13,4 @@ public interface TimeSlotRepository extends JpaRepository<TimeSlot, Long> {
     List<TimeSlot> findAllByOrderByDayOfWeekAscPeriodNumberAsc();
     Optional<TimeSlot> findByDayOfWeekAndPeriodNumber(DayOfWeek dayOfWeek, Integer periodNumber);
 }
+

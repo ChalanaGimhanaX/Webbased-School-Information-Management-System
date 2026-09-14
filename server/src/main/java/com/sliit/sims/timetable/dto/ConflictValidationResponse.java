@@ -13,3 +13,4 @@ public record ConflictValidationResponse(
         return new ConflictValidationResponse(false, message, conflictType);
     }
 }
+

@@ -57,3 +57,4 @@ public class Timetable {
         this.updatedAt = LocalDateTime.now();
     }
 }
+

@@ -72,3 +72,4 @@ public class TimetableDataSeeder implements CommandLineRunner {
                 .build());
     }
 }
+

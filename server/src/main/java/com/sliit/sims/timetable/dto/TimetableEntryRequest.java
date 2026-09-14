@@ -18,3 +18,4 @@ public record TimetableEntryRequest(
     @Size(max = 50, message = "Room number cannot exceed 50 characters")
     String roomNumber
 ) {}
+

@@ -35,3 +35,4 @@ public class TimetableEntry {
     @Column(name = "room_number", nullable = false, length = 50)
     private String roomNumber;
 }
+

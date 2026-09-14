@@ -170,3 +170,4 @@ class TimetableServiceTest {
         assertThrows(IllegalStateException.class, () -> timetableService.publishTimetable(1L));
     }
 }
+

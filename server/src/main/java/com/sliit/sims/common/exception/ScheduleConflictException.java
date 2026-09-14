@@ -18,3 +18,4 @@ public class ScheduleConflictException extends RuntimeException {
         this.conflictType = conflictType;
     }
 }
+

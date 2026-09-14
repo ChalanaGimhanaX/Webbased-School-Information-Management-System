@@ -13,3 +13,4 @@ public record TimetableEntryResponse(
     Long teacherId,
     String roomNumber
 ) {}
+

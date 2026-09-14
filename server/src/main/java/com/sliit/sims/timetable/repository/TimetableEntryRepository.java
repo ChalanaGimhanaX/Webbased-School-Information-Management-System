@@ -62,3 +62,4 @@ public interface TimetableEntryRepository extends JpaRepository<TimetableEntry, 
     """)
     List<TimetableEntry> findPublishedEntriesByRoom(@Param("roomNumber") String roomNumber);
 }
+

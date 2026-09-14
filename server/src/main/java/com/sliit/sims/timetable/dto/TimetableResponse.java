@@ -15,3 +15,4 @@ public record TimetableResponse(
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {}
+

@@ -17,3 +17,4 @@ public record TimetableCreateRequest(
     @Max(value = 3, message = "Term must be 1, 2, or 3")
     Integer term
 ) {}
+

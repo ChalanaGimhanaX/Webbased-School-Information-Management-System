@@ -291,3 +291,4 @@ flowchart TD
     - `issuedDate`: `LocalDateTime`
     - `receiptType`: `ReceiptType` (`FULL`, `PARTIAL`)
     - `amount`: `BigDecimal`
+

@@ -14,3 +14,4 @@ public interface TimetableRepository extends JpaRepository<Timetable, Long> {
     List<Timetable> findByClassIdOrderByAcademicYearDescTermDesc(Long classId);
     List<Timetable> findByStatus(TimetableStatus status);
 }
+
