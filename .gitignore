@@ -43,3 +43,9 @@ uploads/
 .DS_Store
 Thumbs.db
 
+# Maven & Java build artifacts
+target/
+server/target/
+*.class
+*.jar
+*.war

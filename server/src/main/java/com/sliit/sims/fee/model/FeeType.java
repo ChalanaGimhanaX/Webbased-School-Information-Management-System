@@ -4,5 +4,9 @@ public enum FeeType {
     TUITION,
     FACILITY,
     EXAMINATION,
-    LIBRARY
+    LIBRARY,
+    ADMISSION,
+    TRANSPORT,
+    ACTIVITY,
+    OTHER
 }

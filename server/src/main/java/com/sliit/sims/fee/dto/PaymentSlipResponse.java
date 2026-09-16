@@ -1,82 +1,40 @@
-package com.sliit.sims.fee.model;
+package com.sliit.sims.fee.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.persistence.*;
+import com.sliit.sims.fee.model.PaymentMethod;
+import com.sliit.sims.fee.model.PaymentSlip;
+import com.sliit.sims.fee.model.SlipStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "payment_slips")
-public class PaymentSlip {
+public class PaymentSlipResponse {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "fee_account_id", nullable = false)
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-    private StudentFeeAccount feeAccount;
-
-    @Column(name = "student_id", nullable = false)
+    private Long feeAccountId;
     private Long studentId;
-
-    @Column(name = "parent_id")
     private Long parentId;
-
-    @Column(name = "paid_by", length = 150)
     private String paidBy;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "payment_method", nullable = false, length = 30)
     private PaymentMethod paymentMethod;
-
-    @Column(name = "transaction_reference", length = 100)
     private String transactionReference;
-
-    @Column(name = "slip_image_url", length = 500)
     private String slipImageUrl;
-
-    @Column(name = "amount_paid", nullable = false, precision = 12, scale = 2)
     private BigDecimal amountPaid;
-
-    @Column(name = "payment_date", nullable = false)
     private LocalDateTime paymentDate;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "verification_status", nullable = false, length = 30)
-    private SlipStatus verificationStatus = SlipStatus.PENDING;
-
-    @Column(name = "reviewed_by", length = 100)
+    private SlipStatus verificationStatus;
     private String reviewedBy;
-
-    @Column(name = "review_remarks", length = 500)
     private String reviewRemarks;
-
-    @Column(name = "reviewed_at")
     private LocalDateTime reviewedAt;
-
-    @OneToOne(mappedBy = "paymentSlip", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonIgnoreProperties({"paymentSlip", "hibernateLazyInitializer", "handler"})
-    private PaymentReceipt receipt;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
+    private String receiptNumber;
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    public PaymentSlipResponse() {}
 
-    public PaymentSlip() {
-        this.verificationStatus = SlipStatus.PENDING;
-    }
-
-    public PaymentSlip(Long id, StudentFeeAccount feeAccount, Long studentId, Long parentId, String paidBy,
-                       PaymentMethod paymentMethod, String transactionReference, String slipImageUrl,
-                       BigDecimal amountPaid, LocalDateTime paymentDate, SlipStatus verificationStatus,
-                       String reviewedBy, String reviewRemarks, LocalDateTime reviewedAt) {
+    public PaymentSlipResponse(Long id, Long feeAccountId, Long studentId, Long parentId, String paidBy,
+                               PaymentMethod paymentMethod, String transactionReference, String slipImageUrl,
+                               BigDecimal amountPaid, LocalDateTime paymentDate, SlipStatus verificationStatus,
+                               String reviewedBy, String reviewRemarks, LocalDateTime reviewedAt,
+                               String receiptNumber, LocalDateTime createdAt) {
         this.id = id;
-        this.feeAccount = feeAccount;
+        this.feeAccountId = feeAccountId;
         this.studentId = studentId;
         this.parentId = parentId;
         this.paidBy = paidBy;
@@ -84,33 +42,42 @@ public class PaymentSlip {
         this.transactionReference = transactionReference;
         this.slipImageUrl = slipImageUrl;
         this.amountPaid = amountPaid;
-        this.paymentDate = paymentDate != null ? paymentDate : LocalDateTime.now();
-        this.verificationStatus = verificationStatus != null ? verificationStatus : SlipStatus.PENDING;
+        this.paymentDate = paymentDate;
+        this.verificationStatus = verificationStatus;
         this.reviewedBy = reviewedBy;
         this.reviewRemarks = reviewRemarks;
         this.reviewedAt = reviewedAt;
+        this.receiptNumber = receiptNumber;
+        this.createdAt = createdAt;
     }
 
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-        if (this.paymentDate == null) {
-            this.paymentDate = LocalDateTime.now();
-        }
+    public static PaymentSlipResponse fromEntity(PaymentSlip entity) {
+        if (entity == null) return null;
+        return PaymentSlipResponse.builder()
+                .id(entity.getId())
+                .feeAccountId(entity.getFeeAccount() != null ? entity.getFeeAccount().getId() : null)
+                .studentId(entity.getStudentId())
+                .parentId(entity.getParentId())
+                .paidBy(entity.getPaidBy())
+                .paymentMethod(entity.getPaymentMethod())
+                .transactionReference(entity.getTransactionReference())
+                .slipImageUrl(entity.getSlipImageUrl())
+                .amountPaid(entity.getAmountPaid())
+                .paymentDate(entity.getPaymentDate())
+                .verificationStatus(entity.getVerificationStatus())
+                .reviewedBy(entity.getReviewedBy())
+                .reviewRemarks(entity.getReviewRemarks())
+                .reviewedAt(entity.getReviewedAt())
+                .receiptNumber(entity.getReceipt() != null ? entity.getReceipt().getReceiptNumber() : null)
+                .createdAt(entity.getCreatedAt())
+                .build();
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public StudentFeeAccount getFeeAccount() { return feeAccount; }
-    public void setFeeAccount(StudentFeeAccount feeAccount) { this.feeAccount = feeAccount; }
+    public Long getFeeAccountId() { return feeAccountId; }
+    public void setFeeAccountId(Long feeAccountId) { this.feeAccountId = feeAccountId; }
 
     public Long getStudentId() { return studentId; }
     public void setStudentId(Long studentId) { this.studentId = studentId; }
@@ -148,22 +115,17 @@ public class PaymentSlip {
     public LocalDateTime getReviewedAt() { return reviewedAt; }
     public void setReviewedAt(LocalDateTime reviewedAt) { this.reviewedAt = reviewedAt; }
 
-    public PaymentReceipt getReceipt() { return receipt; }
-    public void setReceipt(PaymentReceipt receipt) { this.receipt = receipt; }
+    public String getReceiptNumber() { return receiptNumber; }
+    public void setReceiptNumber(String receiptNumber) { this.receiptNumber = receiptNumber; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-
-    public static Builder builder() {
-        return new Builder();
-    }
+    public static Builder builder() { return new Builder(); }
 
     public static class Builder {
         private Long id;
-        private StudentFeeAccount feeAccount;
+        private Long feeAccountId;
         private Long studentId;
         private Long parentId;
         private String paidBy;
@@ -172,13 +134,15 @@ public class PaymentSlip {
         private String slipImageUrl;
         private BigDecimal amountPaid;
         private LocalDateTime paymentDate;
-        private SlipStatus verificationStatus = SlipStatus.PENDING;
+        private SlipStatus verificationStatus;
         private String reviewedBy;
         private String reviewRemarks;
         private LocalDateTime reviewedAt;
+        private String receiptNumber;
+        private LocalDateTime createdAt;
 
         public Builder id(Long id) { this.id = id; return this; }
-        public Builder feeAccount(StudentFeeAccount feeAccount) { this.feeAccount = feeAccount; return this; }
+        public Builder feeAccountId(Long feeAccountId) { this.feeAccountId = feeAccountId; return this; }
         public Builder studentId(Long studentId) { this.studentId = studentId; return this; }
         public Builder parentId(Long parentId) { this.parentId = parentId; return this; }
         public Builder paidBy(String paidBy) { this.paidBy = paidBy; return this; }
@@ -191,10 +155,13 @@ public class PaymentSlip {
         public Builder reviewedBy(String reviewedBy) { this.reviewedBy = reviewedBy; return this; }
         public Builder reviewRemarks(String reviewRemarks) { this.reviewRemarks = reviewRemarks; return this; }
         public Builder reviewedAt(LocalDateTime reviewedAt) { this.reviewedAt = reviewedAt; return this; }
+        public Builder receiptNumber(String receiptNumber) { this.receiptNumber = receiptNumber; return this; }
+        public Builder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 
-        public PaymentSlip build() {
-            return new PaymentSlip(id, feeAccount, studentId, parentId, paidBy, paymentMethod, transactionReference,
-                    slipImageUrl, amountPaid, paymentDate, verificationStatus, reviewedBy, reviewRemarks, reviewedAt);
+        public PaymentSlipResponse build() {
+            return new PaymentSlipResponse(id, feeAccountId, studentId, parentId, paidBy, paymentMethod,
+                    transactionReference, slipImageUrl, amountPaid, paymentDate, verificationStatus,
+                    reviewedBy, reviewRemarks, reviewedAt, receiptNumber, createdAt);
         }
     }
 }

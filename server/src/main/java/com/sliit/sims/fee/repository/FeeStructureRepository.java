@@ -6,10 +6,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface FeeStructureRepository extends JpaRepository<FeeStructure, Long> {
-    Optional<FeeStructure> findByFeeTypeAndGradeLevelAndAcademicYear(FeeType feeType, Integer gradeLevel, Integer academicYear);
-    List<FeeStructure> findByAcademicYear(Integer academicYear);
+
+    List<FeeStructure> findByActiveTrue();
+
+    List<FeeStructure> findByAcademicYearAndActiveTrue(Integer academicYear);
+
+    List<FeeStructure> findByGradeLevelAndAcademicYearAndActiveTrue(Integer gradeLevel, Integer academicYear);
+
+    List<FeeStructure> findByFeeTypeAndActiveTrue(FeeType feeType);
+
+    List<FeeStructure> findByGradeLevelIsNullAndAcademicYearAndActiveTrue(Integer academicYear);
 }
