@@ -1,3 +1,13 @@
+HELP.md
+target/
+server/target/
+*.class
+*.jar
+*.war
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
 # Dependencies
 node_modules/
 .pnp
@@ -33,19 +43,22 @@ uploads/
 .vscode/*
 !.vscode/extensions.json
 .idea/
+*.iws
+*.iml
+*.ipr
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
 
 # OS generated files
 .DS_Store
 Thumbs.db
-
-# Maven & Java build artifacts
-target/
-server/target/
-*.class
-*.jar
-*.war
