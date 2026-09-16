@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduCore SIS - Student Result Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+<!-- ================= TOP NAVIGATION BAR ================= -->
+<header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-20">
+    <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white shadow-md">
+            <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <span class="font-bold text-lg tracking-wide text-slate-900">EduCore <span class="text-xs font-semibold px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md ml-1">Student Portal</span></span>
+    </div>
+
+    <div class="flex items-center gap-4 text-xs font-medium">
+        <!-- Return to Staff Dashboard if privileged user -->
+        <a th:if="${!isRestrictedUser}" th:href="@{/exams}" class="text-slate-500 hover:text-indigo-600 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-arrow-left"></i> Staff Dashboard
+        </a>
+        <div th:if="${!isRestrictedUser}" class="h-4 w-px bg-slate-200"></div>
+
+        <!-- Authenticated User Profile Summary -->
+        <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-600 text-[10px]"
+                 th:text="${currentStudent != null ? #strings.substring(currentStudent.fullName, 0, 2) : 'ST'}">
+                ST
+            </div>
+            <span class="font-semibold text-slate-700"
+                  th:text="${currentStudent != null ? currentStudent.fullName + ' (' + currentStudent.studentId + ')' : (selectedStudentId != null ? selectedStudentId : 'Student Portal')}">
+                Student Profile
+            </span>
+        </div>
+
+        <div class="h-4 w-px bg-slate-200"></div>
+        <a th:href="@{/logout}" class="text-rose-500 hover:text-rose-700 transition flex items-center gap-1">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </a>
+    </div>
+</header>
+
+<!-- ================= MAIN PORTAL CONTENT ================= -->
+<main class="flex-1 p-6 max-w-5xl w-full mx-auto space-y-6">
+
+    <!-- SEARCH & FILTER BAR (ADAPTS ACCORDING TO ROLE) -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <form th:action="@{/portal}" method="GET" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+            <!-- Student Selector / Display -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Target Student Index</label>
+                <!-- Unrestricted Staff View: Searchable student selection -->
+                <select th:if="${!isRestrictedUser}" name="studentId" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white font-medium">
+                    <option value="">-- Choose Student Index --</option>
+                    <option th:each="s : ${students}"
+                            th:value="${s.studentId}"
+                            th:text="${s.studentId + ' - ' + s.fullName}"
+                            th:selected="${s.studentId == selectedStudentId}">
+                    </option>
+                </select>
+
+                <!-- Student/Parent View: Locked index card -->
+                <div th:if="${isRestrictedUser}" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg bg-slate-100 text-slate-700 font-mono font-semibold">
+                    <span th:text="${selectedStudentId != null ? selectedStudentId : 'ST-2024-001'}">ST-2024-001</span>
+                    <input type="hidden" name="studentId" th:value="${selectedStudentId != null ? selectedStudentId : 'ST-2024-001'}">
+                </div>
+            </div>
+
+            <!-- Target Examination Selector -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Target Examination</label>
+                <select name="examId" required class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white font-medium">
+                    <option value="">-- Choose Examination --</option>
+                    <option th:each="e : ${exams}"
+                            th:value="${e.examId}"
+                            th:text="${e.examId + ': ' + e.examName + ' (' + e.term + ')'}"
+                            th:selected="${e.examId == selectedExamId}">
+                    </option>
+                </select>
+            </div>
+
+            <!-- Query Action Button -->
+            <div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold py-2 px-4 rounded-lg shadow-sm transition flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-magnifying-glass"></i> View Results Slip
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- WELCOME / CONTEXT BANNER -->
+    <div class="bg-gradient-to-r from-indigo-700 to-indigo-900 rounded-2xl p-6 text-white shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-indigo-200"
+                  th:text="${currentExam != null ? currentExam.term + ' Assessment' : 'Academic Evaluation'}">
+                Academic Evaluation
+            </span>
+            <h1 class="text-2xl font-bold mt-0.5"
+                th:text="${currentStudent != null ? currentStudent.fullName : 'Examination Result Slip'}">
+                Examination Result Slip
+            </h1>
+            <p class="text-xs text-indigo-100 mt-1">
+                Index: <span class="font-mono font-bold" th:text="${selectedStudentId != null ? selectedStudentId : 'N/A'}">ST-2024-001</span>
+                <span th:if="${currentExam != null}"> | Exam: <span th:text="${currentExam.examName}">Term Assessment</span></span>
+            </p>
+        </div>
+        <div class="flex gap-2" th:if="${currentStudent != null and currentExam != null}">
+            <a th:href="@{/reports(studentId=${selectedStudentId}, examId=${selectedExamId})}"
+               class="px-4 py-2 bg-white text-indigo-700 rounded-lg text-xs font-bold shadow hover:bg-indigo-50 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-file-arrow-down"></i> Print Official Report Card
+            </a>
+        </div>
+    </div>
+
+    <!-- SUMMARY METRIC STATS -->
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <span class="text-[11px] font-semibold text-slate-400 uppercase">Average Mark</span>
+            <h3 class="text-2xl font-bold text-indigo-600 mt-0.5" th:text="${averageMarks + '%'}">0.0%</h3>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <span class="text-[11px] font-semibold text-slate-400 uppercase">Total Marks</span>
+            <h3 class="text-2xl font-bold text-slate-800 mt-0.5" th:text="${totalMarks}">0</h3>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <span class="text-[11px] font-semibold text-slate-400 uppercase">Subjects Evaluated</span>
+            <h3 class="text-2xl font-bold text-emerald-600 mt-0.5" th:text="${#lists.size(results)}">0</h3>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <span class="text-[11px] font-semibold text-slate-400 uppercase">Academic Standing</span>
+            <h3 class="text-2xl font-bold mt-0.5"
+                th:classappend="${averageMarks >= 50.0} ? 'text-emerald-600' : 'text-rose-600'"
+                th:text="${averageMarks >= 50.0 ? 'PASS' : 'REVIEW'}">
+                N/A
+            </h3>
+        </div>
+    </div>
+
+    <!-- RESULTS TABLE BREAKDOWN -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+            <div>
+                <h2 class="font-bold text-slate-800 text-sm">Subject Breakdown & Grades</h2>
+                <p class="text-xs text-slate-500">Official grades confirmed by the Academic Department</p>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-semibold">
+                <tr>
+                    <th class="py-3.5 px-6">Subject Code</th>
+                    <th class="py-3.5 px-6">Subject Name</th>
+                    <th class="py-3.5 px-6 text-center">Marks (0-100)</th>
+                    <th class="py-3.5 px-6 text-center">Assigned Grade</th>
+                    <th class="py-3.5 px-6 text-right">Remarks</th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                <!-- Iterates over dynamic results from database -->
+                <tr th:each="res : ${results}" class="hover:bg-slate-50/70 transition">
+                    <td class="py-3.5 px-6 font-mono font-medium text-slate-500" th:text="${res.subject.subjectId}">SUB-01</td>
+                    <td class="py-3.5 px-6 font-semibold text-slate-800" th:text="${res.subject.subjectName}">Subject Name</td>
+                    <td class="py-3.5 px-6 text-center font-bold text-slate-700" th:text="${res.marks}">0</td>
+                    <td class="py-3.5 px-6 text-center">
+                        <span class="px-2.5 py-0.5 rounded-full font-bold text-xs border"
+                              th:classappend="${res.grade == 'A' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                              (res.grade == 'B' ? 'bg-sky-50 text-sky-700 border-sky-200' :
+                                              (res.grade == 'C' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                              (res.grade == 'S' ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-rose-50 text-rose-700 border-rose-200')))}"
+                              th:text="${res.grade}">
+                            A
+                        </span>
+                    </td>
+                    <td class="py-3.5 px-6 text-right font-medium"
+                        th:classappend="${res.grade == 'F'} ? 'text-rose-600' : 'text-emerald-600'"
+                        th:text="${res.grade == 'A' ? 'Distinction' : (res.grade == 'B' ? 'Very Good' : (res.grade == 'C' ? 'Credit Pass' : (res.grade == 'S' ? 'Simple Pass' : 'Fail / Repeat')))}">
+                        Remarks
+                    </td>
+                </tr>
+
+                <!-- Fallback when no results are found -->
+                <tr th:if="${#lists.isEmpty(results)}">
+                    <td colspan="5" class="py-8 text-center text-slate-400">
+                        <i class="fa-regular fa-folder-open text-3xl mb-2 block text-slate-300"></i>
+                        No assessment marks found for the selected examination criteria. Select an exam above and click "View Results Slip".
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- GRADING SCALE BENCHMARK -->
+    <div class="p-4 bg-slate-100 rounded-xl flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600">
+        <span class="font-bold text-slate-700">Official Grading Scheme:</span>
+        <div class="flex flex-wrap gap-4 font-mono">
+            <span><strong>A:</strong> 75 - 100</span>
+            <span><strong>B:</strong> 65 - 74</span>
+            <span><strong>C:</strong> 55 - 64</span>
+            <span><strong>S:</strong> 35 - 54</span>
+            <span><strong>F:</strong> Below 35 (Repeat)</span>
+        </div>
+    </div>
+
+</main>
+
+<footer class="py-4 text-center text-xs text-slate-400 border-t border-slate-200 bg-white mt-auto">
+    &copy; 2026 EduCore SIS. Exam &amp; Results Module.
+</footer>
+</body>
+</html>
