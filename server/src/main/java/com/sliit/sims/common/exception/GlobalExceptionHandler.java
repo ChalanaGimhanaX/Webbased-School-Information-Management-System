@@ -14,11 +14,12 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ProblemDetail handleNotFound(ResourceNotFoundException ex) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        problem.setTitle("Resource Not Found");
-        problem.setType(URI.create("https://sliit.lk/errors/not-found"));
+    @ExceptionHandler(ScheduleConflictException.class)
+    public ProblemDetail handleScheduleConflict(ScheduleConflictException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problem.setTitle("Scheduling Conflict Detected");
+        problem.setType(URI.create("https://sliit.lk/errors/schedule-conflict"));
+        problem.setProperty("conflictType", ex.getConflictType());
         problem.setProperty("timestamp", Instant.now());
         return problem;
     }
@@ -29,6 +30,15 @@ public class GlobalExceptionHandler {
         problem.setTitle("Payment Validation Failed");
         problem.setType(URI.create("https://sliit.lk/errors/payment-validation"));
         problem.setProperty("errorCode", ex.getErrorCode());
+        problem.setProperty("timestamp", Instant.now());
+        return problem;
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ProblemDetail handleNotFound(ResourceNotFoundException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problem.setTitle("Resource Not Found");
+        problem.setType(URI.create("https://sliit.lk/errors/not-found"));
         problem.setProperty("timestamp", Instant.now());
         return problem;
     }
@@ -54,11 +64,11 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
-    @ExceptionHandler(Exception.class)
-    public ProblemDetail handleGeneralException(Exception ex) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
-        problem.setTitle("Internal Server Error");
-        problem.setType(URI.create("https://sliit.lk/errors/server-error"));
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ProblemDetail handleIllegalArgument(IllegalArgumentException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problem.setTitle("Bad Request");
+        problem.setType(URI.create("https://sliit.lk/errors/bad-request"));
         problem.setProperty("timestamp", Instant.now());
         return problem;
     }

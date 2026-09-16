@@ -10,3 +10,4 @@ public class SimsApplication {
         SpringApplication.run(SimsApplication.class, args);
     }
 }
+

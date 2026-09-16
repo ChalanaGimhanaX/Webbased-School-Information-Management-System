@@ -1,0 +1,146 @@
+package com.sliit.sims.exam.service;
+
+import com.sliit.sims.common.exception.ResourceNotFoundException;
+import com.sliit.sims.exam.dto.*;
+import com.sliit.sims.exam.model.*;
+import com.sliit.sims.exam.repository.ExamPaperRepository;
+import com.sliit.sims.exam.repository.ExamResultRepository;
+import com.sliit.sims.exam.repository.ExaminationRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class ExamService {
+
+    private final ExaminationRepository examRepository;
+    private final ExamPaperRepository paperRepository;
+    private final ExamResultRepository resultRepository;
+
+    @Transactional
+    public Examination createExam(ExamCreateRequest req) {
+        examRepository.findByExamNameAndTermAndAcademicYear(req.examName().trim(), req.term(), req.academicYear())
+                .ifPresent(e -> {
+                    throw new IllegalArgumentException("Exam " + req.examName() + " already exists for term " + req.term());
+                });
+
+        Examination exam = Examination.builder()
+                .examName(req.examName().trim())
+                .term(req.term())
+                .academicYear(req.academicYear())
+                .status(ExamStatus.DRAFT)
+                .build();
+
+        return examRepository.save(exam);
+    }
+
+    @Transactional
+    public ExamPaper createExamPaper(ExamPaperCreateRequest req) {
+        paperRepository.findByExamIdAndSubjectIdAndGradeLevel(req.examId(), req.subjectId(), req.gradeLevel())
+                .ifPresent(p -> {
+                    throw new IllegalArgumentException("Exam paper already exists for this subject and grade");
+                });
+
+        ExamPaper paper = ExamPaper.builder()
+                .examId(req.examId())
+                .subjectId(req.subjectId())
+                .gradeLevel(req.gradeLevel())
+                .maxMarks(req.maxMarks() != null ? req.maxMarks() : BigDecimal.valueOf(100.00))
+                .build();
+
+        return paperRepository.save(paper);
+    }
+
+    @Transactional
+    public List<ExamResultResponse> submitMarksBatch(ExamMarksBatchRequest req) {
+        ExamPaper paper = paperRepository.findById(req.examPaperId())
+                .orElseThrow(() -> new ResourceNotFoundException("Exam paper not found: " + req.examPaperId()));
+
+        List<ExamResult> savedResults = new ArrayList<>();
+        for (ExamMarksEntryDto markDto : req.marks()) {
+            String grade = calculateGrade(markDto.marksObtained());
+
+            ExamResult result = resultRepository.findByExamPaperIdAndStudentId(paper.getId(), markDto.studentId())
+                    .orElse(ExamResult.builder()
+                            .examPaper(paper)
+                            .studentId(markDto.studentId())
+                            .build());
+
+            result.setMarksObtained(markDto.marksObtained());
+            result.setGrade(grade);
+            savedResults.add(resultRepository.save(result));
+        }
+
+        return savedResults.stream().map(this::mapToResponse).toList();
+    }
+
+    @Transactional
+    public void publishExamResults(Long examId) {
+        Examination exam = examRepository.findById(examId)
+                .orElseThrow(() -> new ResourceNotFoundException("Examination not found: " + examId));
+
+        exam.setStatus(ExamStatus.PUBLISHED);
+        examRepository.save(exam);
+
+        List<ExamPaper> papers = paperRepository.findByExamId(examId);
+        for (ExamPaper p : papers) {
+            List<ExamResult> results = resultRepository.findByExamPaperId(p.getId());
+            results.forEach(r -> r.setIsPublished(true));
+            resultRepository.saveAll(results);
+        }
+    }
+
+    public StudentExamReportResponse getStudentExamReport(Long studentId, Long examId) {
+        Examination exam = examRepository.findById(examId)
+                .orElseThrow(() -> new ResourceNotFoundException("Examination not found: " + examId));
+
+        List<ExamResult> results = resultRepository.findByStudentIdAndExamId(studentId, examId);
+        if (results.isEmpty()) {
+            throw new ResourceNotFoundException("No published results found for student " + studentId + " in exam " + examId);
+        }
+
+        BigDecimal total = results.stream()
+                .map(ExamResult::getMarksObtained)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal average = total.divide(BigDecimal.valueOf(results.size()), 2, RoundingMode.HALF_UP);
+
+        return new StudentExamReportResponse(
+                studentId,
+                exam.getId(),
+                exam.getExamName(),
+                exam.getTerm(),
+                exam.getAcademicYear(),
+                total,
+                average,
+                results.stream().map(this::mapToResponse).toList()
+        );
+    }
+
+    private String calculateGrade(BigDecimal marks) {
+        double m = marks.doubleValue();
+        if (m >= 75.0) return "A";
+        if (m >= 65.0) return "B";
+        if (m >= 50.0) return "C";
+        if (m >= 35.0) return "S";
+        return "F";
+    }
+
+    private ExamResultResponse mapToResponse(ExamResult r) {
+        return new ExamResultResponse(
+                r.getId(),
+                r.getExamPaper().getId(),
+                r.getStudentId(),
+                r.getMarksObtained(),
+                r.getGrade(),
+                r.getIsPublished()
+        );
+    }
+}
