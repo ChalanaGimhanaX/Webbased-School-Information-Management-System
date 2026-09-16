@@ -1,74 +1,40 @@
-package com.sliit.sims.fee.model;
+package com.sliit.sims.fee.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.persistence.*;
+import com.sliit.sims.fee.model.FeeType;
+import com.sliit.sims.fee.model.PaymentReceipt;
+import com.sliit.sims.fee.model.ReceiptType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "payment_receipts")
-public class PaymentReceipt {
+public class PaymentReceiptResponse {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "payment_slip_id", nullable = false, unique = true)
-    @JsonIgnoreProperties({"receipt", "hibernateLazyInitializer", "handler"})
-    private PaymentSlip paymentSlip;
-
-    @Column(name = "receipt_number", nullable = false, unique = true, length = 50)
     private String receiptNumber;
-
-    @Column(name = "student_id", nullable = false)
+    private Long paymentSlipId;
     private Long studentId;
-
-    @Column(name = "student_admission_number", nullable = false, length = 50)
     private String studentAdmissionNumber;
-
-    @Column(name = "student_name", nullable = false, length = 150)
     private String studentName;
-
-    @Column(name = "fee_structure_name", nullable = false, length = 150)
     private String feeStructureName;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "fee_type", nullable = false, length = 50)
     private FeeType feeType;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "receipt_type", nullable = false, length = 20)
     private ReceiptType receiptType;
-
-    @Column(name = "amount_paid", nullable = false, precision = 12, scale = 2)
     private BigDecimal amountPaid;
-
-    @Column(name = "remaining_balance", nullable = false, precision = 12, scale = 2)
     private BigDecimal remainingBalance;
-
-    @Column(name = "issued_date", nullable = false)
     private LocalDateTime issuedDate;
-
-    @Column(name = "issued_by", length = 100)
     private String issuedBy;
-
-    @Column(name = "notes", length = 500)
     private String notes;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public PaymentReceipt() {}
+    public PaymentReceiptResponse() {}
 
-    public PaymentReceipt(Long id, PaymentSlip paymentSlip, String receiptNumber, Long studentId,
-                          String studentAdmissionNumber, String studentName, String feeStructureName,
-                          FeeType feeType, ReceiptType receiptType, BigDecimal amountPaid,
-                          BigDecimal remainingBalance, LocalDateTime issuedDate, String issuedBy, String notes) {
+    public PaymentReceiptResponse(Long id, String receiptNumber, Long paymentSlipId, Long studentId,
+                                  String studentAdmissionNumber, String studentName, String feeStructureName,
+                                  FeeType feeType, ReceiptType receiptType, BigDecimal amountPaid,
+                                  BigDecimal remainingBalance, LocalDateTime issuedDate, String issuedBy,
+                                  String notes, LocalDateTime createdAt) {
         this.id = id;
-        this.paymentSlip = paymentSlip;
         this.receiptNumber = receiptNumber;
+        this.paymentSlipId = paymentSlipId;
         this.studentId = studentId;
         this.studentAdmissionNumber = studentAdmissionNumber;
         this.studentName = studentName;
@@ -77,28 +43,41 @@ public class PaymentReceipt {
         this.receiptType = receiptType;
         this.amountPaid = amountPaid;
         this.remainingBalance = remainingBalance;
-        this.issuedDate = issuedDate != null ? issuedDate : LocalDateTime.now();
+        this.issuedDate = issuedDate;
         this.issuedBy = issuedBy;
         this.notes = notes;
+        this.createdAt = createdAt;
     }
 
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-        if (this.issuedDate == null) {
-            this.issuedDate = LocalDateTime.now();
-        }
+    public static PaymentReceiptResponse fromEntity(PaymentReceipt entity) {
+        if (entity == null) return null;
+        return PaymentReceiptResponse.builder()
+                .id(entity.getId())
+                .receiptNumber(entity.getReceiptNumber())
+                .paymentSlipId(entity.getPaymentSlip() != null ? entity.getPaymentSlip().getId() : null)
+                .studentId(entity.getStudentId())
+                .studentAdmissionNumber(entity.getStudentAdmissionNumber())
+                .studentName(entity.getStudentName())
+                .feeStructureName(entity.getFeeStructureName())
+                .feeType(entity.getFeeType())
+                .receiptType(entity.getReceiptType())
+                .amountPaid(entity.getAmountPaid())
+                .remainingBalance(entity.getRemainingBalance())
+                .issuedDate(entity.getIssuedDate())
+                .issuedBy(entity.getIssuedBy())
+                .notes(entity.getNotes())
+                .createdAt(entity.getCreatedAt())
+                .build();
     }
 
-    // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public PaymentSlip getPaymentSlip() { return paymentSlip; }
-    public void setPaymentSlip(PaymentSlip paymentSlip) { this.paymentSlip = paymentSlip; }
-
     public String getReceiptNumber() { return receiptNumber; }
     public void setReceiptNumber(String receiptNumber) { this.receiptNumber = receiptNumber; }
+
+    public Long getPaymentSlipId() { return paymentSlipId; }
+    public void setPaymentSlipId(Long paymentSlipId) { this.paymentSlipId = paymentSlipId; }
 
     public Long getStudentId() { return studentId; }
     public void setStudentId(Long studentId) { this.studentId = studentId; }
@@ -136,14 +115,12 @@ public class PaymentReceipt {
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
-    public static Builder builder() {
-        return new Builder();
-    }
+    public static Builder builder() { return new Builder(); }
 
     public static class Builder {
         private Long id;
-        private PaymentSlip paymentSlip;
         private String receiptNumber;
+        private Long paymentSlipId;
         private Long studentId;
         private String studentAdmissionNumber;
         private String studentName;
@@ -155,10 +132,11 @@ public class PaymentReceipt {
         private LocalDateTime issuedDate;
         private String issuedBy;
         private String notes;
+        private LocalDateTime createdAt;
 
         public Builder id(Long id) { this.id = id; return this; }
-        public Builder paymentSlip(PaymentSlip paymentSlip) { this.paymentSlip = paymentSlip; return this; }
         public Builder receiptNumber(String receiptNumber) { this.receiptNumber = receiptNumber; return this; }
+        public Builder paymentSlipId(Long paymentSlipId) { this.paymentSlipId = paymentSlipId; return this; }
         public Builder studentId(Long studentId) { this.studentId = studentId; return this; }
         public Builder studentAdmissionNumber(String studentAdmissionNumber) { this.studentAdmissionNumber = studentAdmissionNumber; return this; }
         public Builder studentName(String studentName) { this.studentName = studentName; return this; }
@@ -170,11 +148,12 @@ public class PaymentReceipt {
         public Builder issuedDate(LocalDateTime issuedDate) { this.issuedDate = issuedDate; return this; }
         public Builder issuedBy(String issuedBy) { this.issuedBy = issuedBy; return this; }
         public Builder notes(String notes) { this.notes = notes; return this; }
+        public Builder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 
-        public PaymentReceipt build() {
-            return new PaymentReceipt(id, paymentSlip, receiptNumber, studentId, studentAdmissionNumber,
-                    studentName, feeStructureName, feeType, receiptType, amountPaid, remainingBalance,
-                    issuedDate, issuedBy, notes);
+        public PaymentReceiptResponse build() {
+            return new PaymentReceiptResponse(id, receiptNumber, paymentSlipId, studentId,
+                    studentAdmissionNumber, studentName, feeStructureName, feeType, receiptType,
+                    amountPaid, remainingBalance, issuedDate, issuedBy, notes, createdAt);
         }
     }
 }

@@ -2,7 +2,6 @@ package com.sliit.sims.fee.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -12,11 +11,6 @@ import java.time.LocalDateTime;
 @Table(name = "student_fee_accounts", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"student_id", "fee_structure_id"})
 })
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class StudentFeeAccount {
 
     @Id
@@ -47,7 +41,6 @@ public class StudentFeeAccount {
     private BigDecimal totalAmount;
 
     @Column(name = "paid_amount", nullable = false, precision = 12, scale = 2)
-    @Builder.Default
     private BigDecimal paidAmount = BigDecimal.ZERO;
 
     @Column(name = "balance_amount", nullable = false, precision = 12, scale = 2)
@@ -55,7 +48,6 @@ public class StudentFeeAccount {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 30)
-    @Builder.Default
     private PaymentStatus status = PaymentStatus.PENDING;
 
     @Column(name = "due_date")
@@ -70,6 +62,31 @@ public class StudentFeeAccount {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    public StudentFeeAccount() {
+        this.paidAmount = BigDecimal.ZERO;
+        this.status = PaymentStatus.PENDING;
+    }
+
+    public StudentFeeAccount(Long id, Long studentId, String studentAdmissionNumber, String studentName,
+                             Integer gradeLevel, FeeStructure feeStructure, Integer academicYear,
+                             BigDecimal totalAmount, BigDecimal paidAmount, BigDecimal balanceAmount,
+                             PaymentStatus status, LocalDate dueDate, String remarks) {
+        this.id = id;
+        this.studentId = studentId;
+        this.studentAdmissionNumber = studentAdmissionNumber;
+        this.studentName = studentName;
+        this.gradeLevel = gradeLevel;
+        this.feeStructure = feeStructure;
+        this.academicYear = academicYear;
+        this.totalAmount = totalAmount;
+        this.paidAmount = paidAmount != null ? paidAmount : BigDecimal.ZERO;
+        this.balanceAmount = balanceAmount != null ? balanceAmount : (totalAmount != null ? totalAmount.subtract(this.paidAmount) : BigDecimal.ZERO);
+        this.status = status != null ? status : PaymentStatus.PENDING;
+        this.dueDate = dueDate;
+        this.remarks = remarks;
+        recalculateStatus();
+    }
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
@@ -77,7 +94,7 @@ public class StudentFeeAccount {
         if (this.paidAmount == null) {
             this.paidAmount = BigDecimal.ZERO;
         }
-        if (this.balanceAmount == null) {
+        if (this.balanceAmount == null && this.totalAmount != null) {
             this.balanceAmount = this.totalAmount.subtract(this.paidAmount);
         }
         recalculateStatus();
@@ -90,6 +107,9 @@ public class StudentFeeAccount {
     }
 
     public void recalculateStatus() {
+        if (this.status == PaymentStatus.CANCELLED) {
+            return;
+        }
         if (this.balanceAmount == null && this.totalAmount != null) {
             this.balanceAmount = this.totalAmount.subtract(this.paidAmount != null ? this.paidAmount : BigDecimal.ZERO);
         }
@@ -126,5 +146,90 @@ public class StudentFeeAccount {
         }
         this.balanceAmount = this.totalAmount.subtract(this.paidAmount);
         recalculateStatus();
+    }
+
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public Long getStudentId() { return studentId; }
+    public void setStudentId(Long studentId) { this.studentId = studentId; }
+
+    public String getStudentAdmissionNumber() { return studentAdmissionNumber; }
+    public void setStudentAdmissionNumber(String studentAdmissionNumber) { this.studentAdmissionNumber = studentAdmissionNumber; }
+
+    public String getStudentName() { return studentName; }
+    public void setStudentName(String studentName) { this.studentName = studentName; }
+
+    public Integer getGradeLevel() { return gradeLevel; }
+    public void setGradeLevel(Integer gradeLevel) { this.gradeLevel = gradeLevel; }
+
+    public FeeStructure getFeeStructure() { return feeStructure; }
+    public void setFeeStructure(FeeStructure feeStructure) { this.feeStructure = feeStructure; }
+
+    public Integer getAcademicYear() { return academicYear; }
+    public void setAcademicYear(Integer academicYear) { this.academicYear = academicYear; }
+
+    public BigDecimal getTotalAmount() { return totalAmount; }
+    public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
+
+    public BigDecimal getPaidAmount() { return paidAmount; }
+    public void setPaidAmount(BigDecimal paidAmount) { this.paidAmount = paidAmount; }
+
+    public BigDecimal getBalanceAmount() { return balanceAmount; }
+    public void setBalanceAmount(BigDecimal balanceAmount) { this.balanceAmount = balanceAmount; }
+
+    public PaymentStatus getStatus() { return status; }
+    public void setStatus(PaymentStatus status) { this.status = status; }
+
+    public LocalDate getDueDate() { return dueDate; }
+    public void setDueDate(LocalDate dueDate) { this.dueDate = dueDate; }
+
+    public String getRemarks() { return remarks; }
+    public void setRemarks(String remarks) { this.remarks = remarks; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private Long id;
+        private Long studentId;
+        private String studentAdmissionNumber;
+        private String studentName;
+        private Integer gradeLevel;
+        private FeeStructure feeStructure;
+        private Integer academicYear;
+        private BigDecimal totalAmount;
+        private BigDecimal paidAmount = BigDecimal.ZERO;
+        private BigDecimal balanceAmount;
+        private PaymentStatus status = PaymentStatus.PENDING;
+        private LocalDate dueDate;
+        private String remarks;
+
+        public Builder id(Long id) { this.id = id; return this; }
+        public Builder studentId(Long studentId) { this.studentId = studentId; return this; }
+        public Builder studentAdmissionNumber(String studentAdmissionNumber) { this.studentAdmissionNumber = studentAdmissionNumber; return this; }
+        public Builder studentName(String studentName) { this.studentName = studentName; return this; }
+        public Builder gradeLevel(Integer gradeLevel) { this.gradeLevel = gradeLevel; return this; }
+        public Builder feeStructure(FeeStructure feeStructure) { this.feeStructure = feeStructure; return this; }
+        public Builder academicYear(Integer academicYear) { this.academicYear = academicYear; return this; }
+        public Builder totalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; return this; }
+        public Builder paidAmount(BigDecimal paidAmount) { this.paidAmount = paidAmount; return this; }
+        public Builder balanceAmount(BigDecimal balanceAmount) { this.balanceAmount = balanceAmount; return this; }
+        public Builder status(PaymentStatus status) { this.status = status; return this; }
+        public Builder dueDate(LocalDate dueDate) { this.dueDate = dueDate; return this; }
+        public Builder remarks(String remarks) { this.remarks = remarks; return this; }
+
+        public StudentFeeAccount build() {
+            return new StudentFeeAccount(id, studentId, studentAdmissionNumber, studentName, gradeLevel,
+                    feeStructure, academicYear, totalAmount, paidAmount, balanceAmount, status, dueDate, remarks);
+        }
     }
 }

@@ -1,60 +1,40 @@
-package com.sliit.sims.fee.model;
+package com.sliit.sims.fee.dto;
 
-import jakarta.persistence.*;
+import com.sliit.sims.fee.model.FeeType;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "fee_structures")
-public class FeeStructure {
+public class FeeStructureCreateRequest {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "name", nullable = false, length = 150)
+    @NotBlank(message = "Fee structure name is required")
     private String name;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "fee_type", nullable = false, length = 50)
+    @NotNull(message = "Fee type is required")
     private FeeType feeType;
 
-    @Column(name = "grade_level")
     private Integer gradeLevel;
 
-    @Column(name = "academic_year", nullable = false)
+    @NotNull(message = "Academic year is required")
     private Integer academicYear;
 
-    @Column(name = "term")
     private Integer term;
 
-    @Column(name = "amount", nullable = false, precision = 12, scale = 2)
+    @NotNull(message = "Amount is required")
+    @DecimalMin(value = "0.01", message = "Amount must be greater than zero")
     private BigDecimal amount;
 
-    @Column(name = "due_date")
     private LocalDate dueDate;
 
-    @Column(name = "description", length = 500)
     private String description;
 
-    @Column(name = "is_active", nullable = false)
-    private Boolean active = true;
+    public FeeStructureCreateRequest() {}
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    public FeeStructure() {
-        this.active = true;
-    }
-
-    public FeeStructure(Long id, String name, FeeType feeType, Integer gradeLevel, Integer academicYear,
-                        Integer term, BigDecimal amount, LocalDate dueDate, String description, Boolean active) {
-        this.id = id;
+    public FeeStructureCreateRequest(String name, FeeType feeType, Integer gradeLevel, Integer academicYear,
+                                     Integer term, BigDecimal amount, LocalDate dueDate, String description) {
         this.name = name;
         this.feeType = feeType;
         this.gradeLevel = gradeLevel;
@@ -63,26 +43,7 @@ public class FeeStructure {
         this.amount = amount;
         this.dueDate = dueDate;
         this.description = description;
-        this.active = active != null ? active : true;
     }
-
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-        if (this.active == null) {
-            this.active = true;
-        }
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -108,21 +69,9 @@ public class FeeStructure {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public Boolean getActive() { return active; }
-    public void setActive(Boolean active) { this.active = active; }
-
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-
-    public static Builder builder() {
-        return new Builder();
-    }
+    public static Builder builder() { return new Builder(); }
 
     public static class Builder {
-        private Long id;
         private String name;
         private FeeType feeType;
         private Integer gradeLevel;
@@ -131,9 +80,7 @@ public class FeeStructure {
         private BigDecimal amount;
         private LocalDate dueDate;
         private String description;
-        private Boolean active = true;
 
-        public Builder id(Long id) { this.id = id; return this; }
         public Builder name(String name) { this.name = name; return this; }
         public Builder feeType(FeeType feeType) { this.feeType = feeType; return this; }
         public Builder gradeLevel(Integer gradeLevel) { this.gradeLevel = gradeLevel; return this; }
@@ -142,10 +89,9 @@ public class FeeStructure {
         public Builder amount(BigDecimal amount) { this.amount = amount; return this; }
         public Builder dueDate(LocalDate dueDate) { this.dueDate = dueDate; return this; }
         public Builder description(String description) { this.description = description; return this; }
-        public Builder active(Boolean active) { this.active = active; return this; }
 
-        public FeeStructure build() {
-            return new FeeStructure(id, name, feeType, gradeLevel, academicYear, term, amount, dueDate, description, active);
+        public FeeStructureCreateRequest build() {
+            return new FeeStructureCreateRequest(name, feeType, gradeLevel, academicYear, term, amount, dueDate, description);
         }
     }
 }
