@@ -3,7 +3,8 @@
 **Project**: Web-based School Information Management System  
 **Module**: SE2030 – Software Engineering (SLIIT Year 2, Semester 1)  
 **Backend Framework**: Java Spring Boot (Spring Data JPA + Hibernate)  
-**Interactive Draw.io Diagram Link**: [Open Database Diagram in Draw.io Editor](https://app.diagrams.net/?grid=0&pv=0&border=10&edit=_blank#create=%7B%22type%22%3A%22mermaid%22%2C%22compressed%22%3Atrue%2C%22data%22%3A%22tVhbs6I4EP418zhVp848zDMis%2BuuRy3Fqp2nVBuiZgcIk4Rzxn%2B%2FHfASMAFk1iqrBNN8dn99h8kph4OE7NNL8On1BT%2FbTbQ2V19D%2FHz%2BLMzF68sm3k6jRWwOvtSCr0dQeFFIsecpw%2FsehDgKwj%2Frg5EIq2A9VIWb6A1i4jbjUIJMOOR4J%2FY2RhAG0%2BhtFpJwHmw2Xqz6mATz%2BTIM4tlyYYNTkWvgubJxLR0eBwSl%2BCFnCd5pYaNa9DZZuzfjgpVBDgdmGKxopCmCG1wG9MhkL%2FjkdkA228lfURgT%2FIfZH4u3FsU3pS0W6ifGQmooD0eN1zx%2FxGfDwI9CafUIbBDH0WIaLMKIrKNwuZ42aZY%2FKoftxTBSO9EwopKS6gpwd2oo6XrsjFx9t7DR6PV3GzphGKvpsFjtwgGtWZ5ATtm90dE%2FwdtscQ3rtnrmmKyCVbNOUJEVkiumBgWQG4O9Q1pCzVszZpryDqx1tNnOGwEiGRUyGcaUB0IhgsuJfQE8e4viYDKPmlhHlpSpM8hs%2BTbb18N7H%2FKcpmXSZNyIk818GT%2BIJSgtZVVm9LAK4IdS5e5fRvUDydRpo9LSnUvfIrQ0Xm%2FDeLuO7kEvldqIBWG43Dbrx46ntTPKPGkW0t7a70EUH8wVbW3xJuYq%2BG4qG7pstrLBCuBGuXcOQ1qmDwVdkXHtIq%2F9RLuL16dYo6LZqtmKWc4k5ujF1LtxYHL9qf7s%2BIHnVRcwWqz%2Bbh2je3l%2BMH5QTOaQmXq09QqxDKtfp0SBjewDE993LgVOIS0NBf5WDRdANX%2B3jr9ObRPtwHjQyuuxsZJUMt%2B8JkCScezGIid5me1McHbYu%2BdSaVIR55HAkcEpkKAXzZfY%2BZ5EX5vc8JhSgGS5vjemSZqd9M8kjWVFKk6MPZezq8DPElK%2B5xQ0%2BsknpDToUvmYsZL5mcTsQeOk2GlMJnpFiqPIvYc5py2%2Bm5Y6GuaDFtdnuAMljKTsnaU%2BVaoB2WVJjQAUETJOyYlBO7BrCQoFUK5PPv3qPzjP333B37UtjHa60tj0XYnnUtQt1E%2FGuThAmgpqJjJS%2FTAqzu0ZYmxzOM8UhIqku0FcBL0R4IwhZ8nyLCCj%2FeaNmZZ7zxY8y72t1HQuJGNN7FJqIA%2BXwLvuJ67I64%2FfW0%2FnimAMm%2B2un4Lr%2BDmaAUvvegHpdXdnNntTrHkqmVlgvRnYXujGZiH7BZk%2FszST2cN%2BGlhDWvvfWO9UBvxW%2FvU1ooRRnoEZUTP4RXq9Yi2dv2dUAcWA0tIZa7bqqDYRO%2FNajHkn6YqErrQryl3K1dGfec3F9xlFZ2jXd8TuwMhsLtxjMyuBExF78sHYD6d%2B6Fwuksts25TQvFqaUE2pSXXjPMey1Dr1OON%2FqILmfzTsUtbbC1CQqFT0truBXbG7t1hLoMjuyGzScf92Yaxv97iU6FPxwDjSSkfIRInCo3u870XEkwdQY3f98qaUvkC4GamFhpQ4Tb0JmbcifTI7SKv26xQbvJq13o6MpcpwAJQaTfro8q3TLb1TXhC09MBIKftChlRvkTxI71hSLgssGUaH9TpoNCMFnDJjZ21IT5oyynihO1Z6Mxue6xtXquzZUy54jmz0Z1tFxX8%3D%22%7D)
+**Interactive Draw.io Diagram Link**: [Open Clearly Pointing Database Diagram in Draw.io Editor](https://app.diagrams.net/?grid=0&pv=0&border=10&edit=_blank#create=%7B%22type%22%3A%22mermaid%22%2C%22compressed%22%3Atrue%2C%22data%22%3A%221Vlbc5s4FP41mek%2BJJM4M%2B2%2ByhgnbIntAdzZPGlkUBxtuS2ItP73KyEINwEiJpPslAZhpHPQ%2Bc5N5%2BBkRdAxQcHFNbhYXL9ee1u3bD78prHr8jLig8W17exX%2BsbJ39yKBYsbNrphwy9ZihNIPDZcf%2F%2BDvVAj6ehAuy%2FezERyB6y3fmRtaUVzObDzDScaowSHtE22Sbm%2Bz%2BbnAg2s9AdDg5oJbFuXfneAQnTEKWfm%2BihNIcXIfR7cioysdE9iAgSmudWAY2w38k0Kvv386hI6h09KM%2B%2BN0lxWb6C9X%2F6law5kLI27zUMvduOCLCjNwCvNDv9gt7O1SaBN5SmFbSpT4Dj6ZgU2mg4tXdtaq7epSD9qagwClPzEHjyc1ICTEy0Y5%2FcWayZEy%2BgaYL43RCkOPRS6GCbYjRLvTaagyEzJBvS%2FwYOxqSypvTH%2BHu7ATuJccyb4NwrepPZjhMfVvEVB%2BuWWbu%2FNHqXOPz1G8bDd9qIwSl9J%2Fgq2ajzoDliaPSiPmktjeVtIr28HNYmSAFN08PEIH2ibW%2BdMPjD1oyHUBxypEo9xvRoIC2q7kPuUJpO1zqTlWHvN2VtDYZXPA5q23fe55ifMREaTzKVZMoTPeGQdZdWj0F0mHVJNhjvwyEMN0xZj178p5LpRNsitN88aZyBPthq0WyTa2aF4zUKCbux60sQYnQLOJfVJPKwNVQ66bL2pXwdyJCFlg5zW7vvA1BeUuM8oYSOeq4YowJyL2gocIOKrT4%2BZ%2F%2FnFQpnS5CTysZASWLG4c7HgwrzXwQpu17D0heLXwgzFQ6FY4kHg3sWsIauIcUIhGyGXkhc8MJV7nZSiIGZjN8GIsuwA0faCb6subA2bmgm516n1Q4YQWX6%2FvLjVS435QjyJ6solj7yApCmJQhhmwQEn6gA%2FkSSlMNchleksHo3O9piQ%2BS06KJE8sqSJfbGC0Jp23RVb4TJ6BCfDuBENPjnGOIj96MR85yeAuJr9b4Z88kRcRJn2Ka1g1kizVAgEaI7xQxeGzxLV4kkJunp8%2BOTIPSHKUwZlmQbRtPnxcxSqzQyJK9UbmYClyetMkhbzjgnyMPTxC%2FaFlO%2F4D2z4lf2nEftzc6sqY5EpF7GQLcJXxytO4PoSDJMQn4JcxjkgLjzhnFxFgf37qkLBRTFyCT2pCEhaoOkqWumdJji0wULK7HbSyhm7Oyhj6Li1tGTTS7GtleOUZQCPBi%2Fk%2B5GbJwv5D%2Bf4NccCG3utW5a%2BUgWxfgqaPWcsz0hu5E3IG8tVI06pa9jqUbivYDW72p5reFJTaJ48uzRLUD%2B5KUgjgbxKNjcss2%2F3PQAv%2FUNV6xtxENPcT3WyISlkLugn7hy9RhCqFS9mR6i3wilBq6MzU4xpvrgi9887S7dfT5xgWY1N4MgSUCnBBPNqc6qCT6cQO7tXz%2BudSs6Z4iQQUrgRe16I20iqNU2P5WJfWWBdHvP3S9Ow75VjYrsePLdq10vdXX2r4%2FcxQWE0sNYuD7skQDynDtBvOElJ6zXv95FxoyYvl3SB88c4jLrwmOBgdKCIhF03LFX2Y3GA4SngxWJZ%2BBdxK56KApgtbmvVQhcLB3F28En6rBYRWp2BTx%2Brp7mXszzZ7L6p1R2Z3bd76ASjJ%2FgL45%2FiWx%2B2LLQ%2BXl2tLYPdVQTLbI5EXlU64jK7uvpzeCmvnQopJRTmD6NzWXognTmoou%2Bas3TaW11trWxlSk7ZbmfJ6Qq9%2BOCDxIz5b73aHwWlQimgLemJzW4ovLNET3HhgZ29wQN24WiBZpiG8yieeJR5j3iLAt7Vmv8E1tt6%2Bz9UdKRNzC7lpoJMCdQ0osiHo7KvFsSIeFPmH5CfH3pGl%2FScNthJyNjcvfa3HAOY5YOhGmS6Pcu5sZf0ZXvxb2jiBF04r4Ujl3TegA3QEcMsmWKmkKuBEosXFj3LHgfsRRbsdtb2B88a%2BJOlcy%2BtnEPIes6zIyzrWcswqGnapIiAXUxiqtigqndmSZpmU2qtJafK2a%2F3ptkyMDXnIbfpHKL%2FAA%3D%3D%22%7D)  
+**Production DDL Script**: [database/schema.sql](../database/schema.sql)
 
 ---
 
@@ -11,39 +12,83 @@
 
 ```mermaid
 erDiagram
-  USER ||--o| STUDENT : "has profile"
-  USER ||--o| TEACHER : "has profile"
-  USER ||--o| PARENT : "has profile"
-  PARENT ||--o{ STUDENT : "guardian of"
-  ACADEMIC_CLASS ||--o{ STUDENT_CLASS_ALLOCATION : "contains"
-  STUDENT ||--o{ STUDENT_CLASS_ALLOCATION : "assigned to"
-  TEACHER ||--o| ACADEMIC_CLASS : "manages as class teacher"
-  TEACHER ||--o{ TEACHER_SUBJECT_ASSIGNMENT : "assigned"
-  SUBJECT ||--o{ TEACHER_SUBJECT_ASSIGNMENT : "taught in"
-  ACADEMIC_CLASS ||--o{ TEACHER_SUBJECT_ASSIGNMENT : "hosts"
-  ACADEMIC_CLASS ||--o{ ATTENDANCE_RECORD : "marked for"
-  TEACHER ||--o{ ATTENDANCE_RECORD : "conducted by"
-  ATTENDANCE_RECORD ||--|{ ATTENDANCE_ENTRY : "details"
-  STUDENT ||--o{ ATTENDANCE_ENTRY : "attendance for"
-  EXAMINATION ||--|{ EXAM_PAPER : "comprises"
-  SUBJECT ||--o{ EXAM_PAPER : "evaluated in"
-  EXAM_PAPER ||--o{ EXAM_RESULT : "records"
-  STUDENT ||--o{ EXAM_RESULT : "scored by"
-  ACADEMIC_CLASS ||--o{ TIMETABLE : "scheduled for"
-  TIMETABLE ||--|{ TIMETABLE_ENTRY : "includes"
-  TIME_SLOT ||--|{ TIMETABLE_ENTRY : "occurs at"
-  SUBJECT ||--o{ TIMETABLE_ENTRY : "subject for"
-  TEACHER ||--o{ TIMETABLE_ENTRY : "instructed by"
-  FEE_STRUCTURE ||--o{ STUDENT_FEE_ACCOUNT : "billed under"
-  STUDENT ||--o{ STUDENT_FEE_ACCOUNT : "owes"
-  STUDENT_FEE_ACCOUNT ||--o{ PAYMENT_SLIP : "paid via"
-  PARENT ||--o{ PAYMENT_SLIP : "submitted by"
-  PAYMENT_SLIP ||--o| PAYMENT_RECEIPT : "generates"
+    USERS ||--o| STUDENTS : "1:1 (user_id FK)"
+    USERS ||--o| TEACHERS : "1:1 (user_id FK)"
+    USERS ||--o| PARENTS : "1:1 (user_id FK)"
+    PARENTS ||--o{ STUDENTS : "1:N (parent_id FK)"
+
+    TEACHERS ||--o| ACADEMIC_CLASSES : "1:1 manages (class_teacher_id FK)"
+    ACADEMIC_CLASSES ||--o{ STUDENT_CLASS_ALLOCATIONS : "1:N (class_id FK)"
+    STUDENTS ||--o{ STUDENT_CLASS_ALLOCATIONS : "1:N (student_id FK)"
+
+    TEACHERS ||--o{ TEACHER_SUBJECT_ASSIGNMENTS : "1:N (teacher_id FK)"
+    SUBJECTS ||--o{ TEACHER_SUBJECT_ASSIGNMENTS : "1:N (subject_id FK)"
+    ACADEMIC_CLASSES ||--o{ TEACHER_SUBJECT_ASSIGNMENTS : "1:N (class_id FK)"
+
+    ACADEMIC_CLASSES ||--o{ ATTENDANCE_RECORDS : "1:N (class_id FK)"
+    TEACHERS ||--o{ ATTENDANCE_RECORDS : "1:N marked_by (teacher_id FK)"
+    ATTENDANCE_RECORDS ||--|{ ATTENDANCE_ENTRIES : "1:N (attendance_record_id FK)"
+    STUDENTS ||--o{ ATTENDANCE_ENTRIES : "1:N (student_id FK)"
+
+    EXAMINATIONS ||--|{ EXAM_PAPERS : "1:N (exam_id FK)"
+    SUBJECTS ||--o{ EXAM_PAPERS : "1:N (subject_id FK)"
+    EXAM_PAPERS ||--|{ EXAM_RESULTS : "1:N (exam_paper_id FK)"
+    STUDENTS ||--o{ EXAM_RESULTS : "1:N (student_id FK)"
+
+    ACADEMIC_CLASSES ||--o{ TIMETABLES : "1:N (class_id FK)"
+    TIMETABLES ||--|{ TIMETABLE_ENTRIES : "1:N (timetable_id FK)"
+    TIME_SLOTS ||--|{ TIMETABLE_ENTRIES : "1:N (time_slot_id FK)"
+    SUBJECTS ||--o{ TIMETABLE_ENTRIES : "1:N (subject_id FK)"
+    TEACHERS ||--o{ TIMETABLE_ENTRIES : "1:N (teacher_id FK)"
+
+    FEE_STRUCTURES ||--o{ STUDENT_FEE_ACCOUNTS : "1:N (fee_structure_id FK)"
+    STUDENTS ||--o{ STUDENT_FEE_ACCOUNTS : "1:N (student_id FK)"
+    STUDENT_FEE_ACCOUNTS ||--o{ PAYMENT_SLIP : "1:N (fee_account_id FK)"
+    PARENTS ||--o{ PAYMENT_SLIP : "1:N (parent_id FK)"
+    PAYMENT_SLIP ||--o| PAYMENT_RECEIPTS : "1:1 (payment_slip_id FK)"
 ```
 
 ---
 
-## 2. Module Ownership & Cross-Component Connections
+## 2. Foreign Key Direction & Pointer Matrix
+
+This matrix explicitly shows each Foreign Key, which child table holds it, and which parent table/column it points to:
+
+| # | Child Table | Foreign Key Column | Cardinality | Parent Table Pointed To | Target Primary Key | Module Owner |
+| :- | :--- | :--- | :---: | :--- | :--- | :--- |
+| 1 | `parents` | `user_id` | `1:1` | `users` | `users.id` | Shared Core |
+| 2 | `teachers` | `user_id` | `1:1` | `users` | `users.id` | UC-02 (IT25102861) |
+| 3 | `students` | `user_id` | `1:1` | `users` | `users.id` | UC-01 (IT25100975) |
+| 4 | `students` | `parent_id` | `N:1` | `parents` | `parents.id` | UC-01 (IT25100975) |
+| 5 | `academic_classes` | `class_teacher_id`| `N:1` | `teachers` | `teachers.id` | UC-01 (IT25100975) |
+| 6 | `student_class_allocations` | `student_id` | `N:1` | `students` | `students.id` | UC-01 (IT25100975) |
+| 7 | `student_class_allocations` | `class_id` | `N:1` | `academic_classes` | `academic_classes.id` | UC-01 (IT25100975) |
+| 8 | `teacher_subject_assignments` | `teacher_id` | `N:1` | `teachers` | `teachers.id` | UC-02 (IT25102861) |
+| 9 | `teacher_subject_assignments` | `subject_id` | `N:1` | `subjects` | `subjects.id` | UC-02 (IT25102861) |
+| 10 | `teacher_subject_assignments` | `class_id` | `N:1` | `academic_classes` | `academic_classes.id` | UC-02 (IT25102861) |
+| 11 | `attendance_records` | `class_id` | `N:1` | `academic_classes` | `academic_classes.id` | UC-03 (IT25101863) |
+| 12 | `attendance_records` | `teacher_id` | `N:1` | `teachers` | `teachers.id` | UC-03 (IT25101863) |
+| 13 | `attendance_entries` | `attendance_record_id` | `N:1` | `attendance_records` | `attendance_records.id` | UC-03 (IT25101863) |
+| 14 | `attendance_entries` | `student_id` | `N:1` | `students` | `students.id` | UC-03 (IT25101863) |
+| 15 | `exam_papers` | `exam_id` | `N:1` | `examinations` | `examinations.id` | UC-04 (IT25103724) |
+| 16 | `exam_papers` | `subject_id` | `N:1` | `subjects` | `subjects.id` | UC-04 (IT25103724) |
+| 17 | `exam_results` | `exam_paper_id` | `N:1` | `exam_papers` | `exam_papers.id` | UC-04 (IT25103724) |
+| 18 | `exam_results` | `student_id` | `N:1` | `students` | `students.id` | UC-04 (IT25103724) |
+| 19 | `timetables` | `class_id` | `N:1` | `academic_classes` | `academic_classes.id` | UC-05 (IT25101913) |
+| 20 | `timetable_entries` | `timetable_id` | `N:1` | `timetables` | `timetables.id` | UC-05 (IT25101913) |
+| 21 | `timetable_entries` | `time_slot_id` | `N:1` | `time_slots` | `time_slots.id` | UC-05 (IT25101913) |
+| 22 | `timetable_entries` | `subject_id` | `N:1` | `subjects` | `subjects.id` | UC-05 (IT25101913) |
+| 23 | `timetable_entries` | `teacher_id` | `N:1` | `teachers` | `teachers.id` | UC-05 (IT25101913) |
+| 24 | `student_fee_accounts` | `student_id` | `N:1` | `students` | `students.id` | UC-06 (IT25103710) |
+| 25 | `student_fee_accounts` | `fee_structure_id` | `N:1` | `fee_structures` | `fee_structures.id` | UC-06 (IT25103710) |
+| 26 | `payment_slips` | `fee_account_id` | `N:1` | `student_fee_accounts` | `student_fee_accounts.id` | UC-06 (IT25103710) |
+| 27 | `payment_slips` | `parent_id` | `N:1` | `parents` | `parents.id` | UC-06 (IT25103710) |
+| 28 | `payment_slips` | `reviewed_by` | `N:1` | `users` | `users.id` | UC-06 (IT25103710) |
+| 29 | `payment_receipts` | `payment_slip_id` | `1:1` | `payment_slips` | `payment_slips.id` | UC-06 (IT25103710) |
+
+---
+
+## 3. Module Ownership & Cross-Component Connections
 
 Notice how the 6 members' entities connect into a single unified database:
 
@@ -291,3 +336,4 @@ flowchart TD
     - `issuedDate`: `LocalDateTime`
     - `receiptType`: `ReceiptType` (`FULL`, `PARTIAL`)
     - `amount`: `BigDecimal`
+

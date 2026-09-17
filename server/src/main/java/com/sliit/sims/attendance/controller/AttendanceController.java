@@ -1,0 +1,44 @@
+package com.sliit.sims.attendance.controller;
+
+import com.sliit.sims.attendance.dto.*;
+import com.sliit.sims.attendance.service.AttendanceService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+
+@RestController
+@RequestMapping("/api/v1/attendance")
+@RequiredArgsConstructor
+@CrossOrigin(origins = "*")
+public class AttendanceController {
+
+    private final AttendanceService attendanceService;
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public AttendanceRecordResponse submit(@Valid @RequestBody AttendanceBatchSubmitRequest req) {
+        return attendanceService.submitAttendance(req);
+    }
+
+    @GetMapping("/class/{classId}")
+    public AttendanceRecordResponse getClassAttendance(
+            @PathVariable Long classId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return attendanceService.getClassAttendance(classId, date);
+    }
+
+    @GetMapping("/student/{studentId}/summary")
+    public StudentAttendanceSummaryResponse getStudentSummary(@PathVariable Long studentId) {
+        return attendanceService.getStudentAttendanceSummary(studentId);
+    }
+
+    @PatchMapping("/{id}/lock")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void lock(@PathVariable Long id) {
+        attendanceService.lockAttendance(id);
+    }
+}
