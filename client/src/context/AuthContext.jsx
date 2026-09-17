@@ -9,8 +9,13 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token) {
-      setUser({ token });
+    const storedUser = localStorage.getItem('user');
+    if (token && storedUser) {
+      try {
+        setUser({ token, ...JSON.parse(storedUser) });
+      } catch (e) {
+        setUser({ token });
+      }
     }
     setLoading(false);
   }, []);
@@ -18,9 +23,11 @@ export const AuthProvider = ({ children }) => {
   const login = async (username, password) => {
     try {
       const response = await api.post('/auth/login', { username, password });
-      const { token } = response.data;
+      const { token, role, email, userId } = response.data;
+      const userData = { username, role, email, userId };
       localStorage.setItem('token', token);
-      setUser({ token });
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser({ token, ...userData });
       return true;
     } catch (error) {
       console.error('Login failed:', error);
@@ -30,6 +37,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setUser(null);
   };
 
