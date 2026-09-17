@@ -1,41 +1,72 @@
 import React, { useState, useEffect } from 'react';
+import Modal from '../components/Modal';
 import api from '../api/axios';
 
 const Timetable = () => {
   const [classes, setClasses] = useState([]);
   const [selectedClassId, setSelectedClassId] = useState('');
+  const [currentTimetable, setCurrentTimetable] = useState(null);
   const [entries, setEntries] = useState([]);
+  const [slots, setSlots] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  const [teachers, setTeachers] = useState([]);
+
   const [subjectsMap, setSubjectsMap] = useState({});
   const [teachersMap, setTeachersMap] = useState({});
   const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  // Modals
+  const [isEntryModalOpen, setIsEntryModalOpen] = useState(false);
+  const [entryForm, setEntryForm] = useState({
+    dayOfWeek: 'MONDAY',
+    periodNumber: 1,
+    subjectId: '',
+    teacherId: '',
+    roomNumber: 'Room 101',
+  });
 
   const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'];
   const periods = [1, 2, 3, 4, 5, 6, 7, 8];
 
+  const flash = (msg) => {
+    setSuccess(msg);
+    setError('');
+    setTimeout(() => setSuccess(''), 4000);
+  };
+
   useEffect(() => {
-    const fetchDropdowns = async () => {
+    const fetchDependencies = async () => {
       try {
-        const [cRes, sRes, tRes] = await Promise.all([
+        const [cRes, sRes, tRes, slotRes] = await Promise.all([
           api.get('/students/classes').catch(() => ({ data: [] })),
           api.get('/teachers/subjects').catch(() => ({ data: [] })),
           api.get('/teachers').catch(() => ({ data: [] })),
+          api.get('/timetables/slots').catch(() => ({ data: [] })),
         ]);
 
         const cl = cRes.data || [];
+        const sl = sRes.data || [];
+        const tl = tRes.data || [];
+        const slotList = slotRes.data || [];
+
         setClasses(cl);
-        if (cl.length > 0) {
-          setSelectedClassId(cl[0].id);
-        }
+        setSubjects(sl);
+        setTeachers(tl);
+        setSlots(slotList);
+
+        if (cl.length > 0) setSelectedClassId(cl[0].id);
 
         const sMap = {};
-        (sRes.data || []).forEach((s) => {
+        sl.forEach((s) => {
           sMap[s.id] = s.subjectName || s.name || `Subject #${s.id}`;
         });
         setSubjectsMap(sMap);
 
         const tMap = {};
-        (tRes.data || []).forEach((t) => {
+        tl.forEach((t) => {
           tMap[t.id] = `${t.firstName} ${t.lastName}`;
         });
         setTeachersMap(tMap);
@@ -44,7 +75,7 @@ const Timetable = () => {
       }
     };
 
-    fetchDropdowns();
+    fetchDependencies();
   }, []);
 
   const fetchTimetable = async (classId) => {
@@ -55,13 +86,16 @@ const Timetable = () => {
       const res = await api.get(`/timetables/class/${classId}`);
       const timetableList = res.data || [];
       if (timetableList.length > 0) {
+        setCurrentTimetable(timetableList[0]);
         setEntries(timetableList[0].entries || []);
       } else {
+        setCurrentTimetable(null);
         setEntries([]);
       }
     } catch (err) {
       console.error('Failed to load timetable for class:', err);
       setError('Could not retrieve timetable for this class.');
+      setCurrentTimetable(null);
       setEntries([]);
     } finally {
       setLoading(false);
@@ -74,6 +108,89 @@ const Timetable = () => {
     }
   }, [selectedClassId]);
 
+  // 1. CREATE Timetable if not initialized
+  const handleCreateTimetable = async () => {
+    try {
+      setSubmitting(true);
+      setError('');
+      const res = await api.post('/timetables', {
+        classId: Number(selectedClassId),
+        academicYear: new Date().getFullYear(),
+        term: 1,
+      });
+      flash('Timetable initialized successfully!');
+      fetchTimetable(selectedClassId);
+    } catch (err) {
+      setError('Failed to initialize timetable.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // 2. OPEN ADD ENTRY MODAL
+  const openAddEntryModal = (day = 'MONDAY', period = 1) => {
+    if (!currentTimetable) {
+      setError('Please initialize a timetable for this class first.');
+      return;
+    }
+    setEntryForm({
+      dayOfWeek: day,
+      periodNumber: period,
+      subjectId: subjects.length > 0 ? subjects[0].id : '',
+      teacherId: teachers.length > 0 ? teachers[0].id : '',
+      roomNumber: 'Room 101',
+    });
+    setError('');
+    setIsEntryModalOpen(true);
+  };
+
+  // 3. SUBMIT ENTRY (CREATE)
+  const handleEntrySubmit = async (e) => {
+    e.preventDefault();
+    if (!currentTimetable) return;
+
+    // Find corresponding timeSlotId from slots
+    const targetSlot = slots.find(
+      (s) => s.dayOfWeek === entryForm.dayOfWeek && s.periodNumber === Number(entryForm.periodNumber)
+    );
+
+    if (!targetSlot) {
+      setError(`Slot definition not found for ${entryForm.dayOfWeek} Period ${entryForm.periodNumber}.`);
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setError('');
+      await api.post(`/timetables/${currentTimetable.id}/entries`, {
+        timeSlotId: targetSlot.id,
+        subjectId: Number(entryForm.subjectId),
+        teacherId: Number(entryForm.teacherId),
+        roomNumber: entryForm.roomNumber.trim() || 'Room 101',
+      });
+      flash(`Period ${entryForm.periodNumber} assigned successfully!`);
+      setIsEntryModalOpen(false);
+      fetchTimetable(selectedClassId);
+    } catch (err) {
+      setError(err.response?.data?.message || err.response?.data?.error || 'Failed to add schedule entry.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // 4. DELETE ENTRY (DELETE)
+  const handleDeleteEntry = async (entryId, day, period) => {
+    if (!currentTimetable) return;
+    if (!window.confirm(`Delete entry for ${day} Period ${period}?`)) return;
+    try {
+      await api.delete(`/timetables/${currentTimetable.id}/entries/${entryId}`);
+      flash(`Entry removed.`);
+      fetchTimetable(selectedClassId);
+    } catch (err) {
+      setError('Failed to delete schedule entry.');
+    }
+  };
+
   // Build lookup index: "DAY-PERIOD" -> entry
   const scheduleLookup = {};
   entries.forEach((entry) => {
@@ -83,10 +200,10 @@ const Timetable = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Class Timetable</h2>
-          <p className="text-sm text-gray-500 mt-1">Weekly schedule of periods, rooms, and subject allocations</p>
+          <h2 className="text-2xl font-bold text-gray-800">Timetable & Academic Scheduling</h2>
+          <p className="text-sm text-gray-500 mt-1">Manage weekly periods, rooms, teacher assignments, and schedule entries</p>
         </div>
         <div className="flex items-center space-x-3">
           <label className="text-sm font-medium text-gray-700">Class:</label>
@@ -101,66 +218,190 @@ const Timetable = () => {
               </option>
             ))}
           </select>
+          {currentTimetable && (
+            <button
+              onClick={() => openAddEntryModal()}
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-md shadow-sm transition-colors"
+            >
+              + Add Period Entry
+            </button>
+          )}
         </div>
       </div>
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
-          {error}
+      {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">{error}</div>}
+      {success && <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-md text-sm">{success}</div>}
+
+      {!currentTimetable && !loading && (
+        <div className="bg-white rounded-lg shadow-sm p-8 text-center border border-gray-100 mb-6">
+          <p className="text-gray-600 mb-4">No active timetable found for this class in Academic Year 2026.</p>
+          <button
+            onClick={handleCreateTimetable}
+            disabled={submitting}
+            className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm font-medium shadow-sm"
+          >
+            {submitting ? 'Initializing...' : '+ Initialize Class Timetable'}
+          </button>
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow-sm overflow-x-auto border border-gray-100">
-        {loading ? (
-          <div className="py-16 text-center text-gray-500">Loading schedule...</div>
-        ) : (
-          <table className="min-w-full divide-y divide-gray-200 border-collapse">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 border text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Day / Period
-                </th>
-                {periods.map((p) => (
-                  <th key={p} className="px-3 py-3 border text-center text-xs font-semibold text-gray-600 uppercase">
-                    Period {p}
+      {currentTimetable && (
+        <div className="bg-white rounded-lg shadow-sm overflow-x-auto border border-gray-100">
+          {loading ? (
+            <div className="py-16 text-center text-gray-500">Loading schedule...</div>
+          ) : (
+            <table className="min-w-full divide-y divide-gray-200 border-collapse">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 border text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Day / Period
                   </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {days.map((day) => (
-                <tr key={day}>
-                  <td className="px-4 py-3 border text-xs font-bold text-gray-900 bg-gray-50 uppercase">
-                    {day}
-                  </td>
-                  {periods.map((p) => {
-                    const cell = scheduleLookup[`${day}-${p}`];
-                    return (
-                      <td key={p} className="px-2 py-2 border text-center min-w-[130px] align-top">
-                        {cell ? (
-                          <div className="p-2 bg-indigo-50 rounded border border-indigo-100 text-left">
-                            <div className="font-bold text-indigo-800 text-xs truncate">
-                              {subjectsMap[cell.subjectId] || `Subject #${cell.subjectId}`}
-                            </div>
-                            <div className="text-gray-600 text-[11px] truncate mt-0.5">
-                              {teachersMap[cell.teacherId] || `Teacher #${cell.teacherId}`}
-                            </div>
-                            <div className="text-gray-400 text-[10px] mt-0.5">
-                              Room {cell.roomNumber || 'TBD'}
-                            </div>
-                          </div>
-                        ) : (
-                          <span className="text-gray-300 text-sm">-</span>
-                        )}
-                      </td>
-                    );
-                  })}
+                  {periods.map((p) => (
+                    <th key={p} className="px-3 py-3 border text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Period {p}
+                    </th>
+                  ))}
                 </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {days.map((day) => (
+                  <tr key={day} className="hover:bg-gray-50/50">
+                    <td className="px-4 py-3 border font-semibold text-gray-700 text-xs bg-gray-50 whitespace-nowrap">
+                      {day}
+                    </td>
+                    {periods.map((period) => {
+                      const entry = scheduleLookup[`${day}-${period}`];
+                      return (
+                        <td key={period} className="px-2 py-2 border text-center align-top min-w-[130px] h-[90px] group relative">
+                          {entry ? (
+                            <div className="h-full flex flex-col justify-between p-1.5 bg-indigo-50 border border-indigo-100 rounded text-left">
+                              <div>
+                                <div className="font-semibold text-indigo-900 text-xs leading-tight">
+                                  {subjectsMap[entry.subjectId] || `Subj #${entry.subjectId}`}
+                                </div>
+                                <div className="text-[11px] text-gray-600 mt-1">
+                                  {teachersMap[entry.teacherId] || `Teacher #${entry.teacherId}`}
+                                </div>
+                              </div>
+                              <div className="flex justify-between items-center mt-2 pt-1 border-t border-indigo-200/50 text-[10px]">
+                                <span className="font-mono text-gray-500">{entry.roomNumber || 'Room 101'}</span>
+                                <button
+                                  onClick={() => handleDeleteEntry(entry.id, day, period)}
+                                  className="text-red-500 hover:text-red-700 font-bold px-1"
+                                  title="Delete Entry"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => openAddEntryModal(day, period)}
+                              className="w-full h-full border border-dashed border-gray-200 rounded flex items-center justify-center text-gray-300 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50/30 transition-colors text-xs"
+                            >
+                              + Assign
+                            </button>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+
+      {/* ── MODAL: Add Schedule Entry ── */}
+      <Modal isOpen={isEntryModalOpen} onClose={() => setIsEntryModalOpen(false)} title="Assign Timetable Period">
+        <form onSubmit={handleEntrySubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Day of Week <span className="text-red-500">*</span></label>
+              <select
+                value={entryForm.dayOfWeek}
+                onChange={(e) => setEntryForm({ ...entryForm, dayOfWeek: e.target.value })}
+                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                {days.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Period Number <span className="text-red-500">*</span></label>
+              <select
+                value={entryForm.periodNumber}
+                onChange={(e) => setEntryForm({ ...entryForm, periodNumber: Number(e.target.value) })}
+                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                {periods.map(p => <option key={p} value={p}>Period {p}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Subject <span className="text-red-500">*</span></label>
+            <select
+              required
+              value={entryForm.subjectId}
+              onChange={(e) => setEntryForm({ ...entryForm, subjectId: e.target.value })}
+              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="">-- Select Subject --</option>
+              {subjects.map(s => (
+                <option key={s.id} value={s.id}>
+                  {s.subjectCode} - {s.subjectName} (Grade {s.gradeLevel})
+                </option>
               ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Teacher <span className="text-red-500">*</span></label>
+            <select
+              required
+              value={entryForm.teacherId}
+              onChange={(e) => setEntryForm({ ...entryForm, teacherId: e.target.value })}
+              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="">-- Select Teacher --</option>
+              {teachers.map(t => (
+                <option key={t.id} value={t.id}>
+                  {t.firstName} {t.lastName} ({t.employeeNumber})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Room Number</label>
+            <input
+              type="text"
+              placeholder="e.g. Science Lab 2"
+              value={entryForm.roomNumber}
+              onChange={(e) => setEntryForm({ ...entryForm, roomNumber: e.target.value })}
+              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div className="flex justify-end pt-4 border-t space-x-3">
+            <button
+              type="button"
+              onClick={() => setIsEntryModalOpen(false)}
+              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 text-sm font-medium"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm font-medium disabled:opacity-50"
+            >
+              {submitting ? 'Saving...' : 'Assign Period'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };

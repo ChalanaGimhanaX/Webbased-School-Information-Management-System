@@ -10,6 +10,7 @@ const navItems = [
   { name: 'Exams', path: '/exams', roles: ['ADMIN', 'HEAD_OF_ACADEMIC', 'TEACHER', 'STUDENT', 'PARENT'] },
   { name: 'Timetable', path: '/timetable', roles: ['ADMIN', 'HEAD_OF_ACADEMIC', 'TEACHER', 'STUDENT', 'PARENT'] },
   { name: 'Fees', path: '/fees', roles: ['ADMIN', 'STUDENT', 'PARENT'] }, // Head of Academic is restricted from finance
+  { name: 'Reports', path: '/reports', roles: ['ADMIN', 'HEAD_OF_ACADEMIC', 'TEACHER'] },
 ];
 
 const roleLabels = {
