@@ -17,6 +17,7 @@ const Timetable = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [modalError, setModalError] = useState('');
 
   // Modals
   const [isEntryModalOpen, setIsEntryModalOpen] = useState(false);
@@ -141,6 +142,7 @@ const Timetable = () => {
       roomNumber: 'Room 101',
     });
     setError('');
+    setModalError('');
     setIsEntryModalOpen(true);
   };
 
@@ -162,6 +164,7 @@ const Timetable = () => {
     try {
       setSubmitting(true);
       setError('');
+      setModalError('');
       await api.post(`/timetables/${currentTimetable.id}/entries`, {
         timeSlotId: targetSlot.id,
         subjectId: Number(entryForm.subjectId),
@@ -172,7 +175,9 @@ const Timetable = () => {
       setIsEntryModalOpen(false);
       fetchTimetable(selectedClassId);
     } catch (err) {
-      setError(err.response?.data?.message || err.response?.data?.error || 'Failed to add schedule entry.');
+      const conflictMsg = err.response?.data?.detail || err.response?.data?.message || err.response?.data?.error || 'Failed to add schedule entry.';
+      setModalError(conflictMsg);
+      setError(conflictMsg);
     } finally {
       setSubmitting(false);
     }
@@ -383,6 +388,16 @@ const Timetable = () => {
               className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
+
+          {modalError && (
+            <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-xs font-semibold flex items-start gap-2">
+              <span className="text-base leading-none">⚠️</span>
+              <div className="flex-1">
+                <span className="font-bold block mb-0.5">Scheduling Conflict:</span>
+                <span>{modalError}</span>
+              </div>
+            </div>
+          )}
 
           <div className="flex justify-end pt-4 border-t space-x-3">
             <button
