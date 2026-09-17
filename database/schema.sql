@@ -1,5 +1,5 @@
 -- =====================================================================
--- SLIIT SE2030 - Software Engineering (Year 2, Semester 1 - 2026)
+-- SE2030 - Software Engineering (Year 2, Semester 1 - 2026)
 -- Project: Web-based School Information Management System (SIMS)
 -- Group: 2026 - Y2 - S1 - MLB - B3G2 - 01
 -- Description: Complete Relational Database Schema with Explicit Foreign Keys

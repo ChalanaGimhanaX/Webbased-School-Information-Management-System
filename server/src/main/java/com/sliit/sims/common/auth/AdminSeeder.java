@@ -23,35 +23,35 @@ public class AdminSeeder implements CommandLineRunner {
 
         userRepository.save(User.builder()
                 .username("admin")
-                .email("admin@sliit.lk")
+                .email("admin@wycherley.edu")
                 .passwordHash(passwordEncoder.encode("admin123"))
                 .role(Role.ADMIN)
                 .build());
 
         userRepository.save(User.builder()
                 .username("teacher1")
-                .email("teacher1@sliit.lk")
+                .email("teacher1@wycherley.edu")
                 .passwordHash(passwordEncoder.encode("teacher123"))
                 .role(Role.TEACHER)
                 .build());
 
         userRepository.save(User.builder()
                 .username("student1")
-                .email("student1@sliit.lk")
+                .email("student1@wycherley.edu")
                 .passwordHash(passwordEncoder.encode("student123"))
                 .role(Role.STUDENT)
                 .build());
 
         userRepository.save(User.builder()
                 .username("head_academic")
-                .email("academic@sliit.lk")
+                .email("academic@wycherley.edu")
                 .passwordHash(passwordEncoder.encode("academic123"))
                 .role(Role.HEAD_OF_ACADEMIC)
                 .build());
 
         userRepository.save(User.builder()
                 .username("parent1")
-                .email("parent1@sliit.lk")
+                .email("parent1@wycherley.edu")
                 .passwordHash(passwordEncoder.encode("parent123"))
                 .role(Role.PARENT)
                 .build());
