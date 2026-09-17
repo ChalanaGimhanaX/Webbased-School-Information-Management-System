@@ -255,7 +255,7 @@ CREATE TABLE timetable_entries (
 CREATE TABLE fee_structures (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     fee_type ENUM('TUITION', 'FACILITY', 'EXAMINATION', 'LIBRARY') NOT NULL,
-    grade_level INT NOT NULL,
+    grade_level INT,
     amount DECIMAL(10,2) NOT NULL,
     academic_year INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -279,16 +279,15 @@ CREATE TABLE student_fee_accounts (
 CREATE TABLE payment_slips (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     fee_account_id BIGINT NOT NULL,
-    parent_id BIGINT NOT NULL,
-    slip_image_url VARCHAR(255) NOT NULL,
+    parent_id BIGINT,
+    slip_image_url VARCHAR(500),
     amount_paid DECIMAL(10,2) NOT NULL,
     verification_status ENUM('PENDING', 'APPROVED', 'REJECTED') DEFAULT 'PENDING',
-    reviewed_by BIGINT,
+    reviewed_by VARCHAR(100),
     remarks VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_slip_account FOREIGN KEY (fee_account_id) REFERENCES student_fee_accounts(id) ON DELETE CASCADE,
-    CONSTRAINT fk_slip_parent FOREIGN KEY (parent_id) REFERENCES parents(id) ON DELETE RESTRICT,
-    CONSTRAINT fk_slip_reviewer FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL
+    CONSTRAINT fk_slip_parent FOREIGN KEY (parent_id) REFERENCES parents(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE payment_receipts (
