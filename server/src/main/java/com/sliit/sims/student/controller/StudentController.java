@@ -51,4 +51,25 @@ public class StudentController {
         int targetYear = year != null ? year : LocalDate.now().getYear();
         return studentService.getAllClasses(targetYear);
     }
+
+    @GetMapping
+    public List<StudentResponse> getAll() {
+        return studentService.getAllStudents();
+    }
+
+    @PutMapping("/{id}")
+    public StudentResponse update(@PathVariable Long id, @Valid @RequestBody StudentUpdateRequest req) {
+        return studentService.updateStudent(id, req);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        studentService.deleteStudent(id);
+    }
+
+    @GetMapping("/search")
+    public StudentResponse search(@RequestParam String admission) {
+        return studentService.searchByAdmissionNumber(admission);
+    }
 }

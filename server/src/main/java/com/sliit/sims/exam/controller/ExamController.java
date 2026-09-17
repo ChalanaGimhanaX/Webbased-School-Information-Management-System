@@ -47,4 +47,24 @@ public class ExamController {
     public StudentExamReportResponse getStudentReport(@PathVariable Long studentId, @PathVariable Long examId) {
         return examService.getStudentExamReport(studentId, examId);
     }
+
+    @GetMapping
+    public List<ExaminationResponse> getAll() {
+        return examService.getAllExams();
+    }
+
+    @GetMapping("/{id}")
+    public ExaminationResponse getById(@PathVariable Long id) {
+        return examService.getExamById(id);
+    }
+
+    @GetMapping("/{id}/papers")
+    public List<ExamPaperResponse> getExamPapers(@PathVariable Long id) {
+        return examService.getExamPapers(id);
+    }
+
+    @GetMapping("/papers/{paperId}/results")
+    public List<ExamResultResponse> getPaperResults(@PathVariable Long paperId) {
+        return examService.getExamPaperResults(paperId);
+    }
 }

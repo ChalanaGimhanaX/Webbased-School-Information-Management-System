@@ -100,4 +100,26 @@ public class AttendanceService {
                 dtos
         );
     }
+
+    public ClassAttendanceSummaryResponse getClassAttendanceSummary(Long classId, LocalDate date) {
+        AttendanceRecord record = recordRepository.findByClassIdAndAttendanceDate(classId, date)
+                .orElseThrow(() -> new ResourceNotFoundException("No attendance recorded for class " + classId + " on " + date));
+        
+        long total = record.getEntries().size();
+        long present = record.getEntries().stream().filter(e -> e.getStatus() == AttendanceStatus.PRESENT).count();
+        long absent = record.getEntries().stream().filter(e -> e.getStatus() == AttendanceStatus.ABSENT).count();
+        long late = record.getEntries().stream().filter(e -> e.getStatus() == AttendanceStatus.LATE).count();
+
+        return new ClassAttendanceSummaryResponse(classId, date, total, present, absent, late);
+    }
+
+    public StudentAttendanceSummaryResponse getStudentAttendanceSummaryByRange(Long studentId, LocalDate from, LocalDate to) {
+        long total = entryRepository.countByStudentIdAndDateRange(studentId, from, to);
+        long present = entryRepository.countByStudentIdAndStatusAndDateRange(studentId, AttendanceStatus.PRESENT, from, to);
+        long absent = entryRepository.countByStudentIdAndStatusAndDateRange(studentId, AttendanceStatus.ABSENT, from, to);
+        long late = entryRepository.countByStudentIdAndStatusAndDateRange(studentId, AttendanceStatus.LATE, from, to);
+
+        double pct = total > 0 ? ((double) (present + late) / total) * 100.0 : 0.0;
+        return new StudentAttendanceSummaryResponse(studentId, total, present, absent, late, Math.round(pct * 100.0) / 100.0);
+    }
 }

@@ -41,4 +41,19 @@ public class AttendanceController {
     public void lock(@PathVariable Long id) {
         attendanceService.lockAttendance(id);
     }
+
+    @GetMapping("/student/{studentId}/range")
+    public StudentAttendanceSummaryResponse getStudentSummaryRange(
+            @PathVariable Long studentId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        return attendanceService.getStudentAttendanceSummaryByRange(studentId, from, to);
+    }
+
+    @GetMapping("/class/{classId}/summary")
+    public ClassAttendanceSummaryResponse getClassSummary(
+            @PathVariable Long classId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return attendanceService.getClassAttendanceSummary(classId, date);
+    }
 }

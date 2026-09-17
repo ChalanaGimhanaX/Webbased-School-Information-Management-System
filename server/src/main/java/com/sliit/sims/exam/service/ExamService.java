@@ -126,6 +126,7 @@ public class ExamService {
 
     private String calculateGrade(BigDecimal marks) {
         double m = marks.doubleValue();
+        if (m >= 90.0) return "A+";
         if (m >= 75.0) return "A";
         if (m >= 65.0) return "B";
         if (m >= 50.0) return "C";
@@ -142,5 +143,29 @@ public class ExamService {
                 r.getGrade(),
                 r.getIsPublished()
         );
+    }
+
+    public List<ExaminationResponse> getAllExams() {
+        return examRepository.findAll().stream()
+                .map(e -> new ExaminationResponse(e.getId(), e.getExamName(), e.getTerm(), e.getAcademicYear(), e.getStatus()))
+                .toList();
+    }
+
+    public ExaminationResponse getExamById(Long id) {
+        Examination e = examRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Examination not found: " + id));
+        return new ExaminationResponse(e.getId(), e.getExamName(), e.getTerm(), e.getAcademicYear(), e.getStatus());
+    }
+
+    public List<ExamPaperResponse> getExamPapers(Long examId) {
+        return paperRepository.findByExamId(examId).stream()
+                .map(p -> new ExamPaperResponse(p.getId(), p.getExamId(), p.getSubjectId(), p.getGradeLevel(), p.getMaxMarks()))
+                .toList();
+    }
+
+    public List<ExamResultResponse> getExamPaperResults(Long paperId) {
+        return resultRepository.findByExamPaperId(paperId).stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 }

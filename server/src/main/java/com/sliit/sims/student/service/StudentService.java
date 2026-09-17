@@ -132,4 +132,45 @@ public class StudentService {
                 })
                 .toList();
     }
+
+    public List<StudentResponse> getAllStudents() {
+        return studentRepository.findAll().stream()
+                .map(s -> {
+                    int currentYear = LocalDate.now().getYear();
+                    var allocOpt = allocationRepository.findByStudentIdAndAcademicYearAndStatus(s.getId(), currentYear, AllocationStatus.ACTIVE);
+                    String className = allocOpt.map(a -> a.getAcademicClass().getClassName()).orElse("Unallocated");
+                    Integer grade = allocOpt.map(a -> a.getAcademicClass().getGradeLevel()).orElse(null);
+                    return new StudentResponse(s.getId(), s.getAdmissionNumber(), s.getFirstName(), s.getLastName(), s.getDob(), s.getGender().name(), s.getParentId(), className, grade);
+                })
+                .toList();
+    }
+
+    @Transactional
+    public StudentResponse updateStudent(Long id, StudentUpdateRequest req) {
+        Student student = studentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Student not found: " + id));
+        
+        student.setFirstName(req.firstName().trim());
+        student.setLastName(req.lastName().trim());
+        student.setDob(req.dob());
+        student.setGender(req.gender());
+        student.setParentId(req.parentId());
+        
+        studentRepository.save(student);
+        return getStudentById(id);
+    }
+
+    @Transactional
+    public void deleteStudent(Long id) {
+        if (!studentRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Student not found: " + id);
+        }
+        studentRepository.deleteById(id);
+    }
+
+    public StudentResponse searchByAdmissionNumber(String admissionNumber) {
+        Student s = studentRepository.findByAdmissionNumber(admissionNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("Student not found with admission number: " + admissionNumber));
+        return getStudentById(s.getId());
+    }
 }

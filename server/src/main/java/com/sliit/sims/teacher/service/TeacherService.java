@@ -122,4 +122,48 @@ public class TeacherService {
                 t.getHireDate()
         );
     }
+
+    @Transactional
+    public TeacherResponse updateTeacher(Long id, TeacherUpdateRequest req) {
+        Teacher teacher = teacherRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Teacher not found: " + id));
+        
+        teacher.setFirstName(req.firstName().trim());
+        teacher.setLastName(req.lastName().trim());
+        teacher.setQualification(req.qualification());
+        teacher.setPhone(req.phone());
+        teacher.setHireDate(req.hireDate());
+        
+        return mapToResponse(teacherRepository.save(teacher));
+    }
+
+    @Transactional
+    public void deleteTeacher(Long id) {
+        if (!teacherRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Teacher not found: " + id);
+        }
+        teacherRepository.deleteById(id);
+    }
+
+    public TeacherResponse searchByEmployeeNumber(String employeeNumber) {
+        return teacherRepository.findByEmployeeNumber(employeeNumber)
+                .map(this::mapToResponse)
+                .orElseThrow(() -> new ResourceNotFoundException("Teacher not found with employee number: " + employeeNumber));
+    }
+
+    public List<TeacherAssignmentResponse> getTeacherAssignments(Long id) {
+        if (!teacherRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Teacher not found: " + id);
+        }
+        int currentYear = java.time.LocalDate.now().getYear();
+        return assignmentRepository.findByTeacherIdAndAcademicYear(id, currentYear).stream()
+                .map(a -> new TeacherAssignmentResponse(a.getId(), a.getTeacher().getId(), a.getSubject().getId(), a.getSubject().getSubjectName(), a.getClassId(), a.getAcademicYear()))
+                .toList();
+    }
+
+    public List<SubjectResponse> getSubjectsByGrade(Integer gradeLevel) {
+        return subjectRepository.findByGradeLevel(gradeLevel).stream()
+                .map(s -> new SubjectResponse(s.getId(), s.getSubjectCode(), s.getSubjectName(), s.getGradeLevel()))
+                .toList();
+    }
 }

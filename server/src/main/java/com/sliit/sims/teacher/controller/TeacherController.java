@@ -52,7 +52,31 @@ public class TeacherController {
     }
 
     @GetMapping("/subjects")
-    public List<SubjectResponse> getSubjects() {
+    public List<SubjectResponse> getSubjects(@RequestParam(required = false) Integer grade) {
+        if (grade != null) {
+            return teacherService.getSubjectsByGrade(grade);
+        }
         return teacherService.getAllSubjects();
+    }
+
+    @PutMapping("/{id}")
+    public TeacherResponse update(@PathVariable Long id, @Valid @RequestBody TeacherUpdateRequest req) {
+        return teacherService.updateTeacher(id, req);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        teacherService.deleteTeacher(id);
+    }
+
+    @GetMapping("/search")
+    public TeacherResponse search(@RequestParam String employee) {
+        return teacherService.searchByEmployeeNumber(employee);
+    }
+
+    @GetMapping("/{id}/assignments")
+    public List<TeacherAssignmentResponse> getAssignments(@PathVariable Long id) {
+        return teacherService.getTeacherAssignments(id);
     }
 }
