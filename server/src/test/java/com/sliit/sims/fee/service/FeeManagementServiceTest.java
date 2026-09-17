@@ -169,10 +169,10 @@ class FeeManagementServiceTest {
 
         assertNotNull(receipt);
         assertEquals(new BigDecimal("25000.00"), receipt.getAmountPaid());
-        assertEquals(BigDecimal.ZERO, receipt.getRemainingBalance());
+        assertEquals(0, BigDecimal.ZERO.compareTo(receipt.getRemainingBalance()));
         assertEquals(ReceiptType.FULL, receipt.getReceiptType());
         assertEquals(PaymentStatus.PAID, sampleAccount.getStatus());
-        assertEquals(BigDecimal.ZERO, sampleAccount.getBalanceAmount());
+        assertEquals(0, BigDecimal.ZERO.compareTo(sampleAccount.getBalanceAmount()));
         verify(feeAccountRepository, times(1)).save(sampleAccount);
     }
 
@@ -281,7 +281,7 @@ class FeeManagementServiceTest {
         assertNotNull(response);
         assertEquals(SlipStatus.APPROVED, response.getVerificationStatus());
         assertEquals(PaymentStatus.PAID, sampleAccount.getStatus());
-        assertEquals(BigDecimal.ZERO, sampleAccount.getBalanceAmount());
+        assertEquals(0, BigDecimal.ZERO.compareTo(sampleAccount.getBalanceAmount()));
         verify(paymentReceiptRepository, times(1)).save(any(PaymentReceipt.class));
     }
 
