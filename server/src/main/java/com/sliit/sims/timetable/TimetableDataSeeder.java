@@ -48,28 +48,7 @@ public class TimetableDataSeeder implements CommandLineRunner {
                         .build());
             }
         }
-        List<TimeSlot> savedSlots = timeSlotRepository.saveAll(slots);
-
-        // Seed demo timetable for Class 1 (Grade 10-A, 2026, Term 1)
-        Timetable demoTimetable = timetableRepository.save(Timetable.builder()
-                .classId(1L)
-                .academicYear(2026)
-                .term(1)
-                .status(TimetableStatus.DRAFT)
-                .build());
-
-        // Sample entry: Mon Period 1 - Maths (Subj 101, Teacher 201, Room 10A)
-        TimeSlot monP1 = savedSlots.stream()
-                .filter(s -> s.getDayOfWeek() == DayOfWeek.MONDAY && s.getPeriodNumber() == 1)
-                .findFirst().orElseThrow();
-
-        entryRepository.save(TimetableEntry.builder()
-                .timetable(demoTimetable)
-                .timeSlot(monP1)
-                .subjectId(101L)
-                .teacherId(201L)
-                .roomNumber("ROOM 10A")
-                .build());
+        timeSlotRepository.saveAll(slots);
     }
 }
 
