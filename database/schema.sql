@@ -254,7 +254,7 @@ CREATE TABLE timetable_entries (
 
 CREATE TABLE fee_structures (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    fee_type ENUM('TUITION', 'FACILITY', 'EXAMINATION', 'LIBRARY') NOT NULL,
+    fee_type ENUM('TUITION', 'FACILITY', 'EXAMINATION', 'LIBRARY', 'ADMISSION', 'TRANSPORT', 'ACTIVITY', 'OTHER') NOT NULL,
     grade_level INT,
     amount DECIMAL(10,2) NOT NULL,
     academic_year INT NOT NULL,
