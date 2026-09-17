@@ -65,24 +65,7 @@ const Dashboard = () => {
         ))}
       </div>
 
-      <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">System Operational Status</h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-green-50 rounded-md border border-green-100">
-              <span className="text-sm font-medium text-green-900">Database Connection</span>
-              <span className="text-xs font-semibold px-2 py-0.5 bg-green-200 text-green-800 rounded">MySQL 8.4 Online</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-md border border-blue-100">
-              <span className="text-sm font-medium text-blue-900">REST API Gateway</span>
-              <span className="text-xs font-semibold px-2 py-0.5 bg-blue-200 text-blue-800 rounded">Spring Boot 3.2.3 Healthy</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-purple-50 rounded-md border border-purple-100">
-              <span className="text-sm font-medium text-purple-900">Cloudflare Tunnel</span>
-              <span className="text-xs font-semibold px-2 py-0.5 bg-purple-200 text-purple-800 rounded">Encrypted HTTPS Active</span>
-            </div>
-          </div>
-        </div>
+      <div className="mt-8 grid grid-cols-1 gap-6">
 
         <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Notice Board & Announcements</h3>
