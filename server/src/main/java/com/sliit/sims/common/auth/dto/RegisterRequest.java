@@ -10,3 +10,4 @@ public record RegisterRequest(
         @NotBlank @Size(min = 6) String password,
         String role
 ) {}
+

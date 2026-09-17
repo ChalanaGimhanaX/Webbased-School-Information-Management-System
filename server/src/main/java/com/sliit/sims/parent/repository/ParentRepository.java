@@ -13,3 +13,4 @@ public interface ParentRepository extends JpaRepository<Parent, Long> {
 
     boolean existsByNic(String nic);
 }
+

@@ -57,3 +57,4 @@ public class AuthService {
                 user.getRole().name(), user.getId());
     }
 }
+

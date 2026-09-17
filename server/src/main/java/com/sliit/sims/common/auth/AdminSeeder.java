@@ -43,3 +43,4 @@ public class AdminSeeder implements CommandLineRunner {
                 .build());
     }
 }
+

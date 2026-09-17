@@ -56,3 +56,4 @@ public class JwtTokenProvider {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
     }
 }
+

@@ -7,3 +7,4 @@ public record AuthResponse(
         String role,
         Long userId
 ) {}
+
