@@ -168,4 +168,89 @@ public class ExamService {
                 .map(this::mapToResponse)
                 .toList();
     }
+
+    public ExamAnalyticsResponse getExamAnalytics(Long examId) {
+        List<ExamResult> results = resultRepository.findAllByExamId(examId);
+
+        int totalEntries = results.size();
+        if (totalEntries == 0) {
+            return new ExamAnalyticsResponse(0, 0, 0.0, 0.0, 0, 0.0, null, 0.0, 
+                    java.util.Map.of(), java.util.Map.of(), java.util.Map.of(), java.util.List.of());
+        }
+
+        long evaluatedCandidates = results.stream().map(ExamResult::getStudentId).distinct().count();
+
+        double totalMarks = results.stream()
+                .map(r -> r.getMarksObtained().doubleValue())
+                .mapToDouble(Double::doubleValue)
+                .sum();
+        double batchAverage = totalMarks / totalEntries;
+
+        long passedCount = results.stream()
+                .filter(r -> r.getMarksObtained().doubleValue() >= 35.0)
+                .count();
+        double passRate = ((double) passedCount / totalEntries) * 100;
+
+        java.util.Map<String, Long> gradeDistribution = results.stream()
+                .collect(java.util.stream.Collectors.groupingBy(ExamResult::getGrade, java.util.stream.Collectors.counting()));
+        
+        java.util.Map<String, Double> gradePercentages = new java.util.HashMap<>();
+        for (java.util.Map.Entry<String, Long> entry : gradeDistribution.entrySet()) {
+            gradePercentages.put(entry.getKey(), (entry.getValue() * 100.0) / totalEntries);
+        }
+
+        java.util.Map<Long, List<ExamResult>> bySubject = results.stream()
+                .collect(java.util.stream.Collectors.groupingBy(r -> r.getExamPaper().getSubjectId()));
+
+        java.util.Map<String, Double> subjectAverages = new java.util.HashMap<>();
+        String topSubjectName = null;
+        double topSubjectAverage = -1.0;
+
+        for (java.util.Map.Entry<Long, List<ExamResult>> entry : bySubject.entrySet()) {
+            double subjTotal = entry.getValue().stream().mapToDouble(r -> r.getMarksObtained().doubleValue()).sum();
+            double subjAvg = subjTotal / entry.getValue().size();
+            String subjIdStr = String.valueOf(entry.getKey());
+            subjectAverages.put(subjIdStr, subjAvg);
+            
+            if (subjAvg > topSubjectAverage) {
+                topSubjectAverage = subjAvg;
+                topSubjectName = subjIdStr;
+            }
+        }
+
+        java.util.Map<Long, List<ExamResult>> byStudent = results.stream()
+                .collect(java.util.stream.Collectors.groupingBy(ExamResult::getStudentId));
+        
+        List<ExamAnalyticsResponse.MeritEntry> unsortedMeritList = new java.util.ArrayList<>();
+        for (java.util.Map.Entry<Long, List<ExamResult>> entry : byStudent.entrySet()) {
+            double stuTotal = entry.getValue().stream().mapToDouble(r -> r.getMarksObtained().doubleValue()).sum();
+            double stuAvg = stuTotal / entry.getValue().size();
+            unsortedMeritList.add(new ExamAnalyticsResponse.MeritEntry(entry.getKey(), stuTotal, stuAvg, 0));
+        }
+
+        unsortedMeritList.sort(java.util.Comparator.comparingDouble(ExamAnalyticsResponse.MeritEntry::totalMarks).reversed());
+
+        List<ExamAnalyticsResponse.MeritEntry> meritList = new java.util.ArrayList<>();
+        int rank = 1;
+        for (ExamAnalyticsResponse.MeritEntry me : unsortedMeritList) {
+            meritList.add(new ExamAnalyticsResponse.MeritEntry(me.studentId(), me.totalMarks(), me.averageMarks(), rank++));
+        }
+
+        double highestAggregate = meritList.isEmpty() ? 0.0 : meritList.get(0).totalMarks();
+
+        return new ExamAnalyticsResponse(
+                evaluatedCandidates,
+                totalEntries,
+                batchAverage,
+                passRate,
+                passedCount,
+                highestAggregate,
+                topSubjectName,
+                topSubjectAverage,
+                gradeDistribution,
+                gradePercentages,
+                subjectAverages,
+                meritList
+        );
+    }
 }

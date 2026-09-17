@@ -67,4 +67,9 @@ public class ExamController {
     public List<ExamResultResponse> getPaperResults(@PathVariable Long paperId) {
         return examService.getExamPaperResults(paperId);
     }
+
+    @GetMapping("/{id}/analytics")
+    public ExamAnalyticsResponse getAnalytics(@PathVariable Long id) {
+        return examService.getExamAnalytics(id);
+    }
 }
