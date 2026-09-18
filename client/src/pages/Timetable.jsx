@@ -319,9 +319,6 @@ const Timetable = () => {
     .filter((slot) => slot.dayOfWeek?.toUpperCase() === todayDayName)
     .sort((a, b) => a.periodNumber - b.periodNumber);
 
-  // Filtered days for student table
-  const displayedDays = selectedDayFilter === 'ALL' ? days : [selectedDayFilter];
-
   return (
     <div className="space-y-6">
       {/* ── Top Header Bar ── */}
