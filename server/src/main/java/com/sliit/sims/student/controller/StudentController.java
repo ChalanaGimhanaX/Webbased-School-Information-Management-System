@@ -1,3 +1,4 @@
+// Assigned module owner: IT25100975
 package com.sliit.sims.student.controller;
 
 import com.sliit.sims.student.dto.*;
@@ -17,6 +18,16 @@ import java.util.List;
 public class StudentController {
 
     private final StudentService studentService;
+
+    @DeleteMapping("/{id}/allocation")
+    public void removeAllocation(@PathVariable Long id, @RequestParam Integer year) {
+        studentService.removeAllocation(id, year);
+    }
+
+    @PutMapping("/classes/{id}")
+    public AcademicClassResponse updateClass(@PathVariable Long id, @Valid @RequestBody ClassCreateRequest req) {
+        return studentService.updateClass(id, req);
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

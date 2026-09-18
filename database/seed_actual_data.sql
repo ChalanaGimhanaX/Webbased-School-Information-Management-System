@@ -36,11 +36,11 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- =====================================================================
 
 INSERT INTO users (id, username, email, password_hash, role, active, created_at, updated_at) VALUES
-(1, 'admin', 'admin@wycherley.edu', '$2a$10$jQ5U7328CX/nBYiXT9TmOuabDNfNX7uXPFv3ZuDWR9Ic5V6oLnL1W', 'ADMIN', 1, NOW(), NOW()),
-(2, 'head_academic', 'academic@wycherley.edu', '$2a$10$I6gpPe3Cw.T4lcixgwBMge8KlkMTg1f3rVFZOTMaLk9b66EBbzQd6', 'HEAD_OF_ACADEMIC', 1, NOW(), NOW()),
-(3, 'teacher1', 'teacher1@wycherley.edu', '$2a$10$gILGTGYh2QZ8/SrLsHBj3uCQwbl0UkUSAV4u9XrE0z7b5GWtnZFCW', 'TEACHER', 1, NOW(), NOW()),
-(4, 'student1', 'student1@wycherley.edu', '$2a$10$I/miQ.ImrP5DCqOFDhULz.oksMR0t0II3iqZdIAMvSE/36B2YdMXq', 'STUDENT', 1, NOW(), NOW()),
-(5, 'parent1', 'parent1@wycherley.edu', '$2a$10$SP1VDSy6clK579ubqX5L2ejsfd4PQxXCnW9N54Gt8P5sMYPltXiXu', 'PARENT', 1, NOW(), NOW());
+(1, 'admin', 'admin@wycherley.lk', '$2a$10$jQ5U7328CX/nBYiXT9TmOuabDNfNX7uXPFv3ZuDWR9Ic5V6oLnL1W', 'ADMIN', 1, NOW(), NOW()),
+(2, 'head_academic', 'academic@wycherley.lk', '$2a$10$I6gpPe3Cw.T4lcixgwBMge8KlkMTg1f3rVFZOTMaLk9b66EBbzQd6', 'HEAD_OF_ACADEMIC', 1, NOW(), NOW()),
+(3, 'teacher1', 'teacher1@wycherley.lk', '$2a$10$gILGTGYh2QZ8/SrLsHBj3uCQwbl0UkUSAV4u9XrE0z7b5GWtnZFCW', 'TEACHER', 1, NOW(), NOW()),
+(4, 'student1', 'student1@wycherley.lk', '$2a$10$I/miQ.ImrP5DCqOFDhULz.oksMR0t0II3iqZdIAMvSE/36B2YdMXq', 'STUDENT', 1, NOW(), NOW()),
+(5, 'parent1', 'parent1@wycherley.lk', '$2a$10$SP1VDSy6clK579ubqX5L2ejsfd4PQxXCnW9N54Gt8P5sMYPltXiXu', 'PARENT', 1, NOW(), NOW());
 
 -- =====================================================================
 -- 2. TEACHERS & STAFF (UC-02)

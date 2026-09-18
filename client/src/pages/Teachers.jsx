@@ -1,7 +1,10 @@
+// Assigned module owner: IT25102861
 import React, { useState, useEffect } from 'react';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
 import api from '../api/axios';
+import RecordMaintenance from '../components/RecordMaintenance';
+import TeacherAssignments from '../components/TeacherAssignments';
 
 const Teachers = () => {
   const [teachers, setTeachers] = useState([]);
@@ -301,7 +304,7 @@ const Teachers = () => {
             onClick={() => handleDelete(r.id, `${r.firstName} ${r.lastName}`)}
             className="text-red-600 hover:text-red-900 text-xs font-semibold px-2 py-1 bg-red-50 rounded"
           >
-            Delete
+            Deactivate
           </button>
         </div>
       ),
@@ -310,6 +313,11 @@ const Teachers = () => {
 
   return (
     <div>
+      <TeacherAssignments teachers={teachers} subjects={subjects} classes={classes} />
+      <RecordMaintenance title="Subjects" rows={subjects}
+        columns={[{header:'Code',accessor:'subjectCode'},{header:'Subject',accessor:'subjectName'},{header:'Grade',accessor:'gradeLevel'}]}
+        fields={[{name:'subjectCode',label:'Code'},{name:'subjectName',label:'Subject name'},{name:'gradeLevel',label:'Grade',type:'number',min:1,max:13}]}
+        onSave={async (r,values) => { await api.put(`/teachers/subjects/${r.id}`,values); await fetchDependencies(); }} />
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Teacher & Staff Management</h2>
@@ -580,7 +588,7 @@ const Teachers = () => {
               <option value="">-- Select Class --</option>
               {classes.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name} (Grade {c.gradeLevel})
+                  {c.className} (Grade {c.gradeLevel})
                 </option>
               ))}
             </select>

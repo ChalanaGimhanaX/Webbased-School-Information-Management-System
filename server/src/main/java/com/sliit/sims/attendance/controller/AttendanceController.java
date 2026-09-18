@@ -1,3 +1,4 @@
+// Assigned module owner: IT25101863
 package com.sliit.sims.attendance.controller;
 
 import com.sliit.sims.attendance.dto.*;
@@ -17,6 +18,11 @@ import java.time.LocalDate;
 public class AttendanceController {
 
     private final AttendanceService attendanceService;
+
+    @DeleteMapping("/{id}/students/{studentId}")
+    public void deleteEntry(@PathVariable Long id, @PathVariable Long studentId) {
+        attendanceService.deleteEntry(id, studentId);
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -40,6 +46,12 @@ public class AttendanceController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void lock(@PathVariable Long id) {
         attendanceService.lockAttendance(id);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        attendanceService.deleteAttendance(id);
     }
 
     @GetMapping("/student/{studentId}/range")

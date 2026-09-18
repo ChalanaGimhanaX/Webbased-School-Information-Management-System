@@ -1,3 +1,4 @@
+// Assigned module owner: IT25101913
 package com.sliit.sims.timetable.dto;
 
 public record ConflictValidationResponse(

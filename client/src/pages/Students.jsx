@@ -1,7 +1,9 @@
+// Assigned module owner: IT25100975
 import React, { useState, useEffect } from 'react';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
 import api from '../api/axios';
+import RecordMaintenance from '../components/RecordMaintenance';
 
 const Students = () => {
   const [students, setStudents] = useState([]);
@@ -258,11 +260,16 @@ const Students = () => {
           >
             Class
           </button>
+          {r.currentClassName && r.currentClassName !== 'Unallocated' && <button className="text-red-700 text-xs" onClick={async () => {
+            if (!window.confirm('Remove the current class allocation?')) return;
+            try { await api.delete(`/students/${r.id}/allocation?year=${new Date().getFullYear()}`); await fetchStudentsAndClasses(); }
+            catch (err) { setError(err.response?.data?.detail || 'Could not remove allocation'); }
+          }}>Remove Class</button>}
           <button
             onClick={() => handleDelete(r.id, `${r.firstName} ${r.lastName}`)}
             className="text-red-600 hover:text-red-900 text-xs font-semibold px-2 py-1 bg-red-50 rounded"
           >
-            Delete
+            Deactivate
           </button>
         </div>
       ),
@@ -271,6 +278,10 @@ const Students = () => {
 
   return (
     <div>
+      <RecordMaintenance title="Classes" rows={classes}
+        columns={[{header:'Class', accessor:'className'}, {header:'Grade', accessor:'gradeLevel'}, {header:'Year', accessor:'academicYear'}, {header:'Capacity', accessor:'capacity'}]}
+        fields={[{name:'className',label:'Class name'}, {name:'gradeLevel',label:'Grade',type:'number',min:1,max:13}, {name:'academicYear',label:'Academic year',type:'number',min:2000}, {name:'capacity',label:'Capacity',type:'number',min:1}]}
+        onSave={async (r, values) => { await api.put(`/students/classes/${r.id}`, {...values, classTeacherId:r.classTeacherId}); await fetchStudentsAndClasses(); }} />
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Student & Class Management</h2>
@@ -437,7 +448,7 @@ const Students = () => {
               <option value="">-- Select Class (Optional) --</option>
               {classes.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name} (Grade {c.gradeLevel})
+                  {c.className} (Grade {c.gradeLevel})
                 </option>
               ))}
             </select>
@@ -549,7 +560,7 @@ const Students = () => {
               <option value="">-- Select Class --</option>
               {classes.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name} (Grade {c.gradeLevel})
+                  {c.className} (Grade {c.gradeLevel})
                 </option>
               ))}
             </select>

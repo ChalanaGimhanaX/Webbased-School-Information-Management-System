@@ -1,3 +1,4 @@
+// Assigned module owner: IT25101913
 package com.sliit.sims.timetable.repository;
 
 import com.sliit.sims.timetable.model.TimetableEntry;
@@ -13,35 +14,73 @@ import java.util.Optional;
 public interface TimetableEntryRepository extends JpaRepository<TimetableEntry, Long> {
 
     @Query("""
-        SELECT e FROM TimetableEntry e 
-        WHERE e.timeSlot.id = :slotId 
-          AND e.teacherId = :teacherId 
+        SELECT e FROM TimetableEntry e
+        WHERE e.timeSlot.id = :slotId
+          AND e.teacherId = :teacherId
           AND e.timetable.status != com.sliit.sims.timetable.model.TimetableStatus.ARCHIVED
     """)
     Optional<TimetableEntry> findTeacherConflict(
-        @Param("slotId") Long slotId, 
+        @Param("slotId") Long slotId,
         @Param("teacherId") Long teacherId
     );
 
     @Query("""
-        SELECT e FROM TimetableEntry e 
-        WHERE e.timeSlot.id = :slotId 
+        SELECT e FROM TimetableEntry e
+        WHERE e.timeSlot.id = :slotId
+          AND e.teacherId = :teacherId
+          AND e.id <> :entryId
+          AND e.timetable.status != com.sliit.sims.timetable.model.TimetableStatus.ARCHIVED
+    """)
+    Optional<TimetableEntry> findTeacherConflictExcludingEntry(
+        @Param("slotId") Long slotId,
+        @Param("teacherId") Long teacherId,
+        @Param("entryId") Long entryId
+    );
+
+    @Query("""
+        SELECT e FROM TimetableEntry e
+        WHERE e.timeSlot.id = :slotId
           AND LOWER(e.roomNumber) = LOWER(:roomNumber)
           AND e.timetable.status != com.sliit.sims.timetable.model.TimetableStatus.ARCHIVED
     """)
     Optional<TimetableEntry> findRoomConflict(
-        @Param("slotId") Long slotId, 
+        @Param("slotId") Long slotId,
         @Param("roomNumber") String roomNumber
     );
 
     @Query("""
-        SELECT e FROM TimetableEntry e 
-        WHERE e.timetable.id = :timetableId 
+        SELECT e FROM TimetableEntry e
+        WHERE e.timeSlot.id = :slotId
+          AND LOWER(e.roomNumber) = LOWER(:roomNumber)
+          AND e.id <> :entryId
+          AND e.timetable.status != com.sliit.sims.timetable.model.TimetableStatus.ARCHIVED
+    """)
+    Optional<TimetableEntry> findRoomConflictExcludingEntry(
+        @Param("slotId") Long slotId,
+        @Param("roomNumber") String roomNumber,
+        @Param("entryId") Long entryId
+    );
+
+    @Query("""
+        SELECT e FROM TimetableEntry e
+        WHERE e.timetable.id = :timetableId
           AND e.timeSlot.id = :slotId
     """)
     Optional<TimetableEntry> findClassSlotConflict(
-        @Param("timetableId") Long timetableId, 
+        @Param("timetableId") Long timetableId,
         @Param("slotId") Long slotId
+    );
+
+    @Query("""
+        SELECT e FROM TimetableEntry e
+        WHERE e.timetable.id = :timetableId
+          AND e.timeSlot.id = :slotId
+          AND e.id <> :entryId
+    """)
+    Optional<TimetableEntry> findClassSlotConflictExcludingEntry(
+        @Param("timetableId") Long timetableId,
+        @Param("slotId") Long slotId,
+        @Param("entryId") Long entryId
     );
 
     @Query("""

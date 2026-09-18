@@ -169,5 +169,51 @@ class TimetableServiceTest {
 
         assertThrows(IllegalStateException.class, () -> timetableService.publishTimetable(1L));
     }
+
+    @Test
+    void shouldUpdateEntryWithoutConflictingWithItself() {
+        TimetableEntry entry = TimetableEntry.builder().id(500L).timetable(mockTimetable)
+                .timeSlot(mockSlot).subjectId(5L).teacherId(20L).roomNumber("LAB-1").build();
+        when(entryRepository.findById(500L)).thenReturn(Optional.of(entry));
+        when(timeSlotRepository.findById(100L)).thenReturn(Optional.of(mockSlot));
+        when(entryRepository.save(any(TimetableEntry.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        TimetableEntryResponse result = timetableService.updateEntry(1L, 500L,
+                new TimetableEntryRequest(100L, 6L, 20L, " lab-1 "));
+
+        assertEquals(6L, result.subjectId());
+        assertEquals("LAB-1", result.roomNumber());
+        verify(entryRepository).findClassSlotConflictExcludingEntry(1L, 100L, 500L);
+        verify(entryRepository).findTeacherConflictExcludingEntry(100L, 20L, 500L);
+        verify(entryRepository).findRoomConflictExcludingEntry(100L, "lab-1", 500L);
+    }
+
+    @Test
+    void shouldRejectEditingEntryFromAnotherTimetable() {
+        TimetableEntry entry = TimetableEntry.builder().id(500L).timetable(mockTimetable).build();
+        when(entryRepository.findById(500L)).thenReturn(Optional.of(entry));
+
+        assertThrows(IllegalArgumentException.class, () -> timetableService.updateEntry(2L, 500L,
+                new TimetableEntryRequest(100L, 6L, 20L, "LAB-1")));
+        verify(entryRepository, never()).save(any());
+        verifyNoInteractions(timeSlotRepository);
+    }
+
+    @Test
+    void shouldRejectEditWhenAnotherTeacherAssignmentConflicts() {
+        TimetableEntry entry = TimetableEntry.builder().id(500L).timetable(mockTimetable)
+                .timeSlot(mockSlot).subjectId(5L).teacherId(20L).roomNumber("LAB-1").build();
+        when(entryRepository.findById(500L)).thenReturn(Optional.of(entry));
+        when(timeSlotRepository.findById(100L)).thenReturn(Optional.of(mockSlot));
+        when(entryRepository.findTeacherConflictExcludingEntry(100L, 30L, 500L))
+                .thenReturn(Optional.of(TimetableEntry.builder().id(501L).timeSlot(mockSlot).build()));
+
+        ScheduleConflictException exception = assertThrows(ScheduleConflictException.class,
+                () -> timetableService.updateEntry(1L, 500L, new TimetableEntryRequest(100L, 6L, 30L, "LAB-1")));
+
+        assertEquals(ScheduleConflictException.ConflictType.TEACHER_BUSY, exception.getConflictType());
+        assertEquals(20L, entry.getTeacherId());
+        verify(entryRepository, never()).save(any());
+    }
 }
 

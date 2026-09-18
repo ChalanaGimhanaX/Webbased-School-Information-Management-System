@@ -1,16 +1,19 @@
+// Assigned module owner: IT25103724
 import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
+import RecordMaintenance from '../components/RecordMaintenance';
 
 // auto-grade logic
-const calculateGrade = (marks) => {
+const calculateGrade = (marks, maximum = 100) => {
   if (marks === '' || marks === null || marks === undefined) return { grade: '', remarks: '' };
-  const m = parseFloat(marks);
+  const m = parseFloat(marks) * 100 / maximum;
   if (isNaN(m)) return { grade: '', remarks: '' };
+  if (m >= 90) return { grade: 'A+', remarks: 'Distinction' };
   if (m >= 75) return { grade: 'A', remarks: 'Distinction' };
   if (m >= 65) return { grade: 'B', remarks: 'Very Good' };
-  if (m >= 55) return { grade: 'C', remarks: 'Credit' };
+  if (m >= 50) return { grade: 'C', remarks: 'Credit' };
   if (m >= 35) return { grade: 'S', remarks: 'Simple Pass' };
   return { grade: 'F', remarks: 'Repeat' };
 };
@@ -24,6 +27,7 @@ export default function Exams() {
 
   // Tab 1 state
   const [isExamModalOpen, setIsExamModalOpen] = useState(false);
+  const [editingExam, setEditingExam] = useState(null);
   const [examForm, setExamForm] = useState({ examName: '', term: '1', academicYear: new Date().getFullYear().toString() });
 
   // Tab 2 state
@@ -31,6 +35,7 @@ export default function Exams() {
   const [papers, setPapers] = useState([]);
   const [marksPaperId, setMarksPaperId] = useState('');
   const [marksData, setMarksData] = useState({}); // { studentId: marks }
+  const [resultIds, setResultIds] = useState({});
   const [isPaperModalOpen, setIsPaperModalOpen] = useState(false);
   const [paperForm, setPaperForm] = useState({ subjectId: '', gradeLevel: '', maxMarks: 100 });
 
@@ -78,15 +83,38 @@ export default function Exams() {
   };
 
   // --- Tab 1 Actions ---
+  const openExamModal = (exam = null) => {
+    setEditingExam(exam);
+    setExamForm({ examName: exam?.examName || '', term: String(exam?.term || 1), academicYear: String(exam?.academicYear || new Date().getFullYear()) });
+    setError(null);
+    setIsExamModalOpen(true);
+  };
+
+  const handleDeleteExam = async (id) => {
+    if (!window.confirm('Delete this exam, all its papers, and all recorded marks?')) return;
+    try {
+      await api.delete(`/exams/${id}`);
+      if (String(marksExamId) === String(id)) setMarksExamId('');
+      if (String(reportExamId) === String(id)) setReportExamId('');
+      if (String(analyticsExamId) === String(id)) setAnalyticsExamId('');
+      setError(null);
+      await fetchExams();
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to delete exam');
+    }
+  };
+
   const handleCreateExam = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/exams', examForm);
+      if (editingExam) await api.put(`/exams/${editingExam.id}`, examForm);
+      else await api.post('/exams', examForm);
+      setError(null);
       setIsExamModalOpen(false);
       fetchExams();
       setExamForm({ examName: '', term: '1', academicYear: new Date().getFullYear().toString() });
     } catch (err) {
-      setError('Failed to create exam');
+      setError(err.response?.data?.detail || 'Failed to save exam');
     }
   };
 
@@ -101,6 +129,9 @@ export default function Exams() {
 
   // --- Tab 2 Actions ---
   useEffect(() => {
+    setMarksPaperId('');
+    setMarksData({});
+    setResultIds({});
     if (marksExamId) {
       fetchPapers(marksExamId);
     } else {
@@ -123,6 +154,7 @@ export default function Exams() {
       fetchExistingResults(marksPaperId);
     } else {
       setMarksData({});
+      setResultIds({});
     }
   }, [marksPaperId]);
 
@@ -131,10 +163,13 @@ export default function Exams() {
       const res = await api.get(`/exams/papers/${paperId}/results`);
       const existing = res.data || [];
       const newMarksData = {};
+      const ids = {};
       existing.forEach(r => {
         newMarksData[r.studentId] = r.marksObtained;
+        ids[r.studentId] = r.id;
       });
       setMarksData(newMarksData);
+      setResultIds(ids);
     } catch (err) {
       console.error(err);
     }
@@ -164,6 +199,29 @@ export default function Exams() {
     }));
   };
 
+  const handleDeletePaper = async () => {
+    if (!window.confirm('Delete this paper and all its recorded marks?')) return;
+    try {
+      await api.delete(`/exams/papers/${marksPaperId}`);
+      setMarksPaperId('');
+      setError(null);
+      await fetchPapers(marksExamId);
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to delete paper');
+    }
+  };
+
+  const handleDeleteResult = async (studentId) => {
+    if (!window.confirm('Delete this student result?')) return;
+    try {
+      await api.delete(`/exams/results/${resultIds[studentId]}`);
+      setError(null);
+      await fetchExistingResults(marksPaperId);
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to delete result');
+    }
+  };
+
   const handleSubmitMarks = async () => {
     try {
       const marksPayload = Object.entries(marksData)
@@ -179,6 +237,7 @@ export default function Exams() {
         examPaperId: parseInt(marksPaperId),
         marks: marksPayload
       });
+      await fetchExistingResults(marksPaperId);
       alert('Marks submitted successfully!');
     } catch (err) {
       setError('Failed to submit marks');
@@ -241,7 +300,9 @@ export default function Exams() {
     {
       header: 'Actions',
       cell: (row) => (
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <button onClick={() => openExamModal(row)} className="text-blue-600 hover:text-blue-900 text-sm font-medium">Edit</button>
+          <button onClick={() => handleDeleteExam(row.id)} className="text-red-600 hover:text-red-900 text-sm font-medium">Delete</button>
           {row.status !== 'PUBLISHED' && (
             <button onClick={() => handlePublish(row.id)} className="text-indigo-600 hover:text-indigo-900 text-sm font-medium">Publish</button>
           )}
@@ -263,14 +324,15 @@ export default function Exams() {
   ];
 
   const marksColumns = [
+    { header: 'Actions', cell: (r) => resultIds[r.id] ? <button onClick={() => handleDeleteResult(r.id)} className="text-red-600 hover:text-red-900 text-sm">Delete Result</button> : null },
     { header: 'Student ID', accessor: 'id' },
     { header: 'Name', cell: (r) => `${r.firstName || ''} ${r.lastName || ''}` },
     { 
-      header: 'Marks (0-100)', 
+      header: 'Marks',
       cell: (r) => (
         <input 
           type="number" 
-          min="0" max="100"
+          min="0" max={papers.find(p => String(p.id) === String(marksPaperId))?.maxMarks || 100}
           value={marksData[r.id] !== undefined ? marksData[r.id] : ''} 
           onChange={(e) => handleMarksChange(r.id, e.target.value)}
           className="border border-gray-300 rounded px-2 py-1 w-24 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
@@ -280,14 +342,14 @@ export default function Exams() {
     { 
       header: 'Grade', 
       cell: (r) => {
-        const { grade } = calculateGrade(marksData[r.id]);
+        const { grade } = calculateGrade(marksData[r.id], papers.find(p => String(p.id) === String(marksPaperId))?.maxMarks || 100);
         return <span className={`font-bold ${grade === 'F' ? 'text-red-600' : 'text-gray-800'}`}>{grade}</span>;
       }
     },
     { 
       header: 'Remarks', 
       cell: (r) => {
-        const { remarks } = calculateGrade(marksData[r.id]);
+        const { remarks } = calculateGrade(marksData[r.id], papers.find(p => String(p.id) === String(marksPaperId))?.maxMarks || 100);
         return <span className="text-gray-600 text-sm">{remarks}</span>;
       }
     }
@@ -324,7 +386,7 @@ export default function Exams() {
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-lg font-semibold text-gray-700">All Exams</h2>
               <button 
-                onClick={() => setIsExamModalOpen(true)}
+                onClick={() => openExamModal()}
                 className="bg-indigo-600 text-white px-4 py-2 rounded-md shadow-sm hover:bg-indigo-700 transition-colors font-medium text-sm"
               >
                 + Create Exam
@@ -332,7 +394,7 @@ export default function Exams() {
             </div>
             <DataTable columns={examColumns} data={exams} />
             
-            <Modal isOpen={isExamModalOpen} onClose={() => setIsExamModalOpen(false)} title="Create Exam">
+            <Modal isOpen={isExamModalOpen} onClose={() => setIsExamModalOpen(false)} title={editingExam ? 'Edit Exam' : 'Create Exam'}>
               <form onSubmit={handleCreateExam} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Exam Name</label>
@@ -352,7 +414,7 @@ export default function Exams() {
                 </div>
                 <div className="pt-4 flex justify-end gap-3">
                   <button type="button" onClick={() => setIsExamModalOpen(false)} className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md">Cancel</button>
-                  <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">Create</button>
+                  <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">{editingExam ? 'Update' : 'Create'}</button>
                 </div>
               </form>
             </Modal>
@@ -362,6 +424,10 @@ export default function Exams() {
         {/* TAB 2: MARKS ENTRY */}
         {activeTab === 'marks' && (
           <div>
+            {marksExamId && <RecordMaintenance title="Exam papers" rows={papers}
+              columns={[{header:'Subject',cell:r => subjects.find(s => s.id === r.subjectId)?.subjectName || r.subjectId},{header:'Grade',accessor:'gradeLevel'},{header:'Maximum marks',accessor:'maxMarks'}]}
+              fields={[{name:'subjectId',label:'Subject',type:'number',options:subjects.map(s => ({value:s.id,label:s.subjectName}))},{name:'gradeLevel',label:'Grade',type:'number',min:1,max:13},{name:'maxMarks',label:'Maximum marks',type:'number',min:1,step:'0.01'}]}
+              onSave={async (r,values) => { await api.put(`/exams/papers/${r.id}`,{...values,examId:Number(marksExamId)}); await fetchPapers(marksExamId); }} />}
             <h2 className="text-lg font-semibold text-gray-700 mb-6">Batch Marks Entry</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 bg-gray-50 p-4 rounded-lg border border-gray-100">
               <div>
@@ -387,6 +453,7 @@ export default function Exams() {
                       + Add Paper
                     </button>
                   </div>
+                  {marksPaperId && <button onClick={handleDeletePaper} className="mt-2 text-red-600 hover:text-red-900 text-sm">Delete Paper</button>}
                 </div>
               )}
             </div>

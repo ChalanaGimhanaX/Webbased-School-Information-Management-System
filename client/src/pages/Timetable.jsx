@@ -1,3 +1,4 @@
+// Assigned module owner: IT25101913
 import React, { useState, useEffect } from 'react';
 import Modal from '../components/Modal';
 import api from '../api/axios';
@@ -21,6 +22,7 @@ const Timetable = () => {
 
   // Modals
   const [isEntryModalOpen, setIsEntryModalOpen] = useState(false);
+  const [editingEntryId, setEditingEntryId] = useState(null);
   const [entryForm, setEntryForm] = useState({
     dayOfWeek: 'MONDAY',
     periodNumber: 1,
@@ -130,6 +132,7 @@ const Timetable = () => {
 
   // 2. OPEN ADD ENTRY MODAL
   const openAddEntryModal = (day = 'MONDAY', period = 1) => {
+    setEditingEntryId(null);
     if (!currentTimetable) {
       setError('Please initialize a timetable for this class first.');
       return;
@@ -146,7 +149,15 @@ const Timetable = () => {
     setIsEntryModalOpen(true);
   };
 
-  // 3. SUBMIT ENTRY (CREATE)
+  const openEditEntryModal = (entry) => {
+    setEditingEntryId(entry.id);
+    setEntryForm({ dayOfWeek: entry.dayOfWeek, periodNumber: entry.periodNumber, subjectId: entry.subjectId, teacherId: entry.teacherId, roomNumber: entry.roomNumber || '' });
+    setError('');
+    setModalError('');
+    setIsEntryModalOpen(true);
+  };
+
+  // 3. SAVE ENTRY
   const handleEntrySubmit = async (e) => {
     e.preventDefault();
     if (!currentTimetable) return;
@@ -157,7 +168,7 @@ const Timetable = () => {
     );
 
     if (!targetSlot) {
-      setError(`Slot definition not found for ${entryForm.dayOfWeek} Period ${entryForm.periodNumber}.`);
+      setModalError(`Slot definition not found for ${entryForm.dayOfWeek} Period ${entryForm.periodNumber}.`);
       return;
     }
 
@@ -165,13 +176,15 @@ const Timetable = () => {
       setSubmitting(true);
       setError('');
       setModalError('');
-      await api.post(`/timetables/${currentTimetable.id}/entries`, {
+      const payload = {
         timeSlotId: targetSlot.id,
         subjectId: Number(entryForm.subjectId),
         teacherId: Number(entryForm.teacherId),
         roomNumber: entryForm.roomNumber.trim() || 'Room 101',
-      });
-      flash(`Period ${entryForm.periodNumber} assigned successfully!`);
+      };
+      if (editingEntryId) await api.put(`/timetables/${currentTimetable.id}/entries/${editingEntryId}`, payload);
+      else await api.post(`/timetables/${currentTimetable.id}/entries`, payload);
+      flash(`Period ${entryForm.periodNumber} ${editingEntryId ? 'updated' : 'assigned'} successfully!`);
       setIsEntryModalOpen(false);
       fetchTimetable(selectedClassId);
     } catch (err) {
@@ -219,7 +232,7 @@ const Timetable = () => {
           >
             {classes.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.name} (Grade {c.gradeLevel})
+                {c.className} (Grade {c.gradeLevel})
               </option>
             ))}
           </select>
@@ -290,6 +303,7 @@ const Timetable = () => {
                               </div>
                               <div className="flex justify-between items-center mt-2 pt-1 border-t border-indigo-200/50 text-[10px]">
                                 <span className="font-mono text-gray-500">{entry.roomNumber || 'Room 101'}</span>
+                                <button onClick={() => openEditEntryModal(entry)} className="text-indigo-600 hover:text-indigo-900 px-1" title="Edit Entry">Edit</button>
                                 <button
                                   onClick={() => handleDeleteEntry(entry.id, day, period)}
                                   className="text-red-500 hover:text-red-700 font-bold px-1"
@@ -319,7 +333,7 @@ const Timetable = () => {
       )}
 
       {/* ── MODAL: Add Schedule Entry ── */}
-      <Modal isOpen={isEntryModalOpen} onClose={() => setIsEntryModalOpen(false)} title="Assign Timetable Period">
+      <Modal isOpen={isEntryModalOpen} onClose={() => setIsEntryModalOpen(false)} title={editingEntryId ? 'Edit Timetable Period' : 'Assign Timetable Period'}>
         <form onSubmit={handleEntrySubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -412,7 +426,7 @@ const Timetable = () => {
               disabled={submitting}
               className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm font-medium disabled:opacity-50"
             >
-              {submitting ? 'Saving...' : 'Assign Period'}
+              {submitting ? 'Saving...' : editingEntryId ? 'Update Period' : 'Assign Period'}
             </button>
           </div>
         </form>

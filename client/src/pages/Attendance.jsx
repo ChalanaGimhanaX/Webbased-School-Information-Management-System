@@ -1,3 +1,4 @@
+// Assigned module owner: IT25101863
 import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
 
@@ -14,7 +15,10 @@ const Attendance = () => {
   const [selectedTeacherId, setSelectedTeacherId] = useState('');
   const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
   const [attendance, setAttendance] = useState({});
+  const [remarks, setRemarks] = useState({});
   const [isExistingRecord, setIsExistingRecord] = useState(false);
+  const [currentRecordId, setCurrentRecordId] = useState(null);
+  const [isRecordLocked, setIsRecordLocked] = useState(false);
   const [sheetSummary, setSheetSummary] = useState(null);
 
   // Reports state
@@ -28,6 +32,15 @@ const Attendance = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  useEffect(() => {
+    setStudents([]);
+    setAttendance({});
+    setCurrentRecordId(null);
+    setIsExistingRecord(false);
+    setIsRecordLocked(false);
+    setSheetSummary(null);
+  }, [selectedClassId, attendanceDate]);
 
   useEffect(() => {
     const initData = async () => {
@@ -67,6 +80,8 @@ const Attendance = () => {
       setError('');
       setSuccess('');
       setIsExistingRecord(false);
+      setCurrentRecordId(null);
+      setIsRecordLocked(false);
       setSheetSummary(null);
 
       // 1. Fetch class students
@@ -78,7 +93,7 @@ const Attendance = () => {
       let existingRecord = null;
       try {
         const existRes = await api.get(`/attendance/class/${selectedClassId}?date=${attendanceDate}`);
-        if (existRes.data && existRes.data.entries && existRes.data.entries.length > 0) {
+        if (existRes.data?.id) {
           existingRecord = existRes.data;
         }
       } catch (e) {
@@ -86,10 +101,14 @@ const Attendance = () => {
       }
 
       const initialMap = {};
+      const initialRemarks = {};
       if (existingRecord) {
         setIsExistingRecord(true);
+        setCurrentRecordId(existingRecord.id);
+        setIsRecordLocked(Boolean(existingRecord.isLocked));
         existingRecord.entries.forEach((e) => {
           initialMap[e.studentId] = e.status;
+          initialRemarks[e.studentId] = e.remarks || '';
         });
         setSuccess(`Loaded existing attendance record for ${attendanceDate} (Editing mode).`);
       } else {
@@ -99,6 +118,7 @@ const Attendance = () => {
         });
       }
       setAttendance(initialMap);
+      setRemarks(initialRemarks);
 
       // Fetch summary if exists
       try {
@@ -116,11 +136,37 @@ const Attendance = () => {
   };
 
   const handleMark = (id, status) => {
+    if (isRecordLocked) return;
     setAttendance((prev) => ({ ...prev, [id]: status }));
+  };
+
+  const handleDeleteAttendance = async () => {
+    if (!currentRecordId || isRecordLocked) return;
+    if (!window.confirm(`Delete attendance record for ${attendanceDate}?`)) return;
+
+    try {
+      setSubmitting(true);
+      setError('');
+      setSuccess('');
+      await api.delete(`/attendance/${currentRecordId}`);
+      setStudents([]);
+      setAttendance({});
+      setSheetSummary(null);
+      setIsExistingRecord(false);
+      setCurrentRecordId(null);
+      setIsRecordLocked(false);
+      setSuccess(`Attendance record for ${attendanceDate} was deleted.`);
+    } catch (err) {
+      const msg = err.response?.data?.message || err.response?.data?.error || 'Failed to delete attendance record.';
+      setError(msg);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isRecordLocked) return;
     if (!selectedClassId || !selectedTeacherId || students.length === 0) {
       setError('Ensure class, teacher, and students are loaded.');
       return;
@@ -131,10 +177,10 @@ const Attendance = () => {
       setError('');
       setSuccess('');
 
-      const entries = students.map((s) => ({
+      const entries = students.filter(s => attendance[s.id]).map((s) => ({
         studentId: s.id,
         status: attendance[s.id] || 'PRESENT',
-        remarks: '',
+        remarks: remarks[s.id] || '',
       }));
 
       const payload = {
@@ -234,7 +280,7 @@ const Attendance = () => {
                 >
                   {classes.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.name} (Grade {c.gradeLevel})
+                      {c.className} (Grade {c.gradeLevel})
                     </option>
                   ))}
                 </select>
@@ -283,13 +329,25 @@ const Attendance = () => {
               <span>
                 ℹ️ Attendance for this class on <strong>{attendanceDate}</strong> is already recorded. You can modify any student's status below and submit to save corrections.
               </span>
-              <span className="font-semibold px-2 py-0.5 bg-blue-200 text-blue-900 rounded">
-                Edit Mode
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold px-2 py-0.5 bg-blue-200 text-blue-900 rounded">
+                  {isRecordLocked ? 'Locked' : 'Edit Mode'}
+                </span>
+                {!isRecordLocked && (
+                  <button
+                    type="button"
+                    onClick={handleDeleteAttendance}
+                    disabled={submitting}
+                    className="px-2 py-1 bg-white border border-red-200 text-red-600 rounded text-xs font-semibold hover:bg-red-50 disabled:opacity-50"
+                  >
+                    Delete Record
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100">
+          <div className="bg-white rounded-lg shadow-sm overflow-x-auto border border-gray-100">
             <form onSubmit={handleSubmit}>
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -297,6 +355,7 @@ const Attendance = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Admission #</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student Name</th>
                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reason / Correction</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -309,7 +368,8 @@ const Attendance = () => {
                         {student.firstName} {student.lastName}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <div className="flex justify-center space-x-6">
+                        <div className="flex flex-wrap justify-center gap-3">
+                          <label className="flex items-center gap-1"><input type="radio" name={`status-${student.id}`} checked={attendance[student.id] === 'EXCUSED'} disabled={isRecordLocked || submitting} onChange={() => handleMark(student.id, 'EXCUSED')} /><span className="text-xs">Excused</span></label>
                           <label className="flex items-center space-x-1.5 cursor-pointer">
                             <input
                               type="radio"
@@ -317,6 +377,7 @@ const Attendance = () => {
                               value="PRESENT"
                               checked={attendance[student.id] === 'PRESENT'}
                               className="text-green-600 focus:ring-green-500"
+                              disabled={isRecordLocked || submitting}
                               onChange={() => handleMark(student.id, 'PRESENT')}
                             />
                             <span className="text-xs font-semibold text-green-700">Present</span>
@@ -328,6 +389,7 @@ const Attendance = () => {
                               value="ABSENT"
                               checked={attendance[student.id] === 'ABSENT'}
                               className="text-red-600 focus:ring-red-500"
+                              disabled={isRecordLocked || submitting}
                               onChange={() => handleMark(student.id, 'ABSENT')}
                             />
                             <span className="text-xs font-semibold text-red-700">Absent</span>
@@ -339,17 +401,26 @@ const Attendance = () => {
                               value="LATE"
                               checked={attendance[student.id] === 'LATE'}
                               className="text-yellow-600 focus:ring-yellow-500"
+                              disabled={isRecordLocked || submitting}
                               onChange={() => handleMark(student.id, 'LATE')}
                             />
                             <span className="text-xs font-semibold text-yellow-700">Late</span>
                           </label>
                         </div>
                       </td>
+                      <td className="px-3 py-3">
+                        <input aria-label={`Absence reason for ${student.firstName}`} maxLength={255} className="border rounded px-2 py-1 w-40" value={remarks[student.id] || ''} disabled={isRecordLocked || submitting} onChange={e => setRemarks({...remarks,[student.id]:e.target.value})} />
+                        {currentRecordId && attendance[student.id] && !isRecordLocked && <button type="button" disabled={submitting} className="block text-red-700 text-xs mt-2" onClick={async () => {
+                          if (!window.confirm('Remove this student attendance entry?')) return;
+                          try { await api.delete(`/attendance/${currentRecordId}/students/${student.id}`); await loadAttendanceSheet(); }
+                          catch (err) { setError(err.response?.data?.detail || 'Could not remove attendance entry'); }
+                        }}>Remove Entry</button>}
+                      </td>
                     </tr>
                   ))}
                   {students.length === 0 && (
                     <tr>
-                      <td colSpan={3} className="px-6 py-12 text-center text-sm text-gray-500">
+                      <td colSpan={4} className="px-6 py-12 text-center text-sm text-gray-500">
                         Select a class and click "Load Attendance Sheet" to record or edit daily attendance.
                       </td>
                     </tr>
@@ -394,7 +465,7 @@ const Attendance = () => {
                   className="mt-1 border border-gray-300 rounded px-3 py-1.5 text-sm"
                 >
                   {classes.map(c => (
-                    <option key={c.id} value={c.id}>{c.name} (Grade {c.gradeLevel})</option>
+                    <option key={c.id} value={c.id}>{c.className} (Grade {c.gradeLevel})</option>
                   ))}
                 </select>
               </div>

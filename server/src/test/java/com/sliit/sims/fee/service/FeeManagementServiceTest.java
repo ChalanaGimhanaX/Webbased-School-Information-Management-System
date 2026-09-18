@@ -43,6 +43,36 @@ class FeeManagementServiceTest {
     private FeeStructure sampleFeeStructure;
     private StudentFeeAccount sampleAccount;
 
+    @Test
+    void pendingPaymentCanBeCorrectedWithoutChangingBalance() {
+        PaymentSlip slip = PaymentSlip.builder().id(91L).feeAccount(sampleAccount).studentId(101L)
+                .amountPaid(new BigDecimal("1000.00")).paymentMethod(PaymentMethod.CASH).verificationStatus(SlipStatus.PENDING).build();
+        when(paymentSlipRepository.findById(91L)).thenReturn(Optional.of(slip));
+        when(paymentSlipRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        feeService.updatePayment(91L, new PaymentUpdateRequest(new BigDecimal("1500.00"), PaymentMethod.CHEQUE, "Guardian", "REF-1"));
+        assertEquals(new BigDecimal("1500.00"), slip.getAmountPaid());
+        assertEquals(new BigDecimal("25000.00"), sampleAccount.getBalanceAmount());
+        verifyNoInteractions(feeAccountRepository);
+    }
+
+    @Test
+    void approvedPaymentCannotBeEditedInPlace() {
+        PaymentSlip slip = PaymentSlip.builder().id(92L).feeAccount(sampleAccount).verificationStatus(SlipStatus.APPROVED).build();
+        when(paymentSlipRepository.findById(92L)).thenReturn(Optional.of(slip));
+        assertThrows(PaymentValidationException.class, () -> feeService.updatePayment(92L,
+                new PaymentUpdateRequest(new BigDecimal("1500.00"), PaymentMethod.CASH, "Guardian", "")));
+        verify(paymentSlipRepository, never()).save(any());
+    }
+
+    @Test
+    void pendingPaymentCannotExceedOutstandingBalance() {
+        PaymentSlip slip = PaymentSlip.builder().id(93L).feeAccount(sampleAccount).verificationStatus(SlipStatus.PENDING).build();
+        when(paymentSlipRepository.findById(93L)).thenReturn(Optional.of(slip));
+        assertThrows(PaymentValidationException.class, () -> feeService.updatePayment(93L,
+                new PaymentUpdateRequest(new BigDecimal("30000.00"), PaymentMethod.CASH, "Guardian", "")));
+        verify(paymentSlipRepository, never()).save(any());
+    }
+
     @BeforeEach
     void setUp() {
         sampleFeeStructure = FeeStructure.builder()

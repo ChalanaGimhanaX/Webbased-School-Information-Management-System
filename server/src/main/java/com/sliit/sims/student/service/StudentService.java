@@ -1,3 +1,4 @@
+// Assigned module owner: IT25100975
 package com.sliit.sims.student.service;
 
 import com.sliit.sims.common.exception.ResourceNotFoundException;
@@ -21,6 +22,32 @@ public class StudentService {
     private final StudentRepository studentRepository;
     private final AcademicClassRepository classRepository;
     private final StudentClassAllocationRepository allocationRepository;
+
+    @Transactional
+    public void removeAllocation(Long studentId, Integer year) {
+        StudentClassAllocation allocation = allocationRepository.findByStudentIdAndAcademicYearAndStatus(studentId, year, AllocationStatus.ACTIVE)
+                .orElseThrow(() -> new ResourceNotFoundException("Active class allocation not found"));
+        allocation.setStatus(AllocationStatus.TRANSFERRED);
+        allocationRepository.save(allocation);
+    }
+
+    @Transactional
+    public AcademicClassResponse updateClass(Long id, ClassCreateRequest req) {
+        AcademicClass c = classRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Class not found"));
+        long enrolled = allocationRepository.countByAcademicClassIdAndStatus(id, AllocationStatus.ACTIVE);
+        int capacity = req.capacity() == null ? c.getCapacity() : req.capacity();
+        if (capacity < enrolled) throw new IllegalArgumentException("Capacity cannot be below current enrolment");
+        if (!c.getAcademicYear().equals(req.academicYear()) && enrolled > 0) throw new IllegalArgumentException("Cannot change year of an allocated class");
+        classRepository.findByGradeLevelAndClassNameAndAcademicYear(req.gradeLevel(), req.className().trim().toUpperCase(), req.academicYear())
+                .filter(existing -> !existing.getId().equals(id)).ifPresent(existing -> { throw new IllegalArgumentException("Class already exists"); });
+        c.setClassName(req.className().trim().toUpperCase());
+        c.setGradeLevel(req.gradeLevel());
+        c.setAcademicYear(req.academicYear());
+        c.setCapacity(capacity);
+        c.setClassTeacherId(req.classTeacherId());
+        classRepository.save(c);
+        return new AcademicClassResponse(c.getId(), c.getGradeLevel(), c.getClassName(), c.getAcademicYear(), c.getCapacity(), c.getClassTeacherId(), enrolled);
+    }
 
     @Transactional
     public StudentResponse registerStudent(StudentRegisterRequest req) {
@@ -60,6 +87,10 @@ public class StudentService {
     }
 
     private void allocateStudentToClass(Student student, AcademicClass targetClass, Integer year) {
+        if (!Boolean.TRUE.equals(student.getActive())) throw new IllegalArgumentException("Student is inactive");
+        if (!targetClass.getAcademicYear().equals(year)) throw new IllegalArgumentException("Allocation year must match class year");
+        var previous = allocationRepository.findByStudentIdAndAcademicYearAndStatus(student.getId(), year, AllocationStatus.ACTIVE);
+        if (previous.isPresent() && previous.get().getAcademicClass().getId().equals(targetClass.getId())) return;
         long currentEnrolled = allocationRepository.countByAcademicClassIdAndStatus(targetClass.getId(), AllocationStatus.ACTIVE);
         if (currentEnrolled >= targetClass.getCapacity()) {
             throw new IllegalStateException("Class " + targetClass.getClassName() + " has reached maximum capacity of " + targetClass.getCapacity());
@@ -117,6 +148,7 @@ public class StudentService {
 
     public List<StudentResponse> getActiveStudentsInClass(Long classId) {
         return allocationRepository.findActiveAllocationsByClass(classId).stream()
+                .filter(a -> Boolean.TRUE.equals(a.getStudent().getActive()))
                 .map(a -> {
                     Student s = a.getStudent();
                     return new StudentResponse(s.getId(), s.getAdmissionNumber(), s.getFirstName(), s.getLastName(), s.getDob(), s.getGender().name(), s.getParentId(), a.getAcademicClass().getClassName(), a.getAcademicClass().getGradeLevel());
@@ -135,6 +167,7 @@ public class StudentService {
 
     public List<StudentResponse> getAllStudents() {
         return studentRepository.findAll().stream()
+                .filter(s -> Boolean.TRUE.equals(s.getActive()))
                 .map(s -> {
                     int currentYear = LocalDate.now().getYear();
                     var allocOpt = allocationRepository.findByStudentIdAndAcademicYearAndStatus(s.getId(), currentYear, AllocationStatus.ACTIVE);
@@ -162,10 +195,11 @@ public class StudentService {
 
     @Transactional
     public void deleteStudent(Long id) {
-        if (!studentRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Student not found: " + id);
-        }
-        studentRepository.deleteById(id);
+        Student student = studentRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Student not found: " + id));
+        student.setActive(false);
+        studentRepository.save(student);
+        allocationRepository.findAll().stream().filter(a -> a.getStudent().getId().equals(id) && a.getStatus() == AllocationStatus.ACTIVE)
+                .forEach(a -> { a.setStatus(AllocationStatus.TRANSFERRED); allocationRepository.save(a); });
     }
 
     public StudentResponse searchByAdmissionNumber(String admissionNumber) {

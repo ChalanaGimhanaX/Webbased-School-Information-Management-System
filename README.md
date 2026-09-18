@@ -23,6 +23,31 @@ The **Web-Based School Information Management System (SIMS)** is an enterprise a
 | **IT25101913** | Gimhana D.B.C *(Lead)* | **UC-05**: Timetable & Academic Scheduling | `feature/uc05-timetable-scheduling` | Head of Academic, Teacher, Student |
 | **IT25103710** | Weerasekara K.T.J | **UC-06**: Fee & Payment Management | `feature/uc06-fee-payment-management` | School Administrator, Parent |
 
+### CRUD Completion Pass
+
+- Student records deactivate without deleting academic history. Incorrect class allocations can be removed; class details can be edited.
+- Teacher records deactivate; assignments can be edited or removed, and subject details can be edited.
+- Attendance supports corrections, reasons, excused status, individual entry removal, and unlocked sheet deletion.
+- Exam details and papers can be edited; results, papers, and exams can be deleted. Marks are validated against each paper's maximum.
+- Timetable entries can be edited with teacher, room, and class conflict checks that exclude the entry being edited.
+- Fee accounts can be edited. Payment history supports pending-payment corrections and cancellation with balance reversal; approved payments are corrected by cancellation and replacement.
+- Backend write permissions are enforced for administrative, academic, and teacher roles. These changes do not implement student/parent data scoping.
+
+Announcements, profile/password tools, private student/parent views, and additional staff attendance/salary features are outside this CRUD-only completion pass.
+
+### Ownership Labels
+
+Module files are labelled with their assigned owner's student ID. These labels describe team responsibility, not Git authorship. Backend ownership covers each module's package below `server/src/main/java/`; shared infrastructure remains shared.
+
+| Student ID | Module | Primary Backend Files | Primary Frontend Files |
+| :--- | :--- | :--- | :--- |
+| **IT25100975** | Student & Class Management | student controller, service, model, repository, and DTO files | `client/src/pages/Students.jsx` |
+| **IT25102861** | Teacher & Staff Management | teacher controller, service, model, repository, and DTO files | `client/src/pages/Teachers.jsx` |
+| **IT25101863** | Student Attendance Management | attendance controller, service, model, repository, and DTO files | `client/src/pages/Attendance.jsx` |
+| **IT25103724** | Examination & Academic Performance | exam controller, service, model, repository, and DTO files | `client/src/pages/Exams.jsx`, `client/src/pages/Reports.jsx` |
+| **IT25101913** | Timetable & Academic Scheduling | timetable controller, service, model, repository, DTO, and data seeder files | `client/src/pages/Timetable.jsx` |
+| **IT25103710** | Fee & Payment Management | fee controller, service, model, repository, DTO, and data seeder files | `client/src/pages/Fees.jsx`, `client/src/pages/Reports.jsx` |
+
 ---
 
 ## 2. System Architecture & Technology Stack
@@ -51,7 +76,7 @@ flowchart TD
 
 ## 3. Six Major Functional Modules & CRUD Alignment
 
-Every one of the 6 modules provides at least **3 distinct CRUD operations / entities** with dedicated user interfaces:
+The six modules provide the operations listed below. Reporting and status changes are supporting workflows, not separate full CRUD entities.
 
 ### 3.1 Student & Class Management (UC-01)
 1. **Student Registration CRUD**:
@@ -82,6 +107,7 @@ Every one of the 6 modules provides at least **3 distinct CRUD operations / enti
 
 ### 3.3 Student Attendance Management (UC-03)
 1. **Daily Attendance Sheet CRUD**:
+   - **Delete**: Delete an unlocked attendance record and its entries after confirmation. Locked records cannot be changed or deleted.
    - **Create**: Mark class attendance batch sheets (`PRESENT`, `ABSENT`, `LATE`).
    - **Read**: Retrieve class attendance for any date.
    - **Update (Correction Mode)**: Loading an already-recorded date enables Edit Mode, permitting teachers to correct mistakes and update attendance.
@@ -90,27 +116,31 @@ Every one of the 6 modules provides at least **3 distinct CRUD operations / enti
 3. **Individual Student Longitudinal Profile**:
    - **Read**: Cumulative attendance rate (%) with visual status progress bar (Satisfactory vs. At Risk).
 
-### 3.4 Timetable & Academic Scheduling (UC-04)
+### 3.4 Timetable & Academic Scheduling (UC-05)
 1. **Class Timetable CRUD**:
    - **Create**: Initialize class timetable for academic year and term (`+ Initialize Class Timetable`).
    - **Read**: Interactive 5-day x 8-period weekly schedule matrix.
    - **Update**: Publish timetable for school-wide visibility.
 2. **Period Slot Entry CRUD**:
+   - **Update**: Edit a period's day, time slot, subject, teacher, and room with conflict validation.
    - **Create**: Interactive slot assignment modal linking Day, Period (1-8), Subject, Teacher, and Classroom.
    - **Read**: Grid visualization with room and teacher allocations.
    - **Delete**: Direct `×` deletion on any scheduled period cell.
 3. **Teacher & Room Schedule Views**:
    - **Read**: Teacher schedule queries and room conflict validation.
 
-### 3.5 Examination & Academic Performance (UC-05)
+### 3.5 Examination & Academic Performance (UC-04)
 1. **Examination Definition CRUD**:
+   - **Update / Delete**: Edit exam details or delete the exam and its papers and results after confirmation.
    - **Create**: Create exam headers with name, term, and academic year.
    - **Read**: Exam registry with Draft / Published badges.
    - **Update**: Result publication action.
 2. **Exam Paper Configuration CRUD**:
+   - **Delete**: Delete a paper and its recorded marks after confirmation.
    - **Create**: Configure subject papers per exam with maximum marks.
    - **Read**: View configured papers.
 3. **Batch Marks Entry & Grading CRUD**:
+   - **Delete**: Remove an individual student's recorded result after confirmation.
    - **Create / Update**: Interactive batch marks entry with **automatic letter grade calculation** (`A+`, `A`, `B`, `C`, `S`, `F`) and remarks.
    - **Reports & Analytics**:
      - **Student Report Card**: Comprehensive transcript with subject scores, grades, total marks, averages, and pass/fail indicators.

@@ -5,6 +5,7 @@ import com.sliit.sims.common.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -44,8 +45,12 @@ public class SecurityConfig {
                 .headers(h -> h.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers("/api/v1/auth/login").permitAll()
+                        .requestMatchers("/api/v1/auth/register").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/**").authenticated()
+                        .requestMatchers("/api/v1/fees/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/attendance/**", "/api/v1/exams/marks", "/api/v1/exams/results/**").hasAnyRole("ADMIN", "HEAD_OF_ACADEMIC", "TEACHER")
+                        .requestMatchers("/api/v1/students/**", "/api/v1/teachers/**", "/api/v1/timetables/**", "/api/v1/exams/**").hasAnyRole("ADMIN", "HEAD_OF_ACADEMIC")
                         .requestMatchers("/api/v1/**").authenticated()
                         .anyRequest().permitAll()
                 )

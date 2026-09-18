@@ -1,3 +1,4 @@
+// Assigned module owner: IT25103724
 package com.sliit.sims.exam.service;
 
 import com.sliit.sims.common.exception.ResourceNotFoundException;
@@ -43,6 +44,8 @@ public class ExamService {
 
     @Transactional
     public ExamPaper createExamPaper(ExamPaperCreateRequest req) {
+        if (!examRepository.existsById(req.examId())) throw new ResourceNotFoundException("Examination not found");
+        if (req.maxMarks() != null && req.maxMarks().signum() <= 0) throw new IllegalArgumentException("Maximum marks must be positive");
         paperRepository.findByExamIdAndSubjectIdAndGradeLevel(req.examId(), req.subjectId(), req.gradeLevel())
                 .ifPresent(p -> {
                     throw new IllegalArgumentException("Exam paper already exists for this subject and grade");
@@ -59,13 +62,36 @@ public class ExamService {
     }
 
     @Transactional
+    public ExamPaperResponse updateExamPaper(Long id, ExamPaperCreateRequest req) {
+        ExamPaper paper = paperRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Paper not found"));
+        if (!paper.getExamId().equals(req.examId())) throw new IllegalArgumentException("Cannot move a paper to another exam");
+        BigDecimal maximum = req.maxMarks() == null ? paper.getMaxMarks() : req.maxMarks();
+        if (maximum.signum() <= 0) throw new IllegalArgumentException("Maximum marks must be positive");
+        List<ExamResult> results = resultRepository.findByExamPaperId(id);
+        if (!results.isEmpty() && (!paper.getSubjectId().equals(req.subjectId()) || !paper.getGradeLevel().equals(req.gradeLevel())))
+            throw new IllegalArgumentException("Remove results before changing the paper subject or grade");
+        if (results.stream().anyMatch(r -> r.getMarksObtained().compareTo(maximum) > 0)) throw new IllegalArgumentException("Maximum marks cannot be below recorded marks");
+        paperRepository.findByExamIdAndSubjectIdAndGradeLevel(req.examId(), req.subjectId(), req.gradeLevel()).filter(p -> !p.getId().equals(id))
+                .ifPresent(p -> { throw new IllegalArgumentException("Paper already exists for this subject and grade"); });
+        paper.setSubjectId(req.subjectId());
+        paper.setGradeLevel(req.gradeLevel());
+        paper.setMaxMarks(maximum);
+        paperRepository.save(paper);
+        results.forEach(r -> r.setGrade(calculateGrade(r.getMarksObtained().multiply(BigDecimal.valueOf(100)).divide(maximum, 4, RoundingMode.HALF_UP))));
+        resultRepository.saveAll(results);
+        return new ExamPaperResponse(id, paper.getExamId(), paper.getSubjectId(), paper.getGradeLevel(), paper.getMaxMarks());
+    }
+
+    @Transactional
     public List<ExamResultResponse> submitMarksBatch(ExamMarksBatchRequest req) {
         ExamPaper paper = paperRepository.findById(req.examPaperId())
                 .orElseThrow(() -> new ResourceNotFoundException("Exam paper not found: " + req.examPaperId()));
 
         List<ExamResult> savedResults = new ArrayList<>();
         for (ExamMarksEntryDto markDto : req.marks()) {
-            String grade = calculateGrade(markDto.marksObtained());
+            if (markDto.marksObtained().signum() < 0 || markDto.marksObtained().compareTo(paper.getMaxMarks()) > 0)
+                throw new IllegalArgumentException("Marks must be between zero and the paper maximum");
+            String grade = calculateGrade(markDto.marksObtained().multiply(BigDecimal.valueOf(100)).divide(paper.getMaxMarks(), 4, RoundingMode.HALF_UP));
 
             ExamResult result = resultRepository.findByExamPaperIdAndStudentId(paper.getId(), markDto.studentId())
                     .orElse(ExamResult.builder()
@@ -95,6 +121,63 @@ public class ExamService {
             results.forEach(r -> r.setIsPublished(true));
             resultRepository.saveAll(results);
         }
+    }
+
+    @Transactional
+    public ExaminationResponse updateExam(Long examId, ExamUpdateRequest req) {
+        Examination exam = examRepository.findById(examId)
+                .orElseThrow(() -> new ResourceNotFoundException("Examination not found: " + examId));
+
+        String examName = req.examName() != null ? req.examName().trim() : exam.getExamName();
+        if (examName.isBlank()) {
+            throw new IllegalArgumentException("Exam name is required");
+        }
+
+        Integer term = req.term() != null ? req.term() : exam.getTerm();
+        Integer academicYear = req.academicYear() != null ? req.academicYear() : exam.getAcademicYear();
+
+        examRepository.findByExamNameAndTermAndAcademicYear(examName, term, academicYear)
+                .filter(existing -> !existing.getId().equals(examId))
+                .ifPresent(existing -> {
+                    throw new IllegalArgumentException("Exam " + examName + " already exists for term " + term);
+                });
+
+        exam.setExamName(examName);
+        exam.setTerm(term);
+        exam.setAcademicYear(academicYear);
+
+        Examination saved = examRepository.save(exam);
+        return new ExaminationResponse(saved.getId(), saved.getExamName(), saved.getTerm(), saved.getAcademicYear(), saved.getStatus());
+    }
+
+    @Transactional
+    public void deleteExam(Long examId) {
+        Examination exam = examRepository.findById(examId)
+                .orElseThrow(() -> new ResourceNotFoundException("Examination not found: " + examId));
+
+        List<ExamPaper> papers = paperRepository.findByExamId(examId);
+        for (ExamPaper paper : papers) {
+            resultRepository.deleteAll(resultRepository.findByExamPaperId(paper.getId()));
+        }
+        paperRepository.deleteAll(papers);
+        examRepository.delete(exam);
+    }
+
+    @Transactional
+    public void deleteExamPaper(Long paperId) {
+        ExamPaper paper = paperRepository.findById(paperId)
+                .orElseThrow(() -> new ResourceNotFoundException("Exam paper not found: " + paperId));
+
+        resultRepository.deleteAll(resultRepository.findByExamPaperId(paperId));
+        paperRepository.delete(paper);
+    }
+
+    @Transactional
+    public void deleteExamResult(Long resultId) {
+        if (!resultRepository.existsById(resultId)) {
+            throw new ResourceNotFoundException("Exam result not found: " + resultId);
+        }
+        resultRepository.deleteById(resultId);
     }
 
     public StudentExamReportResponse getStudentExamReport(Long studentId, Long examId) {

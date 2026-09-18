@@ -1,3 +1,4 @@
+// Assigned module owner: IT25101913
 package com.sliit.sims.timetable.controller;
 
 import com.sliit.sims.timetable.dto.*;
@@ -38,6 +39,14 @@ public class TimetableController {
     @ResponseStatus(HttpStatus.CREATED)
     public TimetableEntryResponse addEntry(@PathVariable Long id, @Valid @RequestBody TimetableEntryRequest req) {
         return timetableService.addEntry(id, req);
+    }
+
+    @PutMapping("/{id}/entries/{entryId}")
+    public TimetableEntryResponse updateEntry(
+            @PathVariable Long id,
+            @PathVariable Long entryId,
+            @Valid @RequestBody TimetableEntryRequest req) {
+        return timetableService.updateEntry(id, entryId, req);
     }
 
     @PostMapping("/{id}/validate-slot")

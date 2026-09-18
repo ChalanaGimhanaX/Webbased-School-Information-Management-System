@@ -1,3 +1,4 @@
+// Assigned module owner: IT25101863
 package com.sliit.sims.attendance.repository;
 
 import com.sliit.sims.attendance.model.AttendanceEntry;

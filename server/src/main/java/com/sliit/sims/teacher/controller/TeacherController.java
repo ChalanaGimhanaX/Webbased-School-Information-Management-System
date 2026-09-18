@@ -1,3 +1,4 @@
+// Assigned module owner: IT25102861
 package com.sliit.sims.teacher.controller;
 
 import com.sliit.sims.teacher.dto.*;
@@ -17,6 +18,22 @@ import java.util.List;
 public class TeacherController {
 
     private final TeacherService teacherService;
+
+    @PutMapping("/subjects/{id}")
+    public SubjectResponse updateSubject(@PathVariable Long id, @Valid @RequestBody SubjectCreateRequest req) {
+        return teacherService.updateSubject(id, req);
+    }
+
+    @DeleteMapping("/{id}/assignments/{assignmentId}")
+    public void removeAssignment(@PathVariable Long id, @PathVariable Long assignmentId) {
+        teacherService.removeAssignment(id, assignmentId);
+    }
+
+    @PutMapping("/{id}/assignments/{assignmentId}")
+    public void updateAssignment(@PathVariable Long id, @PathVariable Long assignmentId,
+                                @Valid @RequestBody TeacherSubjectAssignRequest req) {
+        teacherService.updateAssignment(id, assignmentId, req);
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

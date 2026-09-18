@@ -1,7 +1,9 @@
+// Assigned module owner: IT25103710
 import React, { useState, useEffect } from 'react';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
 import api from '../api/axios';
+import PaymentMaintenance from '../components/PaymentMaintenance';
 
 const FEE_TYPES = ['TUITION', 'FACILITY', 'EXAMINATION', 'LIBRARY', 'ADMISSION', 'TRANSPORT', 'ACTIVITY', 'OTHER'];
 const PAYMENT_METHODS = ['CASH', 'BANK_TRANSFER', 'BANK_DEPOSIT', 'CHEQUE'];
@@ -361,6 +363,7 @@ const Fees = () => {
       {/* ── TAB 1: Accounts & Structures ── */}
       {activeTab === 'accounts' && (
         <div className="space-y-8">
+          <PaymentMaintenance accounts={studentAccounts} refreshAccounts={fetchAll} />
           {/* Quick Metrics Bar */}
           {financialSummary && (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">

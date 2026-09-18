@@ -1,3 +1,4 @@
+// Assigned module owner: IT25103710
 package com.sliit.sims.fee.service;
 
 import com.sliit.sims.common.exception.PaymentValidationException;
@@ -488,6 +489,19 @@ public class FeeManagementService {
     }
 
     @Transactional
+    public PaymentSlipResponse updatePayment(Long id, PaymentUpdateRequest req) {
+        PaymentSlip slip = paymentSlipRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Payment not found"));
+        if (slip.getVerificationStatus() != SlipStatus.PENDING) throw new PaymentValidationException("Only pending payments can be edited. Cancel an approved payment and record its replacement.");
+        if (slip.getFeeAccount().getStatus() == PaymentStatus.CANCELLED) throw new PaymentValidationException("Fee account is cancelled");
+        if (req.amountPaid().compareTo(slip.getFeeAccount().getBalanceAmount()) > 0) throw new PaymentValidationException("Amount exceeds outstanding balance");
+        slip.setAmountPaid(req.amountPaid());
+        slip.setPaymentMethod(req.paymentMethod());
+        slip.setPaidBy(req.paidBy().trim());
+        slip.setTransactionReference(req.transactionReference());
+        return PaymentSlipResponse.fromEntity(paymentSlipRepository.save(slip));
+    }
+
+    @Transactional
     public PaymentSlipResponse cancelPayment(Long paymentSlipId, String reason, String cancelledBy) {
         PaymentSlip slip = paymentSlipRepository.findById(paymentSlipId)
                 .orElseThrow(() -> new ResourceNotFoundException("Payment slip not found with id: " + paymentSlipId));
@@ -504,6 +518,10 @@ public class FeeManagementService {
         }
 
         slip.setVerificationStatus(SlipStatus.CANCELLED);
+        if (slip.getReceipt() != null) {
+            slip.getReceipt().setNotes("CANCELLED: " + reason);
+            paymentReceiptRepository.save(slip.getReceipt());
+        }
         slip.setReviewRemarks((slip.getReviewRemarks() != null ? slip.getReviewRemarks() + " | " : "") +
                 "Cancelled by " + cancelledBy + ": " + reason);
         slip.setReviewedAt(LocalDateTime.now());

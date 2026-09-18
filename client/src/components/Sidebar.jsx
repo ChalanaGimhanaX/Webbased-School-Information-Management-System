@@ -5,7 +5,7 @@ import { AuthContext } from '../context/AuthContext';
 const navItems = [
   { name: 'Dashboard', path: '/', roles: ['ADMIN', 'HEAD_OF_ACADEMIC', 'TEACHER', 'STUDENT', 'PARENT'] },
   { name: 'Students', path: '/students', roles: ['ADMIN', 'HEAD_OF_ACADEMIC'] },
-  { name: 'Teachers', path: '/teachers', roles: ['ADMIN'] },
+  { name: 'Teachers', path: '/teachers', roles: ['ADMIN', 'HEAD_OF_ACADEMIC'] },
   { name: 'Attendance', path: '/attendance', roles: ['ADMIN', 'HEAD_OF_ACADEMIC', 'TEACHER'] },
   { name: 'Exams', path: '/exams', roles: ['ADMIN', 'HEAD_OF_ACADEMIC', 'TEACHER', 'STUDENT', 'PARENT'] },
   { name: 'Timetable', path: '/timetable', roles: ['ADMIN', 'HEAD_OF_ACADEMIC', 'TEACHER', 'STUDENT', 'PARENT'] },

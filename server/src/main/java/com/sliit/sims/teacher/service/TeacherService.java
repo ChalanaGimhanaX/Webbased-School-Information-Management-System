@@ -1,3 +1,4 @@
+// Assigned module owner: IT25102861
 package com.sliit.sims.teacher.service;
 
 import com.sliit.sims.common.exception.ResourceNotFoundException;
@@ -110,6 +111,18 @@ public class TeacherService {
                 .toList();
     }
 
+    @Transactional
+    public SubjectResponse updateSubject(Long id, SubjectCreateRequest req) {
+        Subject subject = subjectRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
+        subjectRepository.findBySubjectCode(req.subjectCode().trim().toUpperCase()).filter(s -> !s.getId().equals(id))
+                .ifPresent(s -> { throw new IllegalArgumentException("Subject code already exists"); });
+        subject.setSubjectCode(req.subjectCode().trim().toUpperCase());
+        subject.setSubjectName(req.subjectName().trim());
+        subject.setGradeLevel(req.gradeLevel());
+        subjectRepository.save(subject);
+        return new SubjectResponse(id, subject.getSubjectCode(), subject.getSubjectName(), subject.getGradeLevel());
+    }
+
     private TeacherResponse mapToResponse(Teacher t) {
         return new TeacherResponse(
                 t.getId(),
@@ -139,10 +152,27 @@ public class TeacherService {
 
     @Transactional
     public void deleteTeacher(Long id) {
-        if (!teacherRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Teacher not found: " + id);
-        }
-        teacherRepository.deleteById(id);
+        updateStatus(id, TeacherStatus.INACTIVE);
+    }
+
+    @Transactional
+    public void removeAssignment(Long teacherId, Long assignmentId) {
+        TeacherSubjectAssignment assignment = assignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Assignment not found"));
+        if (!assignment.getTeacher().getId().equals(teacherId)) throw new IllegalArgumentException("Assignment belongs to another teacher");
+        assignmentRepository.delete(assignment);
+    }
+
+    @Transactional
+    public void updateAssignment(Long teacherId, Long assignmentId, TeacherSubjectAssignRequest req) {
+        if (!teacherId.equals(req.teacherId())) throw new IllegalArgumentException("Teacher does not match assignment");
+        TeacherSubjectAssignment assignment = assignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Assignment not found"));
+        if (!assignment.getTeacher().getId().equals(teacherId)) throw new IllegalArgumentException("Assignment belongs to another teacher");
+        if (assignment.getSubject().getId().equals(req.subjectId()) && assignment.getClassId().equals(req.classId()) && assignment.getAcademicYear().equals(req.academicYear())) return;
+        removeAssignment(teacherId, assignmentId);
+        assignmentRepository.flush();
+        assignSubject(req);
     }
 
     public TeacherResponse searchByEmployeeNumber(String employeeNumber) {
