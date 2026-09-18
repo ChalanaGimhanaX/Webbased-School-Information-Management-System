@@ -1,14 +1,17 @@
 // Assigned module owner: IT25103710
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
 import api from '../api/axios';
 import PaymentMaintenance from '../components/PaymentMaintenance';
+import { AuthContext } from '../context/AuthContext';
 
 const FEE_TYPES = ['TUITION', 'FACILITY', 'EXAMINATION', 'LIBRARY', 'ADMISSION', 'TRANSPORT', 'ACTIVITY', 'OTHER'];
 const PAYMENT_METHODS = ['CASH', 'BANK_TRANSFER', 'BANK_DEPOSIT', 'CHEQUE'];
 
 const Fees = () => {
+  const { user } = useContext(AuthContext);
+
   const [activeTab, setActiveTab] = useState('accounts'); // 'accounts' | 'reports'
 
   const [feeStructures, setFeeStructures] = useState([]);
@@ -329,6 +332,18 @@ const Fees = () => {
            (a.studentAdmissionNumber || '').toLowerCase().includes(t) ||
            (a.feeStructure?.name || '').toLowerCase().includes(t);
   });
+
+  if (user?.role !== 'ADMIN') {
+    return (
+      <div className="bg-white rounded-xl p-12 text-center border border-gray-200 shadow-sm max-w-lg mx-auto mt-12">
+        <div className="text-4xl mb-3">🔒</div>
+        <h3 className="text-xl font-bold text-gray-800">Access Restricted</h3>
+        <p className="text-gray-500 text-sm mt-2">
+          Fee and payment administration is restricted to institutional administrators and the finance division.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div>

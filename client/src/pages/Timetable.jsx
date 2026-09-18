@@ -45,7 +45,6 @@ const Timetable = () => {
   const [studentTimetable, setStudentTimetable] = useState(null);
   const [studentLoading, setStudentLoading] = useState(false);
   const [studentError, setStudentError] = useState('');
-  const [selectedDayFilter, setSelectedDayFilter] = useState('ALL');
 
   const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'];
   const periods = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -532,38 +531,6 @@ const Timetable = () => {
                 )}
               </div>
 
-              {/* Student Day Filters */}
-              <div className="flex items-center justify-between print:hidden">
-                <div className="flex items-center gap-2 overflow-x-auto pb-1">
-                  <span className="text-xs font-semibold text-gray-500 uppercase mr-1">Filter Day:</span>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedDayFilter('ALL')}
-                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                      selectedDayFilter === 'ALL'
-                        ? 'bg-indigo-600 text-white shadow-sm'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    Full Week
-                  </button>
-                  {days.map((d) => (
-                    <button
-                      key={d}
-                      type="button"
-                      onClick={() => setSelectedDayFilter(d)}
-                      className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                        selectedDayFilter === d
-                          ? 'bg-indigo-600 text-white shadow-sm'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                    >
-                      {d}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {/* The Dedicated Student Timetable Table (Read-Only) */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
@@ -584,7 +551,7 @@ const Timetable = () => {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {displayedDays.map((day) => (
+                      {days.map((day) => (
                         <tr key={day} className="hover:bg-gray-50/50">
                           {/* Day Row Header */}
                           <td className="px-4 py-4 border-r font-bold text-gray-800 text-xs bg-gray-50/80 whitespace-nowrap">
