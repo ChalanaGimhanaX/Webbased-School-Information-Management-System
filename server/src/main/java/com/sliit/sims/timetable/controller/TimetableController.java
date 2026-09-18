@@ -79,4 +79,19 @@ public class TimetableController {
     public List<TimeSlot> getAllSlots() {
         return timetableService.getAllTimeSlots();
     }
+
+    @GetMapping("/my-timetable")
+    public StudentTimetableResponse getMyTimetable(java.security.Principal principal) {
+        return timetableService.getMyTimetable(principal.getName());
+    }
+
+    @GetMapping("/student/{studentId}")
+    public StudentTimetableResponse getStudentTimetable(@PathVariable Long studentId) {
+        return timetableService.getStudentTimetable(studentId);
+    }
+
+    @GetMapping("/class/{classId}/student-view")
+    public StudentTimetableResponse getClassStudentView(@PathVariable Long classId) {
+        return timetableService.getClassTimetableStudentView(classId);
+    }
 }

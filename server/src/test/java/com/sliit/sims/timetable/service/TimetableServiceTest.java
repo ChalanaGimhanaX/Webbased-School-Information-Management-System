@@ -33,6 +33,24 @@ class TimetableServiceTest {
     @Mock
     private TimeSlotRepository timeSlotRepository;
 
+    @Mock
+    private com.sliit.sims.student.repository.StudentRepository studentRepository;
+
+    @Mock
+    private com.sliit.sims.student.repository.StudentClassAllocationRepository allocationRepository;
+
+    @Mock
+    private com.sliit.sims.student.repository.AcademicClassRepository classRepository;
+
+    @Mock
+    private com.sliit.sims.teacher.repository.SubjectRepository subjectRepository;
+
+    @Mock
+    private com.sliit.sims.teacher.repository.TeacherRepository teacherRepository;
+
+    @Mock
+    private com.sliit.sims.common.auth.repository.UserRepository userRepository;
+
     @InjectMocks
     private TimetableService timetableService;
 
@@ -214,6 +232,58 @@ class TimetableServiceTest {
         assertEquals(ScheduleConflictException.ConflictType.TEACHER_BUSY, exception.getConflictType());
         assertEquals(20L, entry.getTeacherId());
         verify(entryRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldReturnStudentTimetable() {
+        com.sliit.sims.student.model.Student student = com.sliit.sims.student.model.Student.builder()
+                .id(1L).admissionNumber("WYC-001").firstName("Kasun").lastName("Perera").build();
+        com.sliit.sims.student.model.AcademicClass aClass = com.sliit.sims.student.model.AcademicClass.builder()
+                .id(10L).className("GRADE 10-A").gradeLevel(10).academicYear(2026).build();
+        com.sliit.sims.student.model.StudentClassAllocation alloc = com.sliit.sims.student.model.StudentClassAllocation.builder()
+                .id(1L).student(student).academicClass(aClass).academicYear(2026)
+                .status(com.sliit.sims.student.model.AllocationStatus.ACTIVE).build();
+
+        when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
+        when(allocationRepository.findByStudentIdAndAcademicYearAndStatus(eq(1L), anyInt(), eq(com.sliit.sims.student.model.AllocationStatus.ACTIVE)))
+                .thenReturn(Optional.of(alloc));
+        when(timetableRepository.findByClassIdOrderByAcademicYearDescTermDesc(10L))
+                .thenReturn(java.util.List.of(mockTimetable));
+
+        var resp = timetableService.getStudentTimetable(1L);
+
+        assertNotNull(resp);
+        assertEquals(1L, resp.studentId());
+        assertEquals("Kasun Perera", resp.studentName());
+        assertEquals("GRADE 10-A", resp.className());
+        assertEquals(10, resp.gradeLevel());
+    }
+
+    @Test
+    void shouldReturnMyTimetableForStudentUser() {
+        com.sliit.sims.common.auth.model.User user = com.sliit.sims.common.auth.model.User.builder()
+                .id(4L).username("student1").email("student1@wycherley.lk").role(com.sliit.sims.common.auth.model.Role.STUDENT).build();
+        com.sliit.sims.student.model.Student student = com.sliit.sims.student.model.Student.builder()
+                .id(1L).userId(4L).admissionNumber("WYC-001").firstName("Kasun").lastName("Perera").build();
+        com.sliit.sims.student.model.AcademicClass aClass = com.sliit.sims.student.model.AcademicClass.builder()
+                .id(10L).className("GRADE 10-A").gradeLevel(10).academicYear(2026).build();
+        com.sliit.sims.student.model.StudentClassAllocation alloc = com.sliit.sims.student.model.StudentClassAllocation.builder()
+                .id(1L).student(student).academicClass(aClass).academicYear(2026)
+                .status(com.sliit.sims.student.model.AllocationStatus.ACTIVE).build();
+
+        when(userRepository.findByUsername("student1")).thenReturn(Optional.of(user));
+        when(studentRepository.findByUserId(4L)).thenReturn(Optional.of(student));
+        when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
+        when(allocationRepository.findByStudentIdAndAcademicYearAndStatus(eq(1L), anyInt(), eq(com.sliit.sims.student.model.AllocationStatus.ACTIVE)))
+                .thenReturn(Optional.of(alloc));
+        when(timetableRepository.findByClassIdOrderByAcademicYearDescTermDesc(10L))
+                .thenReturn(java.util.List.of(mockTimetable));
+
+        var resp = timetableService.getMyTimetable("student1");
+
+        assertNotNull(resp);
+        assertEquals("Kasun Perera", resp.studentName());
+        assertEquals("WYC-001", resp.admissionNumber());
     }
 }
 
