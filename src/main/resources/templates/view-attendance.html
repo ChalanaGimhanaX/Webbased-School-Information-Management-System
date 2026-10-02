@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Records - EduCore</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2C3E50;
+            --accent-color: #3498DB;
+            --hover-color: #4A6B8A;
+            --text-dark: #2C3E50;
+            --text-light: #ECF0F1;
+        }
+        body {
+            background-color: #F4F7F9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 260px;
+            background-color: var(--primary-color);
+            color: var(--text-light);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100%;
+            z-index: 100;
+        }
+        .brand-logo {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--text-light);
+            margin-bottom: 40px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        .brand-logo i { color: var(--accent-color); margin-right: 10px; }
+        .nav-link {
+            color: #BFC9D4; padding: 12px 15px; border-radius: 6px;
+            margin-bottom: 6px; text-decoration: none; display: flex; align-items: center;
+            transition: all 0.2s ease;
+        }
+        .nav-link i { margin-right: 12px; width: 20px; text-align: center; }
+        .nav-link:hover { background-color: var(--hover-color); color: white; }
+        .nav-link.active { background-color: var(--accent-color); color: white; font-weight: 600; }
+        .user-footer {
+            margin-top: auto; border-top: 1px solid #4A6B8A; padding-top: 20px; display: flex; align-items: center;
+        }
+        .user-avatar {
+            width: 40px; height: 40px; background-color: #8E44AD; color: white;
+            border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; margin-right: 10px;
+        }
+        .user-name { font-size: 0.9rem; color: white; }
+        .user-role { font-size: 0.75rem; color: #BFC9D4; }
+        .main-content { margin-left: 260px; padding: 35px 40px; width: calc(100% - 260px); }
+        .content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .page-title { font-size: 1.6rem; color: var(--text-dark); font-weight: 700; margin-bottom: 4px; }
+        .page-subtitle { color: #7F8C8D; font-size: 0.95rem; }
+        .card-edu { background: white; border: none; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); }
+        .table-edu th { background-color: #F8F9FA; color: #7F8C8D; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; border-bottom: 2px solid #E0E7ED; padding: 14px 16px; }
+        .table-edu td { color: var(--text-dark); font-size: 0.92rem; vertical-align: middle; border-bottom: 1px solid #EAEFF4; padding: 14px 16px; }
+        .btn-primary-edu { background-color: var(--accent-color); color: white; border: none; padding: 9px 18px; border-radius: 6px; font-weight: 500; transition: all 0.2s; text-decoration: none; }
+        .btn-primary-edu:hover { background-color: #2980B9; color: white; }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar Navigation -->
+<div class="sidebar">
+    <a href="/view-attendance" class="brand-logo">
+        <i class="fas fa-graduation-cap"></i> EduCore
+    </a>
+    <a href="/view-attendance" class="nav-link active">
+        <i class="fas fa-table-list"></i> View Records
+    </a>
+    <a href="/mark-attendance" class="nav-link">
+        <i class="fas fa-calendar-plus"></i> Mark Attendance
+    </a>
+    <a href="/system-status" class="nav-link">
+        <i class="fas fa-server"></i> System & DB Status
+    </a>
+    <a href="/h2-console" target="_blank" class="nav-link">
+        <i class="fas fa-database"></i> H2 Database Console
+    </a>
+    <div class="user-footer">
+        <div class="user-avatar">TC</div>
+        <div>
+            <div class="user-name">Miss sahathma</div>
+            <div class="user-role">Attendance Manager</div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <div class="content-header">
+        <div>
+            <h1 class="page-title">Attendance Records</h1>
+            <p class="page-subtitle">Overview of recorded student attendances, update records and manage removals</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/system-status" class="btn btn-outline-secondary">
+                <i class="fas fa-heartbeat text-danger me-1"></i> DB Status
+            </a>
+            <a href="/mark-attendance" class="btn btn-primary-edu">
+                <i class="fas fa-plus me-1"></i> Mark New Attendance
+            </a>
+        </div>
+    </div>
+
+    <!-- Alert Banners -->
+    <div th:if="${param.updated}" class="alert alert-success alert-dismissible fade show card-edu py-3" role="alert">
+        <i class="fas fa-check-circle me-2"></i> Attendance record updated successfully!
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div th:if="${param.deleted}" class="alert alert-warning alert-dismissible fade show card-edu py-3" role="alert">
+        <i class="fas fa-trash-alt me-2"></i> Attendance record has been permanently deleted.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show card-edu py-3" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i> Attendance record was not found or could not be processed.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- Attendance Table Card -->
+    <div class="card card-edu overflow-hidden">
+        <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-2 d-flex justify-content-between align-items-center">
+            <h5 class="card-title text-dark fw-bold mb-0">All Records</h5>
+            <span class="badge bg-light text-secondary border px-3 py-2" th:text="${#lists.size(attendances)} + ' Total Records'">0 Total Records</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-edu align-middle mb-0">
+                    <thead>
+                    <tr>
+                        <th style="width: 80px;">ID</th>
+                        <th>STUDENT ID</th>
+                        <th>STUDENT NAME</th>
+                        <th>DATE</th>
+                        <th>STATUS</th>
+                        <th class="text-end" style="width: 200px;">ACTIONS</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${#lists.isEmpty(attendances)}">
+                        <td colspan="6" class="text-center py-5">
+                            <div class="text-muted">
+                                <i class="fas fa-clipboard-list fs-1 mb-3 d-block text-secondary opacity-50"></i>
+                                <h6 class="fw-bold">No Attendance Records Found</h6>
+                                <p class="small mb-3">Click below to mark attendance for students.</p>
+                                <a href="/mark-attendance" class="btn btn-sm btn-primary-edu">
+                                    <i class="fas fa-plus me-1"></i> Mark Attendance Now
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:each="att : ${attendances}">
+                        <td><span class="badge bg-light text-dark border" th:text="${att.id}">1</span></td>
+                        <td><strong th:text="${att.studentId}">ST001</strong></td>
+                        <td th:text="${att.studentName}">Nimal Perera</td>
+                        <td><i class="far fa-calendar-alt text-muted me-1"></i> <span th:text="${att.date}">2026-09-17</span></td>
+                        <td>
+                            <span class="badge bg-success bg-opacity-15 text-success border border-success px-3 py-2" th:if="${att.status == 'Present'}">
+                                <i class="fas fa-check me-1"></i> Present
+                            </span>
+                            <span class="badge bg-danger bg-opacity-15 text-danger border border-danger px-3 py-2" th:if="${att.status == 'Absent'}">
+                                <i class="fas fa-times me-1"></i> Absent
+                            </span>
+                            <span class="badge bg-secondary px-3 py-2" th:if="${att.status != 'Present' and att.status != 'Absent'}" th:text="${att.status}">-</span>
+                        </td>
+                        <td class="text-end">
+                            <a th:href="@{/update-attendance(id=${att.id})}" class="btn btn-sm btn-outline-primary me-1">
+                                <i class="fas fa-edit me-1"></i> Edit
+                            </a>
+                            <a th:href="@{/delete-attendance(id=${att.id})}" class="btn btn-sm btn-outline-danger">
+                                <i class="fas fa-trash-alt me-1"></i> Delete
+                            </a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
