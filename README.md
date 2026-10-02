@@ -10,7 +10,7 @@
 
 ## 1. Executive Summary & Team Roster
 
-The **Web-Based School Information Management System (SIMS)** is an enterprise academic administration and decision-support web platform designed for Wycherley International School Gampaha. Built on an enterprise Java backend and a responsive modern React Single Page Application (SPA), SIMS centralizes student life-cycle management, academic staff administration, daily digital attendance, conflict-free timetable scheduling, examination evaluation with automatic grading, and school fee management with official receipt generation.
+The **Web-Based School Information Management System (SIMS)** is an enterprise academic administration and decision-support web platform designed for Wycherley International School Gampaha. Built on an enterprise Java backend and a responsive modern React Single Page Application (SPA), SIMS centralizes student lifecycle management, academic staff administration, daily digital attendance, conflict-free timetable scheduling, examination evaluation with automatic grading, and school fee management with official receipt generation.
 
 ### Team Members & Module Ownership
 
