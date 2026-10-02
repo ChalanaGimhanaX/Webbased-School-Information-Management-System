@@ -44,10 +44,23 @@ public class ExamViewController {
         this.examResultRepository = examResultRepository;
     }
 
-    // Displays the dashboard containing all exams
     @GetMapping({"/", "/exams"})
     public String showExamsDashboard(Model model) {
-        model.addAttribute("exams", examRepository.findAll());
+        List<Exam> exams = examRepository.findAll();
+        model.addAttribute("exams", exams);
+        model.addAttribute("activeStudentsCount", studentRepository.count());
+        model.addAttribute("facultyMembersCount", subjectRepository.count());
+
+        List<ExamResult> allResults = examResultRepository.findAll();
+        double overallPassRate = 0.0;
+        if (!allResults.isEmpty()) {
+            long passedCount = allResults.stream()
+                    .filter(result -> result.getMarks() != null && result.getMarks() >= 35.0)
+                    .count();
+            overallPassRate = Math.round(((double) passedCount / allResults.size()) * 1000.0) / 10.0;
+        }
+        model.addAttribute("overallPassRate", overallPassRate);
+
         return "exam-dashboard";
     }
 
@@ -105,7 +118,7 @@ public class ExamViewController {
 
             int savedCount = 0;
             int skippedCount = 0;
-
+//Validation Marks
             for (Map.Entry<String, String> entry : allParams.entrySet()) {
                 if (entry.getKey().startsWith("marks_") && !entry.getValue().trim().isEmpty()) {
                     String studentId = entry.getKey().replace("marks_", "");
@@ -115,11 +128,11 @@ public class ExamViewController {
                         // --- Step 4 Polish: Marks Validation (0.0 - 100.0) ---
                         if (marks < 0.0 || marks > 100.0) {
                             skippedCount++;
-                            continue; // 0 ට අඩු හෝ 100 ට වැඩි නම් database එකට නොදා skip කරයි
+                            continue; // 
                         }
 
                         Optional<Student> studentOpt = studentRepository.findById(studentId);
-
+//Grade Validation
                         if (studentOpt.isPresent()) {
                             // Grading Scheme Logic
                             String grade = "F";

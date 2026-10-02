@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         body {
           font-family: 'Plus Jakarta Sans', sans-serif;
         }
@@ -66,7 +66,7 @@
             TC
         </div>
         <div class="overflow-hidden">
-            <p class="text-xs font-semibold text-white truncate">Mr.Pemadasa </p>
+            <p class="text-xs font-semibold text-white truncate">Mr. Pemadasa</p>
             <p class="text-[11px] text-slate-400 truncate">Exam Coordinator</p>
         </div>
     </div>
@@ -108,6 +108,51 @@
             <a th:href="@{/exams}" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></a>
         </div>
 
+        <!-- ================= FADED BACKGROUND HERO SECTION ================= -->
+        <div class="relative bg-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-800">
+            <!-- Background Image with reduced darkness -->
+            <img th:src="@{/images/schoolstudents.jpg}" 
+                 alt="Students in classroom" 
+                 class="absolute inset-0 w-full h-full object-cover opacity-75 object-[center_35%]">
+
+            <!-- Soft Gradient Layer for contrast -->
+            <div class="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-900/45 to-transparent"></div>
+
+            <!-- Content Area -->
+            <div class="relative z-10 p-6 md:p-8 max-w-3xl text-white">
+                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-600/40 text-indigo-200 border border-indigo-400/40 mb-3 backdrop-blur-md shadow-sm">
+                    <i class="fa-solid fa-graduation-cap"></i> Academic Management System
+                </span>
+
+                <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight drop-shadow-md">
+                    EduCore Model Academy
+                </h2>
+
+                <p class="text-xs md:text-sm text-slate-100 mt-2 leading-relaxed max-w-2xl drop-shadow">
+                    Dedicated to nurturing leadership, character, and academic mastery. Seamlessly schedule term evaluations, record multi-subject performance, and generate formal analytical statements.
+                </p>
+
+                <!-- Embedded Statistics Badges (Dynamic from Database) -->
+                <div class="grid grid-cols-3 gap-4 mt-6 pt-5 border-t border-white/20 max-w-lg backdrop-blur-[2px]">
+                    <div>
+                        <p class="text-xl font-extrabold text-indigo-300 drop-shadow" 
+                           th:text="${activeStudentsCount}">0</p>
+                        <p class="text-[11px] text-slate-200 font-medium">Active Students</p>
+                    </div>
+                    <div>
+                        <p class="text-xl font-extrabold text-emerald-300 drop-shadow" 
+                           th:text="${overallPassRate} + '%'">0.0%</p>
+                        <p class="text-[11px] text-slate-200 font-medium">Pass Rate</p>
+                    </div>
+                    <div>
+                        <p class="text-xl font-extrabold text-sky-300 drop-shadow" 
+                           th:text="${facultyMembersCount}">0</p>
+                        <p class="text-[11px] text-slate-200 font-medium">Faculty Members</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Metrics / Stat Counters -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
@@ -126,7 +171,7 @@
                 </div>
                 <div>
                     <p class="text-xs text-slate-500 font-medium">Active Subjects</p>
-                    <h3 class="text-xl font-bold text-slate-800">4</h3>
+                    <h3 class="text-xl font-bold text-slate-800" th:text="${facultyMembersCount}">0</h3>
                 </div>
             </div>
 
@@ -136,7 +181,7 @@
                 </div>
                 <div>
                     <p class="text-xs text-slate-500 font-medium">Enrolled Students</p>
-                    <h3 class="text-xl font-bold text-slate-800">4</h3>
+                    <h3 class="text-xl font-bold text-slate-800" th:text="${activeStudentsCount}">0</h3>
                 </div>
             </div>
 
@@ -196,7 +241,7 @@
                                     th:data-name="${exam.examName}"
                                     th:data-term="${exam.term}"
                                     onclick="openEditModal(this)"
-                                    class="px-2.5 py-1 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded transition font-medium text-xs">
+                                    class="px-2.5 py-1 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded transition font-medium text-xs cursor-pointer">
                                 <i class="fa-solid fa-pen mr-1"></i> Edit
                             </button>
 
@@ -254,7 +299,7 @@
 
             <div class="pt-2 flex justify-end gap-2">
                 <button type="button" onclick="closeModal()" class="px-3.5 py-2 text-xs font-medium rounded-lg text-slate-600 hover:bg-slate-100 transition">Cancel</button>
-                <button type="submit" class="px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow transition">Save Exam</button>
+                <button type="submit" class="px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow transition cursor-pointer">Save Exam</button>
             </div>
         </form>
     </div>
@@ -293,7 +338,7 @@
 
             <div class="pt-2 flex justify-end gap-2">
                 <button type="button" onclick="closeEditModal()" class="px-3.5 py-2 text-xs font-medium rounded-lg text-slate-600 hover:bg-slate-100 transition">Cancel</button>
-                <button type="submit" class="px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow transition">Update Exam</button>
+                <button type="submit" class="px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow transition cursor-pointer">Update Exam</button>
             </div>
         </form>
     </div>
