@@ -3,319 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System & DB Status - EduCore</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome Icons -->
+    <title>EduCore SIS - System Status</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --primary-color: #2C3E50;
-            --accent-color: #3498DB;
-            --hover-color: #4A6B8A;
-            --text-dark: #2C3E50;
-            --text-light: #ECF0F1;
-        }
-        body {
-            background-color: #F4F7F9;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            min-height: 100vh;
-        }
-        .sidebar {
-            width: 260px;
-            background-color: var(--primary-color);
-            color: var(--text-light);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            height: 100%;
-            z-index: 100;
-        }
-        .brand-logo {
-            font-size: 1.4rem;
-            font-weight: bold;
-            color: var(--text-light);
-            margin-bottom: 40px;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-        }
-        .brand-logo i { color: var(--accent-color); margin-right: 10px; }
-        .nav-link {
-            color: #BFC9D4; padding: 12px 15px; border-radius: 6px;
-            margin-bottom: 6px; text-decoration: none; display: flex; align-items: center;
-            transition: all 0.2s ease;
-        }
-        .nav-link i { margin-right: 12px; width: 20px; text-align: center; }
-        .nav-link:hover { background-color: var(--hover-color); color: white; }
-        .nav-link.active { background-color: var(--accent-color); color: white; font-weight: 600; }
-        .user-footer {
-            margin-top: auto; border-top: 1px solid #4A6B8A; padding-top: 20px; display: flex; align-items: center;
-        }
-        .user-avatar {
-            width: 40px; height: 40px; background-color: #8E44AD; color: white;
-            border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; margin-right: 10px;
-        }
-        .user-name { font-size: 0.9rem; color: white; }
-        .user-role { font-size: 0.75rem; color: #BFC9D4; }
-        .main-content { margin-left: 260px; padding: 35px 40px; width: calc(100% - 260px); }
-        .content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        .page-title { font-size: 1.6rem; color: var(--text-dark); font-weight: 700; margin-bottom: 4px; }
-        .page-subtitle { color: #7F8C8D; font-size: 0.95rem; }
-        .card-edu { background: white; border: none; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); }
-        .status-dot {
-            width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 8px;
-        }
-        .status-dot.online { background-color: #2ECC71; box-shadow: 0 0 0 4px rgba(46, 204, 113, 0.2); }
-        .status-dot.offline { background-color: #E74C3C; box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.2); }
-        .metric-card {
-            border-radius: 10px;
-            padding: 20px;
-            background: white;
-            border: 1px solid #EAEFF4;
-            display: flex;
-            align-items: center;
-        }
-        .metric-icon {
-            width: 50px; height: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-right: 15px;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .status-dot { width: 8px; height: 8px; border-radius: 9999px; display: inline-block; }
+        .status-dot.online { background-color: #10b981; }
+        .status-dot.offline { background-color: #f43f5e; }
     </style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex">
 
-<!-- Sidebar Navigation -->
-<div class="sidebar">
-    <a href="/view-attendance" class="brand-logo">
-        <i class="fas fa-graduation-cap"></i> EduCore
-    </a>
-    <a href="/view-attendance" class="nav-link">
-        <i class="fas fa-table-list"></i> View Records
-    </a>
-    <a href="/mark-attendance" class="nav-link">
-        <i class="fas fa-calendar-plus"></i> Mark Attendance
-    </a>
-    <a href="/system-status" class="nav-link active">
-        <i class="fas fa-server"></i> System & DB Status
-    </a>
-    <a href="/h2-console" target="_blank" class="nav-link">
-        <i class="fas fa-database"></i> H2 Database Console
-    </a>
-    <div class="user-footer">
-        <div class="user-avatar">TC</div>
-        <div>
-            <div class="user-name">Miss sahathma</div>
-            <div class="user-role">Attendance Manager</div>
-        </div>
-    </div>
-</div>
+<aside th:replace="~{fragments/sidebar :: nav('student-attendance')}"></aside>
 
-<!-- Main Content -->
-<div class="main-content">
-    <div class="content-header">
+<main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+    <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-10">
         <div>
-            <h1 class="page-title"><i class="fas fa-heartbeat text-danger me-2"></i>System & DB Connectivity Status</h1>
-            <p class="page-subtitle">Real-time health check between Spring Boot API and Database</p>
+            <h1 class="text-lg font-bold text-slate-900">System &amp; DB Connectivity</h1>
+            <p class="text-xs text-slate-500">Health check between the application and database</p>
         </div>
-        <div class="d-flex gap-2">
-            <button id="refreshBtn" onclick="runLiveHealthCheck()" class="btn btn-outline-primary">
-                <i class="fas fa-sync-alt me-1" id="refreshIcon"></i> Live Test Now
+        <div class="flex items-center gap-2">
+            <button id="refreshBtn" onclick="runLiveHealthCheck()" class="flex items-center gap-2 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-semibold px-3.5 py-2 rounded-lg">
+                <i class="fa-solid fa-rotate" id="refreshIcon"></i> Live Test
             </button>
-            <a href="/api/system-status" target="_blank" class="btn btn-secondary">
-                <i class="fas fa-code me-1"></i> View JSON API
+            <a href="/api/system-status" target="_blank" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3.5 py-2 rounded-lg">
+                <i class="fa-solid fa-code"></i> JSON API
             </a>
         </div>
-    </div>
+    </header>
 
-    <!-- Overview Metrics Row -->
-    <div class="row g-3 mb-4">
-        <!-- API Status -->
-        <div class="col-md-3">
-            <div class="metric-card shadow-sm">
-                <div class="metric-icon bg-primary bg-opacity-10 text-primary">
-                    <i class="fas fa-cloud"></i>
-                </div>
+    <div class="p-6 space-y-6 max-w-7xl w-full mx-auto">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                <div class="w-11 h-11 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center"><i class="fa-solid fa-cloud"></i></div>
                 <div>
-                    <span class="text-muted small">Spring Boot API</span>
-                    <h5 class="mb-0 fw-bold d-flex align-items-center mt-1">
-                        <span class="status-dot online"></span>
-                        <span id="apiStatusText" th:text="${status['apiStatus']}">ONLINE</span>
-                    </h5>
+                    <p class="text-xs text-slate-500 font-medium">Spring Boot API</p>
+                    <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2"><span class="status-dot online"></span><span id="apiStatusText" th:text="${status['apiStatus']}">ONLINE</span></h3>
                 </div>
             </div>
-        </div>
-
-        <!-- DB Connection Status -->
-        <div class="col-md-3">
-            <div class="metric-card shadow-sm">
-                <div class="metric-icon bg-success bg-opacity-10 text-success">
-                    <i class="fas fa-database"></i>
-                </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                <div class="w-11 h-11 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center"><i class="fa-solid fa-database"></i></div>
                 <div>
-                    <span class="text-muted small">Database Link</span>
-                    <h5 class="mb-0 fw-bold d-flex align-items-center mt-1">
+                    <p class="text-xs text-slate-500 font-medium">Database Link</p>
+                    <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
                         <span class="status-dot" th:classappend="${status['dbConnected'] ? 'online' : 'offline'}" id="dbDot"></span>
                         <span id="dbStatusText" th:text="${status['dbStatus']}">CONNECTED</span>
-                    </h5>
+                    </h3>
                 </div>
             </div>
-        </div>
-
-        <!-- Ping Latency -->
-        <div class="col-md-3">
-            <div class="metric-card shadow-sm">
-                <div class="metric-icon bg-info bg-opacity-10 text-info">
-                    <i class="fas fa-stopwatch"></i>
-                </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                <div class="w-11 h-11 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center"><i class="fa-solid fa-stopwatch"></i></div>
                 <div>
-                    <span class="text-muted small">DB Ping Latency</span>
-                    <h5 class="mb-0 fw-bold mt-1 text-dark">
-                        <span id="latencyText" th:text="${status['pingLatencyMs']}">1</span> ms
-                    </h5>
+                    <p class="text-xs text-slate-500 font-medium">DB Ping Latency</p>
+                    <h3 class="text-xl font-bold text-slate-800"><span id="latencyText" th:text="${status['pingLatencyMs']}">1</span> ms</h3>
                 </div>
             </div>
-        </div>
-
-        <!-- Total Records -->
-        <div class="col-md-3">
-            <div class="metric-card shadow-sm">
-                <div class="metric-icon bg-warning bg-opacity-10 text-warning">
-                    <i class="fas fa-clipboard-check"></i>
-                </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                <div class="w-11 h-11 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center"><i class="fa-solid fa-clipboard-check"></i></div>
                 <div>
-                    <span class="text-muted small">Attendance Records</span>
-                    <h5 class="mb-0 fw-bold mt-1 text-dark">
-                        <span id="recordCountText" th:text="${status['recordCount']}">0</span>
-                    </h5>
+                    <p class="text-xs text-slate-500 font-medium">Attendance Records</p>
+                    <h3 class="text-xl font-bold text-slate-800" id="recordCountText" th:text="${status['recordCount']}">0</h3>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Diagnostic Details Card -->
-    <div class="card card-edu p-4 mb-4">
-        <h5 class="fw-bold text-dark mb-3"><i class="fas fa-microchip me-2 text-primary"></i>Database & Driver Metadata</h5>
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <tbody>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100">
+                <h2 class="font-bold text-slate-800 text-sm">Database &amp; Driver Metadata</h2>
+            </div>
+            <table class="w-full text-xs">
+                <tbody class="divide-y divide-slate-100">
+                <tr><th class="text-left py-3 px-6 w-1/3 text-slate-500 font-medium">Database Product</th><td class="py-3 px-6 font-semibold" id="dbProductText" th:text="${status['databaseProduct']}">H2</td></tr>
+                <tr><th class="text-left py-3 px-6 text-slate-500 font-medium">Database Version</th><td class="py-3 px-6" id="dbVersionText" th:text="${status['databaseVersion']}">-</td></tr>
+                <tr><th class="text-left py-3 px-6 text-slate-500 font-medium">JDBC Driver Name</th><td class="py-3 px-6" id="driverNameText" th:text="${status['driverName']}">-</td></tr>
+                <tr><th class="text-left py-3 px-6 text-slate-500 font-medium">JDBC Driver Version</th><td class="py-3 px-6" id="driverVersionText" th:text="${status['driverVersion']}">-</td></tr>
+                <tr><th class="text-left py-3 px-6 text-slate-500 font-medium">JDBC URL</th><td class="py-3 px-6 font-mono text-indigo-600" id="jdbcUrlText" th:text="${status['jdbcUrl']}">-</td></tr>
+                <tr><th class="text-left py-3 px-6 text-slate-500 font-medium">Database User</th><td class="py-3 px-6 font-mono" id="dbUserText" th:text="${status['dbUser']}">-</td></tr>
+                <tr><th class="text-left py-3 px-6 text-slate-500 font-medium">Last Checked</th><td class="py-3 px-6 text-slate-500" id="timestampText" th:text="${status['timestamp']}">-</td></tr>
                 <tr>
-                    <th class="text-secondary" style="width: 28%;">Database Product</th>
-                    <td class="fw-bold" id="dbProductText" th:text="${status['databaseProduct']}">H2</td>
-                </tr>
-                <tr>
-                    <th class="text-secondary">Database Version</th>
-                    <td id="dbVersionText" th:text="${status['databaseVersion']}">2.4.240</td>
-                </tr>
-                <tr>
-                    <th class="text-secondary">JDBC Driver Name</th>
-                    <td id="driverNameText" th:text="${status['driverName']}">H2 JDBC Driver</td>
-                </tr>
-                <tr>
-                    <th class="text-secondary">JDBC Driver Version</th>
-                    <td id="driverVersionText" th:text="${status['driverVersion']}">2.4.240</td>
-                </tr>
-                <tr>
-                    <th class="text-secondary">JDBC URL</th>
-                    <td><code class="text-primary" id="jdbcUrlText" th:text="${status['jdbcUrl']}">jdbc:h2:mem:testdb</code></td>
-                </tr>
-                <tr>
-                    <th class="text-secondary">Database User</th>
-                    <td><code id="dbUserText" th:text="${status['dbUser']}">SA</code></td>
-                </tr>
-                <tr>
-                    <th class="text-secondary">Last Checked</th>
-                    <td class="text-muted" id="timestampText" th:text="${status['timestamp']}">Just now</td>
-                </tr>
-                <tr>
-                    <th class="text-secondary">Diagnostics Message</th>
-                    <td>
-                        <span class="badge bg-success" id="diagMsgText" th:text="${status['message']}">Database connection verified and active.</span>
-                    </td>
+                    <th class="text-left py-3 px-6 text-slate-500 font-medium">Diagnostics Message</th>
+                    <td class="py-3 px-6"><span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold" id="diagMsgText" th:text="${status['message']}">OK</span></td>
                 </tr>
                 </tbody>
             </table>
         </div>
     </div>
+</main>
 
-    <!-- Endpoints Quick Guide Card -->
-    <div class="card card-edu p-4">
-        <h5 class="fw-bold text-dark mb-3"><i class="fas fa-network-wired me-2 text-info"></i>API Endpoints Directory</h5>
-        <div class="table-responsive">
-            <table class="table table-bordered align-middle mb-0">
-                <thead class="table-light">
-                <tr>
-                    <th>METHOD</th>
-                    <th>ENDPOINT</th>
-                    <th>DESCRIPTION</th>
-                    <th>ACTION</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td><span class="badge bg-primary">GET</span></td>
-                    <td><code>/view-attendance</code></td>
-                    <td>Displays all student attendance records with edit & delete options</td>
-                    <td><a href="/view-attendance" class="btn btn-sm btn-outline-primary">Open</a></td>
-                </tr>
-                <tr>
-                    <td><span class="badge bg-primary">GET</span></td>
-                    <td><code>/mark-attendance</code></td>
-                    <td>Attendance submission form for classes</td>
-                    <td><a href="/mark-attendance" class="btn btn-sm btn-outline-primary">Open</a></td>
-                </tr>
-                <tr>
-                    <td><span class="badge bg-success">POST</span></td>
-                    <td><code>/save-attendance</code></td>
-                    <td>Saves new attendance records into database</td>
-                    <td><span class="text-muted small">Form POST</span></td>
-                </tr>
-                <tr>
-                    <td><span class="badge bg-primary">GET</span></td>
-                    <td><code>/update-attendance?id={id}</code></td>
-                    <td>Shows update form pre-filled with record details</td>
-                    <td><span class="text-muted small">Via View List</span></td>
-                </tr>
-                <tr>
-                    <td><span class="badge bg-warning text-dark">POST</span></td>
-                    <td><code>/update-attendance</code></td>
-                    <td>Processes updates and persists changes in database</td>
-                    <td><span class="text-muted small">Form POST</span></td>
-                </tr>
-                <tr>
-                    <td><span class="badge bg-primary">GET</span></td>
-                    <td><code>/delete-attendance?id={id}</code></td>
-                    <td>Displays delete confirmation screen</td>
-                    <td><span class="text-muted small">Via View List</span></td>
-                </tr>
-                <tr>
-                    <td><span class="badge bg-danger">POST</span></td>
-                    <td><code>/delete-attendance</code></td>
-                    <td>Permanently deletes record by ID</td>
-                    <td><span class="text-muted small">Form POST</span></td>
-                </tr>
-                <tr>
-                    <td><span class="badge bg-info text-dark">GET</span></td>
-                    <td><code>/api/system-status</code></td>
-                    <td>JSON health check verifying DB connection & latency</td>
-                    <td><a href="/api/system-status" target="_blank" class="btn btn-sm btn-outline-info">Test JSON</a></td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     async function runLiveHealthCheck() {
         const icon = document.getElementById('refreshIcon');
         icon.classList.add('fa-spin');
-
         try {
             const resp = await fetch('/api/system-status');
             const data = await resp.json();
-
             document.getElementById('apiStatusText').innerText = data.apiStatus || 'ONLINE';
             document.getElementById('dbStatusText').innerText = data.dbStatus || 'UNKNOWN';
             document.getElementById('latencyText').innerText = data.pingLatencyMs ?? '0';
@@ -327,20 +110,18 @@
             document.getElementById('jdbcUrlText').innerText = data.jdbcUrl || '-';
             document.getElementById('dbUserText').innerText = data.dbUser || '-';
             document.getElementById('timestampText').innerText = data.timestamp || new Date().toLocaleString();
-
             const dot = document.getElementById('dbDot');
             const msg = document.getElementById('diagMsgText');
             if (data.dbConnected) {
                 dot.className = 'status-dot online';
-                msg.className = 'badge bg-success';
+                msg.className = 'px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold';
                 msg.innerText = data.message || 'Database connection verified and active.';
             } else {
                 dot.className = 'status-dot offline';
-                msg.className = 'badge bg-danger';
+                msg.className = 'px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 font-semibold';
                 msg.innerText = data.errorMessage || 'Database connection failed!';
             }
         } catch (err) {
-            console.error("Health check error:", err);
             document.getElementById('dbStatusText').innerText = 'ERROR';
             document.getElementById('dbDot').className = 'status-dot offline';
         } finally {

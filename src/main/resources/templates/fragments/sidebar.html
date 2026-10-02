@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<aside th:fragment="nav(active)" class="w-64 bg-slate-900 text-white flex flex-col justify-between shrink-0 hidden md:flex min-h-screen">
+    <div>
+        <div class="h-16 flex items-center gap-3 px-6 bg-slate-950/40 border-b border-slate-800">
+            <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white shadow-md">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <span class="font-bold text-lg tracking-wide">EduCore SIS</span>
+        </div>
+
+        <nav class="p-4 space-y-1.5 text-sm">
+            <a th:href="@{/exams}"
+               th:classappend="${active == 'exams'} ? 'bg-indigo-600 text-white font-medium shadow-sm' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'"
+               class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition">
+                <i class="fa-solid fa-chart-pie w-5"></i>
+                <span>Exams Dashboard</span>
+            </a>
+            <a th:href="@{/marks/entry}"
+               th:classappend="${active == 'marks'} ? 'bg-indigo-600 text-white font-medium shadow-sm' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'"
+               class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition">
+                <i class="fa-solid fa-pen-to-square w-5"></i>
+                <span>Marks Entry</span>
+            </a>
+            <a th:href="@{/reports}"
+               th:classappend="${active == 'reports'} ? 'bg-indigo-600 text-white font-medium shadow-sm' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'"
+               class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition">
+                <i class="fa-solid fa-file-lines w-5"></i>
+                <span>Student Report Card</span>
+            </a>
+            <a th:href="@{/subjects}"
+               th:classappend="${active == 'subjects'} ? 'bg-indigo-600 text-white font-medium shadow-sm' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'"
+               class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition">
+                <i class="fa-solid fa-book-open w-5"></i>
+                <span>Subject Catalog</span>
+            </a>
+            <a th:href="@{/analytics}"
+               th:classappend="${active == 'analytics'} ? 'bg-indigo-600 text-white font-medium shadow-sm' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'"
+               class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition">
+                <i class="fa-solid fa-square-poll-vertical w-5"></i>
+                <span>Batch Analytics</span>
+            </a>
+            <a th:href="@{/view-attendance}"
+               th:classappend="${active == 'student-attendance'} ? 'bg-indigo-600 text-white font-medium shadow-sm' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'"
+               class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition">
+                <i class="fa-solid fa-clipboard-user w-5"></i>
+                <span>Student Attendance</span>
+            </a>
+            <a th:href="@{/view-teacher-attendance}"
+               th:classappend="${active == 'teacher-attendance'} ? 'bg-indigo-600 text-white font-medium shadow-sm' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'"
+               class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition">
+                <i class="fa-solid fa-chalkboard-user w-5"></i>
+                <span>Teacher Attendance</span>
+            </a>
+            <a th:href="@{/portal}"
+               th:classappend="${active == 'portal'} ? 'bg-indigo-600 text-white font-medium shadow-sm' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'"
+               class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition">
+                <i class="fa-solid fa-user-graduate w-5"></i>
+                <span>Student Portal</span>
+            </a>
+        </nav>
+    </div>
+
+    <div class="p-4 border-t border-slate-800 bg-slate-950/20 flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-indigo-400 font-bold text-xs">
+            TC
+        </div>
+        <div class="overflow-hidden">
+            <p class="text-xs font-semibold text-white truncate">Mr. Pemadasa</p>
+            <p class="text-[11px] text-slate-400 truncate">Staff Coordinator</p>
+        </div>
+    </div>
+</aside>
+</body>
+</html>
