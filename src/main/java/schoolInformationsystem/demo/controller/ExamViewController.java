@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import schoolInformationsystem.demo.model.Exam;
 import schoolInformationsystem.demo.model.ExamResult;
 import schoolInformationsystem.demo.model.Student;
@@ -92,7 +93,8 @@ public class ExamViewController {
     @PostMapping("/marks/save-batch")
     public String saveBatchMarks(@RequestParam("examId") String examId,
                                  @RequestParam("subjectId") String subjectId,
-                                 @RequestParam Map<String, String> allParams) {
+                                 @RequestParam Map<String, String> allParams,
+                                 RedirectAttributes redirectAttributes) {
 
         Optional<Exam> examOpt = examRepository.findById(examId);
         Optional<Subject> subjectOpt = subjectRepository.findById(subjectId);
@@ -101,28 +103,75 @@ public class ExamViewController {
             Exam exam = examOpt.get();
             Subject subject = subjectOpt.get();
 
+            int savedCount = 0;
+            int skippedCount = 0;
+
             for (Map.Entry<String, String> entry : allParams.entrySet()) {
                 if (entry.getKey().startsWith("marks_") && !entry.getValue().trim().isEmpty()) {
                     String studentId = entry.getKey().replace("marks_", "");
                     try {
-                        Double marks = Double.parseDouble(entry.getValue());
+                        Double marks = Double.parseDouble(entry.getValue().trim());
+
+                        // --- Step 4 Polish: Marks Validation (0.0 - 100.0) ---
+                        if (marks < 0.0 || marks > 100.0) {
+                            skippedCount++;
+                            continue; // 0 ට අඩු හෝ 100 ට වැඩි නම් database එකට නොදා skip කරයි
+                        }
+
                         Optional<Student> studentOpt = studentRepository.findById(studentId);
 
                         if (studentOpt.isPresent()) {
                             // Grading Scheme Logic
                             String grade = "F";
-                            if (marks >= 75) grade = "A";
-                            else if (marks >= 65) grade = "B";
-                            else if (marks >= 55) grade = "C";
-                            else if (marks >= 35) grade = "S";
+                            String remarks = "Repeat";
+                            if (marks >= 75) {
+                                grade = "A";
+                                remarks = "Distinction";
+                            } else if (marks >= 65) {
+                                grade = "B";
+                                remarks = "Very Good";
+                            } else if (marks >= 55) {
+                                grade = "C";
+                                remarks = "Credit";
+                            } else if (marks >= 35) {
+                                grade = "S";
+                                remarks = "Simple Pass";
+                            }
 
-                            ExamResult result = new ExamResult(exam, studentOpt.get(), subject, marks, grade);
-                            examResultRepository.save(result);
+                            Optional<ExamResult> existingResult = examResultRepository
+                                    .findByExam_ExamIdAndStudent_StudentIdAndSubject_SubjectId(examId, studentId, subjectId);
+
+                            ExamResult resultToSave;
+                            if (existingResult.isPresent()) {
+                                resultToSave = existingResult.get();
+                            } else {
+                                resultToSave = new ExamResult();
+                                resultToSave.setExam(exam);
+                                resultToSave.setStudent(studentOpt.get());
+                                resultToSave.setSubject(subject);
+                            }
+
+                            resultToSave.setMarks(marks);
+                            resultToSave.setGrade(grade);
+                            resultToSave.setRemarks(remarks);
+                            examResultRepository.save(resultToSave);
+                            savedCount++;
+                            savedCount++;
                         }
-                    } catch (NumberFormatException ignored) {}
+                    } catch (NumberFormatException ignored) {
+                        skippedCount++;
+                    }
                 }
             }
+
+            if (skippedCount > 0) {
+                redirectAttributes.addFlashAttribute("warningMessage",
+                        savedCount + " marks saved. " + skippedCount + " invalid scores skipped (Scores must be between 0 and 100).");
+            } else {
+                redirectAttributes.addFlashAttribute("successMessage", "All marks saved successfully!");
+            }
         }
+
         return "redirect:/marks/entry?examId=" + examId + "&subjectId=" + subjectId + "&success=true";
     }
 
