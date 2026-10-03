@@ -55,7 +55,7 @@
             TC
         </div>
         <div class="overflow-hidden">
-            <p class="text-xs font-semibold text-white truncate">Mr. K. Perera</p>
+            <p class="text-xs font-semibold text-white truncate">Mr. Pemadasa</p>
             <p class="text-[11px] text-slate-400 truncate">Exam Coordinator</p>
         </div>
     </div>
@@ -84,8 +84,17 @@
             <a th:href="@{/reports(examId=${selectedExamId})}" class="text-xs font-bold underline hover:text-emerald-950">View Report Cards &rarr;</a>
         </div>
 
-        <!-- Selection Filter Bar -->
-        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Warning Toast Alert -->
+        <div th:if="${warningMessage}" class="p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-between text-amber-800 text-xs font-medium">
+            <div class="flex items-center gap-2.5">
+                <i class="fa-solid fa-triangle-exclamation text-amber-600 text-sm"></i>
+                <span th:text="${warningMessage}"></span>
+            </div>
+        </div>
+
+        <!-- Selection Filter Bar (Grade 1 to 13) -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-4 gap-4">
+            <!-- 1. Target Exam -->
             <div>
                 <label class="block text-xs font-semibold text-slate-600 mb-1">Target Exam (Exam_ID)</label>
                 <select id="examSelect" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white">
@@ -97,6 +106,7 @@
                 </select>
             </div>
 
+            <!-- 2. Target Subject -->
             <div>
                 <label class="block text-xs font-semibold text-slate-600 mb-1">Subject (Subject_ID)</label>
                 <select id="subjectSelect" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white">
@@ -108,9 +118,32 @@
                 </select>
             </div>
 
+            <!-- 3. Target Class Grade Filter (Grade 1 to Grade 13) -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Class Grade</label>
+                <select id="gradeSelect" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white">
+                    <option value="ALL" th:selected="${selectedGrade == null or selectedGrade == 'ALL' or selectedGrade == ''}">All Enrolled Grades (All Students)</option>
+                    <option value="GRADE-1" th:selected="${selectedGrade == 'GRADE-1'}">Grade 1</option>
+                    <option value="GRADE-2" th:selected="${selectedGrade == 'GRADE-2'}">Grade 2</option>
+                    <option value="GRADE-3" th:selected="${selectedGrade == 'GRADE-3'}">Grade 3</option>
+                    <option value="GRADE-4" th:selected="${selectedGrade == 'GRADE-4'}">Grade 4</option>
+                    <option value="GRADE-5" th:selected="${selectedGrade == 'GRADE-5'}">Grade 5</option>
+                    <option value="GRADE-6" th:selected="${selectedGrade == 'GRADE-6'}">Grade 6</option>
+                    <option value="GRADE-7" th:selected="${selectedGrade == 'GRADE-7'}">Grade 7</option>
+                    <option value="GRADE-8" th:selected="${selectedGrade == 'GRADE-8'}">Grade 8</option>
+                    <option value="GRADE-9" th:selected="${selectedGrade == 'GRADE-9'}">Grade 9</option>
+                    <option value="GRADE-10" th:selected="${selectedGrade == 'GRADE-10'}">Grade 10</option>
+                    <option value="GRADE-11" th:selected="${selectedGrade == 'GRADE-11'}">Grade 11</option>
+                    <option value="GRADE-12" th:selected="${selectedGrade == 'GRADE-12'}">Grade 12</option>
+                    <option value="GRADE-13" th:selected="${selectedGrade == 'GRADE-13'}">Grade 13</option>
+                </select>
+            </div>
+
+            <!-- 4. Load Action Button -->
             <div class="flex items-end">
-                <button type="button" onclick="filterRoster()" class="w-full bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold py-2 px-4 rounded-lg transition cursor-pointer">
-                    <i class="fa-solid fa-filter mr-1.5"></i> Load Student Roster
+                <button type="button" onclick="filterRoster()" class="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold py-2.5 px-4 rounded-lg transition cursor-pointer flex items-center justify-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-filter"></i>
+                    <span>Load Student Roster</span>
                 </button>
             </div>
         </div>
@@ -120,11 +153,18 @@
             <!-- Hidden Fields required by Controller -->
             <input type="hidden" id="formExamId" name="examId" th:value="${selectedExamId != null ? selectedExamId : (exams.size() > 0 ? exams[0].examId : 'EX-101')}">
             <input type="hidden" id="formSubjectId" name="subjectId" th:value="${selectedSubjectId != null ? selectedSubjectId : (subjects.size() > 0 ? subjects[0].subjectId : 'SUB-01')}">
+            <input type="hidden" id="formGrade" name="grade" th:value="${selectedGrade}">
 
             <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                 <div>
                     <h2 class="font-bold text-slate-800 text-sm">Roster & Grade Recording</h2>
-                    <p class="text-xs text-slate-500">Grading scale: A (75+), B (65-74), C (55-64), S (35-54), F (&lt;35)</p>
+                    <p class="text-xs text-slate-500">
+                        Grading scale: A (75+), B (65-74), C (55-64), S (35-54), F (&lt;35) 
+                        <span th:if="${selectedGrade != null and selectedGrade != 'ALL' and selectedGrade != ''}" 
+                              class="ml-2 font-semibold text-indigo-600" 
+                              th:text="'[Filtered by: ' + ${selectedGrade} + ' - ' +${students.size()} + ' Students]'">
+                        </span>
+                    </p>
                 </div>
                 <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5 cursor-pointer">
                     <i class="fa-solid fa-cloud-arrow-up"></i>
@@ -138,6 +178,7 @@
                     <tr>
                         <th class="py-3.5 px-6">Student ID (SID)</th>
                         <th class="py-3.5 px-6">Student Name</th>
+                        <th class="py-3.5 px-6">Grade</th>
                         <th class="py-3.5 px-6 w-44">Marks (0 - 100)</th>
                         <th class="py-3.5 px-6">Assigned Grade</th>
                         <th class="py-3.5 px-6 text-center">Status</th>
@@ -146,10 +187,14 @@
                     <tbody id="rosterTable" class="divide-y divide-slate-100">
                     <tr th:each="student : ${students}" class="hover:bg-slate-50/50 transition">
                         <td class="py-3.5 px-6 font-mono font-medium text-indigo-600" th:text="${student.studentId}">
-                            ST-2024-001
+                            001
                         </td>
                         <td class="py-3.5 px-6 font-semibold text-slate-800" th:text="${student.fullName}">
-                            Kasun Bandara
+                            Chamindu Dilshan
+                        </td>
+                        <td class="py-3.5 px-6">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700" 
+                                  th:text="${student.classGrade}">GRADE-11</span>
                         </td>
                         <td class="py-3.5 px-6">
                             <input type="number"
@@ -166,6 +211,13 @@
                             <i class="fa-regular fa-circle"></i>
                         </td>
                     </tr>
+
+                    <!-- Empty state if no students in that grade -->
+                    <tr th:if="${#lists.isEmpty(students)}">
+                        <td colspan="6" class="py-8 text-center text-slate-400">
+                            No students found for the selected Grade.
+                        </td>
+                    </tr>
                     </tbody>
                 </table>
             </div>
@@ -178,7 +230,13 @@
     function filterRoster() {
         const examId = document.getElementById('examSelect').value;
         const subjectId = document.getElementById('subjectSelect').value;
-        window.location.href = `/marks/entry?examId=${encodeURIComponent(examId)}&subjectId=${encodeURIComponent(subjectId)}`;
+        const grade = document.getElementById('gradeSelect').value;
+        
+        let targetUrl = `/marks/entry?examId=${encodeURIComponent(examId)}&subjectId=${encodeURIComponent(subjectId)}`;
+        if (grade && grade !== 'ALL') {
+            targetUrl += `&grade=${encodeURIComponent(grade)}`;
+        }
+        window.location.href = targetUrl;
     }
 
     // Sync Hidden Inputs when Dropdown changes
@@ -187,6 +245,9 @@
     });
     document.getElementById('subjectSelect').addEventListener('change', function() {
         document.getElementById('formSubjectId').value = this.value;
+    });
+    document.getElementById('gradeSelect').addEventListener('change', function() {
+        document.getElementById('formGrade').value = this.value;
     });
 
     function calculateGrade(input) {
