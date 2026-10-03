@@ -7,6 +7,8 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "exams")
+
+// This class represents an Exam entity in the school information system. It contains fields for exam ID, exam name, and term, along with their corresponding getters and setters. The class is annotated with JPA annotations to map it to a database table named "exams".
 public class Exam {
 
     @Id

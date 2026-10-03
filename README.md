@@ -232,6 +232,8 @@ develop (central integration branch)
 - MySQL 8.0+
 
 ### Backend Setup
+For the SQL Server datasource configured in `src/main/resources/application.properties`, set the `DB_PASSWORD` environment variable before starting the backend.
+
 ```bash
 cd server
 # Ensure MySQL is running and sim_system_db is created via database/schema.sql

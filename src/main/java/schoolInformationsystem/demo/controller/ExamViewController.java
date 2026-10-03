@@ -130,7 +130,7 @@ public class ExamViewController {
 
             int savedCount = 0;
             int skippedCount = 0;
-
+//marks Validation (only can enter Marks Betweeen 0 and 100)
             for (Map.Entry<String, String> entry : allParams.entrySet()) {
                 if (entry.getKey().startsWith("marks_") && !entry.getValue().trim().isEmpty()) {
                     String studentId = entry.getKey().replace("marks_", "");
@@ -143,7 +143,7 @@ public class ExamViewController {
                         }
 
                         Optional<Student> studentOpt = studentRepository.findById(studentId);
-
+// Grade Validation (Assigning Grades and Remarks based on Marks)
                         if (studentOpt.isPresent()) {
                             String assignedGrade = "F";
                             String remarks = "Repeat";
@@ -160,7 +160,7 @@ public class ExamViewController {
                                 assignedGrade = "S";
                                 remarks = "Simple Pass";
                             }
-
+// Saving or Updating Exam Results
                             Optional<ExamResult> existingResult = examResultRepository
                                     .findByExam_ExamIdAndStudent_StudentIdAndSubject_SubjectId(examId, studentId, subjectId);
                             ExamResult resultToSave;
@@ -195,7 +195,7 @@ public class ExamViewController {
         }
         return redirectUrl + "&success=true";
     }
-
+// Displaying Report Card for a Student in a Specific Exam
     @GetMapping("/reports")
     public String showReportCard(@RequestParam(value = "studentId", required = false) String studentId,
                                  @RequestParam(value = "examId", required = false) String examId,
@@ -207,7 +207,7 @@ public class ExamViewController {
         model.addAttribute("exams", exams);
         model.addAttribute("selectedStudentId", studentId);
         model.addAttribute("selectedExamId", examId);
-
+// Fetching Exam Results for the Selected Student and Exam
         List<ExamResult> results = new ArrayList<>();
         double totalMarks = 0.0;
         double averageMarks = 0.0;
@@ -284,7 +284,7 @@ public class ExamViewController {
         double totalMarksSum = 0;
         long passedCount = 0;
         long gradeA = 0, gradeB = 0, gradeC = 0, gradeS = 0, gradeF = 0;
-
+// Calculating Total Marks, Pass Count, and Grade Distribution
         for (ExamResult r : results) {
             double m = (r.getMarks() != null) ? r.getMarks() : 0.0;
             totalMarksSum += m;
@@ -374,7 +374,7 @@ public class ExamViewController {
 
         return "class-analytics";
     }
-
+// Student Portal for Viewing Exam Results
     @GetMapping("/portal")
     public String showStudentPortal(@RequestParam(value = "studentId", required = false) String studentId,
                                     @RequestParam(value = "examId", required = false) String examId,
