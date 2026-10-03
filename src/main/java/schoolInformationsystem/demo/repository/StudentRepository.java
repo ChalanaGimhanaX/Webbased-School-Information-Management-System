@@ -9,6 +9,5 @@ import java.util.List;
 @Repository
 public interface StudentRepository extends JpaRepository<Student, String> {
     
-   
     List<Student> findByClassGrade(String classGrade);
 }

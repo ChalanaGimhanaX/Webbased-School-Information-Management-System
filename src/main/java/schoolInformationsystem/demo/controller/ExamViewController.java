@@ -48,14 +48,18 @@ public class ExamViewController {
     public String showExamsDashboard(Model model) {
         List<Exam> exams = examRepository.findAll();
         model.addAttribute("exams", exams);
-        model.addAttribute("activeStudentsCount", studentRepository.count());
-        model.addAttribute("facultyMembersCount", subjectRepository.count());
+
+        long activeStudentsCount = studentRepository.count();
+        model.addAttribute("activeStudentsCount", activeStudentsCount);
+
+        long facultyMembersCount = subjectRepository.count();
+        model.addAttribute("facultyMembersCount", facultyMembersCount);
 
         List<ExamResult> allResults = examResultRepository.findAll();
         double overallPassRate = 0.0;
         if (!allResults.isEmpty()) {
             long passedCount = allResults.stream()
-                    .filter(result -> result.getMarks() != null && result.getMarks() >= 35.0)
+                    .filter(r -> r.getMarks() != null && r.getMarks() >= 35.0)
                     .count();
             overallPassRate = Math.round(((double) passedCount / allResults.size()) * 1000.0) / 10.0;
         }
@@ -64,21 +68,18 @@ public class ExamViewController {
         return "exam-dashboard";
     }
 
-    // Persists a newly created exam
     @PostMapping("/exams/save")
     public String saveExam(@ModelAttribute Exam exam) {
         examRepository.save(exam);
         return "redirect:/exams";
     }
 
-    // Updates an existing exam record
     @PostMapping("/exams/update")
     public String updateExam(@ModelAttribute Exam exam) {
         examRepository.save(exam);
         return "redirect:/exams?updated=true";
     }
 
-    // Deletes an exam and cascades deletion to associated exam results
     @GetMapping("/exams/delete/{id}")
     public String deleteExam(@PathVariable("id") String examId) {
         List<ExamResult> results = examResultRepository.findByExam_ExamId(examId);
@@ -89,7 +90,6 @@ public class ExamViewController {
         return "redirect:/exams?deleted=true";
     }
 
-    // Marks entry page handler with optional class-grade filter
     @GetMapping("/marks/entry")
     public String showMarksEntry(@RequestParam(value = "examId", required = false) String examId,
                                  @RequestParam(value = "subjectId", required = false) String subjectId,
@@ -99,7 +99,6 @@ public class ExamViewController {
         model.addAttribute("exams", examRepository.findAll());
         model.addAttribute("subjects", subjectRepository.findAll());
 
-        // Grade filter logic: Grade එකක් තෝරා ඇත්නම් ඒ Grade එකේ ළමයි පමණක් load වේ
         List<Student> students;
         if (grade != null && !grade.trim().isEmpty() && !grade.equalsIgnoreCase("ALL")) {
             students = studentRepository.findByClassGrade(grade.trim());
@@ -115,7 +114,6 @@ public class ExamViewController {
         return "marks-entry";
     }
 
-    // Batch saves marks for all students for a specific exam and subject
     @PostMapping("/marks/save-batch")
     public String saveBatchMarks(@RequestParam("examId") String examId,
                                  @RequestParam("subjectId") String subjectId,
@@ -133,14 +131,12 @@ public class ExamViewController {
             int savedCount = 0;
             int skippedCount = 0;
 
-            // Validation & Marks Processing
             for (Map.Entry<String, String> entry : allParams.entrySet()) {
                 if (entry.getKey().startsWith("marks_") && !entry.getValue().trim().isEmpty()) {
                     String studentId = entry.getKey().replace("marks_", "");
                     try {
                         Double marks = Double.parseDouble(entry.getValue().trim());
 
-                        // Marks Range Validation (0.0 - 100.0)
                         if (marks < 0.0 || marks > 100.0) {
                             skippedCount++;
                             continue;
@@ -148,9 +144,7 @@ public class ExamViewController {
 
                         Optional<Student> studentOpt = studentRepository.findById(studentId);
 
-                        // Grade Calculation
                         if (studentOpt.isPresent()) {
-                            // Grading Scheme Logic
                             String assignedGrade = "F";
                             String remarks = "Repeat";
                             if (marks >= 75) {
@@ -169,17 +163,12 @@ public class ExamViewController {
 
                             Optional<ExamResult> existingResult = examResultRepository
                                     .findByExam_ExamIdAndStudent_StudentIdAndSubject_SubjectId(examId, studentId, subjectId);
-
                             ExamResult resultToSave;
                             if (existingResult.isPresent()) {
                                 resultToSave = existingResult.get();
                             } else {
-                                resultToSave = new ExamResult();
-                                resultToSave.setExam(exam);
-                                resultToSave.setStudent(studentOpt.get());
-                                resultToSave.setSubject(subject);
+                                resultToSave = new ExamResult(exam, studentOpt.get(), subject, marks, assignedGrade);
                             }
-
                             resultToSave.setMarks(marks);
                             resultToSave.setGrade(assignedGrade);
                             resultToSave.setRemarks(remarks);
@@ -194,20 +183,19 @@ public class ExamViewController {
 
             if (skippedCount > 0) {
                 redirectAttributes.addFlashAttribute("warningMessage",
-                        savedCount + " marks saved. " + skippedCount + " invalid scores skipped (Scores must be between 0 and 100).");
+                        savedCount + " marks saved. " + skippedCount + " invalid scores skipped.");
             } else {
                 redirectAttributes.addFlashAttribute("successMessage", "All marks saved successfully!");
             }
         }
 
         String redirectUrl = "redirect:/marks/entry?examId=" + examId + "&subjectId=" + subjectId;
-        if (grade != null && !grade.trim().isEmpty()) {
+        if (grade != null && !grade.trim().isEmpty() && !grade.equalsIgnoreCase("ALL")) {
             redirectUrl += "&grade=" + grade;
         }
         return redirectUrl + "&success=true";
     }
 
-    // Student report card page handler with real database results calculation
     @GetMapping("/reports")
     public String showReportCard(@RequestParam(value = "studentId", required = false) String studentId,
                                  @RequestParam(value = "examId", required = false) String examId,
@@ -245,21 +233,24 @@ public class ExamViewController {
         return "report-card";
     }
 
-    // Subject catalog management page handler
     @GetMapping("/subjects")
     public String showSubjectManagement(Model model) {
         model.addAttribute("subjects", subjectRepository.findAll());
         return "subject-management";
     }
 
-    // Persists a new subject
     @PostMapping("/subjects/save")
     public String saveSubject(@ModelAttribute Subject subject) {
         subjectRepository.save(subject);
         return "redirect:/subjects";
     }
 
-    // Deletes a subject and cascades deletion to associated exam results
+    @PostMapping("/subjects/update")
+    public String updateSubject(@ModelAttribute Subject subject) {
+        subjectRepository.save(subject);
+        return "redirect:/subjects?updated=true";
+    }
+
     @GetMapping("/subjects/delete/{id}")
     public String deleteSubject(@PathVariable("id") String subjectId) {
         List<ExamResult> results = examResultRepository.findAll().stream()
@@ -273,13 +264,11 @@ public class ExamViewController {
         return "redirect:/subjects?deleted=true";
     }
 
-    // Batch analytics page handler with dynamic calculations from database
     @GetMapping("/analytics")
     public String showClassAnalytics(@RequestParam(value = "examId", required = false) String examId, Model model) {
         List<Exam> exams = examRepository.findAll();
         model.addAttribute("exams", exams);
 
-        // Auto-select the first exam if none selected
         if ((examId == null || examId.isEmpty()) && !exams.isEmpty()) {
             examId = exams.get(0).getExamId();
         }
@@ -314,7 +303,6 @@ public class ExamViewController {
         double batchAverage = totalEntries > 0 ? (totalMarksSum / totalEntries) : 0.0;
         double passRate = totalEntries > 0 ? ((double) passedCount / totalEntries) * 100.0 : 0.0;
 
-        // Subject averages calculation
         Map<String, List<Double>> subjectMarksMap = new HashMap<>();
         for (ExamResult r : results) {
             if (r.getSubject() != null && r.getMarks() != null) {
@@ -338,7 +326,6 @@ public class ExamViewController {
             }
         }
 
-        // Student total aggregates calculation for Class Merit List
         Map<Student, Double> studentTotals = new HashMap<>();
         Map<Student, Integer> studentCounts = new HashMap<>();
         for (ExamResult r : results) {
@@ -361,7 +348,6 @@ public class ExamViewController {
 
         double highestAggregate = !meritList.isEmpty() ? meritList.get(0).total() : 0.0;
 
-        // Pass calculated data to template
         model.addAttribute("evaluatedCandidates", evaluatedCandidates);
         model.addAttribute("totalEntries", totalEntries);
         model.addAttribute("batchAverage", Math.round(batchAverage * 10.0) / 10.0);
@@ -389,7 +375,6 @@ public class ExamViewController {
         return "class-analytics";
     }
 
-    // Handles Student Portal view with role-based filtering and staff search support
     @GetMapping("/portal")
     public String showStudentPortal(@RequestParam(value = "studentId", required = false) String studentId,
                                     @RequestParam(value = "examId", required = false) String examId,
@@ -399,13 +384,11 @@ public class ExamViewController {
         model.addAttribute("exams", examRepository.findAll());
         model.addAttribute("students", studentRepository.findAll());
 
-        // Check if the logged-in user is a restricted role (Student or Parent)
         boolean isRestrictedUser = authentication != null && authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_STUDENT") || a.getAuthority().equals("ROLE_PARENT"));
 
         model.addAttribute("isRestrictedUser", isRestrictedUser);
 
-        // If student or parent is logged in, lock query to their assigned student record
         String queryStudentId = studentId;
         if (isRestrictedUser) {
             queryStudentId = "ST-2024-001";

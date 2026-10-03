@@ -59,7 +59,14 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- 7. DevTools (Auto Reload on changes) -->
+        <!-- 7. Microsoft SQL Server Connector -->
+        <dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- 8. DevTools (Auto Reload on changes) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
@@ -67,20 +74,20 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- 8. Testing -->
+        <!-- 9. Testing -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
 
-        <!-- 9. Spring Boot Starter Security -->
+        <!-- 10. Spring Boot Starter Security -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
-        <!-- 10. Thymeleaf Extras for Spring Security -->
+        <!-- 11. Thymeleaf Extras for Spring Security -->
         <dependency>
             <groupId>org.thymeleaf.extras</groupId>
             <artifactId>thymeleaf-extras-springsecurity6</artifactId>
