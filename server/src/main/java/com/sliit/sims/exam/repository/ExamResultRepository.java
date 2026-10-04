@@ -1,3 +1,4 @@
+// Assigned module owner: IT25103724
 package com.sliit.sims.exam.repository;
 
 import com.sliit.sims.exam.model.ExamResult;
@@ -16,4 +17,7 @@ public interface ExamResultRepository extends JpaRepository<ExamResult, Long> {
 
     @Query("SELECT r FROM ExamResult r JOIN FETCH r.examPaper p WHERE r.studentId = :studentId AND p.examId = :examId")
     List<ExamResult> findByStudentIdAndExamId(@Param("studentId") Long studentId, @Param("examId") Long examId);
+
+    @Query("SELECT r FROM ExamResult r JOIN FETCH r.examPaper p WHERE p.examId = :examId")
+    List<ExamResult> findAllByExamId(@Param("examId") Long examId);
 }

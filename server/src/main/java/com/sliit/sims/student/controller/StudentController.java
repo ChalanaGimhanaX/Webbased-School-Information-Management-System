@@ -1,3 +1,4 @@
+// Assigned module owner: IT25100975
 package com.sliit.sims.student.controller;
 
 import com.sliit.sims.student.dto.*;
@@ -17,6 +18,16 @@ import java.util.List;
 public class StudentController {
 
     private final StudentService studentService;
+
+    @DeleteMapping("/{id}/allocation")
+    public void removeAllocation(@PathVariable Long id, @RequestParam Integer year) {
+        studentService.removeAllocation(id, year);
+    }
+
+    @PutMapping("/classes/{id}")
+    public AcademicClassResponse updateClass(@PathVariable Long id, @Valid @RequestBody ClassCreateRequest req) {
+        return studentService.updateClass(id, req);
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -50,5 +61,26 @@ public class StudentController {
     public List<AcademicClassResponse> getClasses(@RequestParam(required = false) Integer year) {
         int targetYear = year != null ? year : LocalDate.now().getYear();
         return studentService.getAllClasses(targetYear);
+    }
+
+    @GetMapping
+    public List<StudentResponse> getAll() {
+        return studentService.getAllStudents();
+    }
+
+    @PutMapping("/{id}")
+    public StudentResponse update(@PathVariable Long id, @Valid @RequestBody StudentUpdateRequest req) {
+        return studentService.updateStudent(id, req);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        studentService.deleteStudent(id);
+    }
+
+    @GetMapping("/search")
+    public StudentResponse search(@RequestParam String admission) {
+        return studentService.searchByAdmissionNumber(admission);
     }
 }

@@ -1,3 +1,4 @@
+// Assigned module owner: IT25103724
 package com.sliit.sims.exam.model;
 
 import jakarta.persistence.*;

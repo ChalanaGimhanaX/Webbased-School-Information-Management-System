@@ -1,3 +1,4 @@
+// Assigned module owner: IT25100975
 package com.sliit.sims.student.model;
 
 import jakarta.persistence.*;
@@ -40,6 +41,10 @@ public class Student {
 
     @Column(name = "parent_id")
     private Long parentId;
+
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    @Builder.Default
+    private Boolean active = true;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

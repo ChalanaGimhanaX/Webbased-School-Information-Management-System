@@ -1,3 +1,4 @@
+// Assigned module owner: IT25103710
 package com.sliit.sims.fee.controller;
 
 import com.sliit.sims.fee.dto.*;
@@ -49,11 +50,16 @@ public class PaymentController {
         return feeService.getPaymentSlipById(id);
     }
 
+    @PutMapping("/{id}")
+    public PaymentSlipResponse updatePayment(@PathVariable Long id, @Valid @RequestBody PaymentUpdateRequest request) {
+        return feeService.updatePayment(id, request);
+    }
+
     @PostMapping("/{id}/cancel")
     public PaymentSlipResponse cancelPayment(
             @PathVariable Long id,
             @RequestParam(defaultValue = "Payment cancelled by administrator") String reason,
-            @RequestParam(defaultValue = "Admin") String cancelledBy) {
-        return feeService.cancelPayment(id, reason, cancelledBy);
+            java.security.Principal principal) {
+        return feeService.cancelPayment(id, reason, principal.getName());
     }
 }

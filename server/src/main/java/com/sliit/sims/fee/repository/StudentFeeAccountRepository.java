@@ -1,3 +1,4 @@
+// Assigned module owner: IT25103710
 package com.sliit.sims.fee.repository;
 
 import com.sliit.sims.fee.model.PaymentStatus;
@@ -32,6 +33,8 @@ public interface StudentFeeAccountRepository extends JpaRepository<StudentFeeAcc
     List<StudentFeeAccount> findByAcademicYear(Integer academicYear);
 
     List<StudentFeeAccount> findByStudentIdAndStatusIn(Long studentId, List<PaymentStatus> statuses);
+
+    List<StudentFeeAccount> findByStudentIdIn(List<Long> studentIds);
 
     @Query("SELECT a FROM StudentFeeAccount a WHERE a.status != 'PAID' AND a.status != 'CANCELLED' AND a.dueDate IS NOT NULL AND a.dueDate < :currentDate")
     List<StudentFeeAccount> findOverdueAccounts(@Param("currentDate") LocalDate currentDate);

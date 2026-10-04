@@ -1,3 +1,4 @@
+// Assigned module owner: IT25103710
 package com.sliit.sims.fee;
 
 import com.sliit.sims.fee.dto.BankSlipSubmitRequest;
@@ -39,6 +40,14 @@ public class FeePaymentDataSeeder implements CommandLineRunner {
             return;
         }
 
+        try {
+            seedData();
+        } catch (Exception e) {
+            log.warn("Fee seeder skipped — prerequisite data missing: {}", e.getMessage());
+        }
+    }
+
+    private void seedData() {
         log.info("Seeding initial Fee & Payment Management sample data...");
 
         // 1. Create Fee Structures

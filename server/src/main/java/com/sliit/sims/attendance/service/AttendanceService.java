@@ -1,3 +1,4 @@
+// Assigned module owner: IT25101863
 package com.sliit.sims.attendance.service;
 
 import com.sliit.sims.attendance.dto.*;
@@ -42,6 +43,7 @@ public class AttendanceService {
             // Remove previous entries if re-submitting before locking (UC-03 Step 02/Open Issue 03)
             entryRepository.deleteAll(record.getEntries());
             record.getEntries().clear();
+            entryRepository.flush();
         }
 
         AttendanceRecord finalRecord = record;
@@ -55,7 +57,7 @@ public class AttendanceService {
                 .toList();
 
         List<AttendanceEntry> savedEntries = entryRepository.saveAll(entries);
-        finalRecord.setEntries(savedEntries);
+        finalRecord.getEntries().addAll(savedEntries);
 
         return mapToResponse(finalRecord);
     }
@@ -84,6 +86,26 @@ public class AttendanceService {
         recordRepository.save(record);
     }
 
+    @Transactional
+    public void deleteAttendance(Long recordId) {
+        AttendanceRecord record = recordRepository.findById(recordId)
+                .orElseThrow(() -> new ResourceNotFoundException("Attendance record not found: " + recordId));
+
+        if (Boolean.TRUE.equals(record.getIsLocked())) {
+            throw new IllegalStateException("Locked attendance records cannot be deleted");
+        }
+
+        recordRepository.delete(record);
+    }
+
+    @Transactional
+    public void deleteEntry(Long recordId, Long studentId) {
+        AttendanceRecord record = recordRepository.findById(recordId).orElseThrow(() -> new ResourceNotFoundException("Attendance record not found"));
+        if (Boolean.TRUE.equals(record.getIsLocked())) throw new IllegalStateException("Locked attendance cannot be changed");
+        if (!record.getEntries().removeIf(e -> e.getStudentId().equals(studentId))) throw new ResourceNotFoundException("Attendance entry not found");
+        recordRepository.save(record);
+    }
+
     private AttendanceRecordResponse mapToResponse(AttendanceRecord r) {
         List<AttendanceEntryDto> dtos = r.getEntries().stream()
                 .map(e -> new AttendanceEntryDto(e.getStudentId(), e.getStatus(), e.getRemarks()))
@@ -99,5 +121,27 @@ public class AttendanceService {
                 r.getSubmittedAt(),
                 dtos
         );
+    }
+
+    public ClassAttendanceSummaryResponse getClassAttendanceSummary(Long classId, LocalDate date) {
+        AttendanceRecord record = recordRepository.findByClassIdAndAttendanceDate(classId, date)
+                .orElseThrow(() -> new ResourceNotFoundException("No attendance recorded for class " + classId + " on " + date));
+        
+        long total = record.getEntries().size();
+        long present = record.getEntries().stream().filter(e -> e.getStatus() == AttendanceStatus.PRESENT).count();
+        long absent = record.getEntries().stream().filter(e -> e.getStatus() == AttendanceStatus.ABSENT).count();
+        long late = record.getEntries().stream().filter(e -> e.getStatus() == AttendanceStatus.LATE).count();
+
+        return new ClassAttendanceSummaryResponse(classId, date, total, present, absent, late);
+    }
+
+    public StudentAttendanceSummaryResponse getStudentAttendanceSummaryByRange(Long studentId, LocalDate from, LocalDate to) {
+        long total = entryRepository.countByStudentIdAndDateRange(studentId, from, to);
+        long present = entryRepository.countByStudentIdAndStatusAndDateRange(studentId, AttendanceStatus.PRESENT, from, to);
+        long absent = entryRepository.countByStudentIdAndStatusAndDateRange(studentId, AttendanceStatus.ABSENT, from, to);
+        long late = entryRepository.countByStudentIdAndStatusAndDateRange(studentId, AttendanceStatus.LATE, from, to);
+
+        double pct = total > 0 ? ((double) (present + late) / total) * 100.0 : 0.0;
+        return new StudentAttendanceSummaryResponse(studentId, total, present, absent, late, Math.round(pct * 100.0) / 100.0);
     }
 }

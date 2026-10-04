@@ -1,5 +1,5 @@
 -- =====================================================================
--- SLIIT SE2030 - Software Engineering (Year 2, Semester 1 - 2026)
+-- SE2030 - Software Engineering (Year 2, Semester 1 - 2026)
 -- Project: Web-based School Information Management System (SIMS)
 -- Group: 2026 - Y2 - S1 - MLB - B3G2 - 01
 -- Description: Complete Relational Database Schema with Explicit Foreign Keys
@@ -29,6 +29,7 @@ DROP TABLE IF EXISTS subjects;
 DROP TABLE IF EXISTS student_class_allocations;
 DROP TABLE IF EXISTS academic_classes;
 DROP TABLE IF EXISTS parents;
+DROP TABLE IF EXISTS staff;
 DROP TABLE IF EXISTS teachers;
 DROP TABLE IF EXISTS students;
 DROP TABLE IF EXISTS users;
@@ -68,7 +69,7 @@ CREATE TABLE parents (
 
 CREATE TABLE teachers (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT NOT NULL UNIQUE,
+    user_id BIGINT NULL UNIQUE,
     employee_number VARCHAR(50) NOT NULL UNIQUE,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
@@ -78,6 +79,24 @@ CREATE TABLE teachers (
     hire_date DATE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_teachers_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE staff (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    employee_number VARCHAR(50) NOT NULL UNIQUE,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    job_position VARCHAR(100) NOT NULL,
+    department VARCHAR(100) NOT NULL,
+    qualification VARCHAR(150),
+    phone VARCHAR(20),
+    email VARCHAR(150),
+    employment_type VARCHAR(50),
+    salary DOUBLE,
+    address VARCHAR(255),
+    hire_date DATE,
+    status ENUM('ACTIVE', 'INACTIVE', 'ON_LEAVE') NOT NULL DEFAULT 'ACTIVE',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 CREATE TABLE subjects (
@@ -254,8 +273,8 @@ CREATE TABLE timetable_entries (
 
 CREATE TABLE fee_structures (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    fee_type ENUM('TUITION', 'FACILITY', 'EXAMINATION', 'LIBRARY') NOT NULL,
-    grade_level INT NOT NULL,
+    fee_type ENUM('TUITION', 'FACILITY', 'EXAMINATION', 'LIBRARY', 'ADMISSION', 'TRANSPORT', 'ACTIVITY', 'OTHER') NOT NULL,
+    grade_level INT,
     amount DECIMAL(10,2) NOT NULL,
     academic_year INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -279,16 +298,15 @@ CREATE TABLE student_fee_accounts (
 CREATE TABLE payment_slips (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     fee_account_id BIGINT NOT NULL,
-    parent_id BIGINT NOT NULL,
-    slip_image_url VARCHAR(255) NOT NULL,
+    parent_id BIGINT,
+    slip_image_url VARCHAR(500),
     amount_paid DECIMAL(10,2) NOT NULL,
     verification_status ENUM('PENDING', 'APPROVED', 'REJECTED') DEFAULT 'PENDING',
-    reviewed_by BIGINT,
+    reviewed_by VARCHAR(100),
     remarks VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_slip_account FOREIGN KEY (fee_account_id) REFERENCES student_fee_accounts(id) ON DELETE CASCADE,
-    CONSTRAINT fk_slip_parent FOREIGN KEY (parent_id) REFERENCES parents(id) ON DELETE RESTRICT,
-    CONSTRAINT fk_slip_reviewer FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL
+    CONSTRAINT fk_slip_parent FOREIGN KEY (parent_id) REFERENCES parents(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE payment_receipts (

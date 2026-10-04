@@ -1,3 +1,4 @@
+// Assigned module owner: IT25101913
 package com.sliit.sims.timetable.controller;
 
 import com.sliit.sims.timetable.dto.*;
@@ -40,6 +41,14 @@ public class TimetableController {
         return timetableService.addEntry(id, req);
     }
 
+    @PutMapping("/{id}/entries/{entryId}")
+    public TimetableEntryResponse updateEntry(
+            @PathVariable Long id,
+            @PathVariable Long entryId,
+            @Valid @RequestBody TimetableEntryRequest req) {
+        return timetableService.updateEntry(id, entryId, req);
+    }
+
     @PostMapping("/{id}/validate-slot")
     public ConflictValidationResponse validateSlot(@PathVariable Long id, @Valid @RequestBody TimetableEntryRequest req) {
         return timetableService.validateSlot(id, req);
@@ -69,5 +78,20 @@ public class TimetableController {
     @GetMapping("/slots")
     public List<TimeSlot> getAllSlots() {
         return timetableService.getAllTimeSlots();
+    }
+
+    @GetMapping("/my-timetable")
+    public StudentTimetableResponse getMyTimetable(java.security.Principal principal) {
+        return timetableService.getMyTimetable(principal.getName());
+    }
+
+    @GetMapping("/student/{studentId}")
+    public StudentTimetableResponse getStudentTimetable(@PathVariable Long studentId) {
+        return timetableService.getStudentTimetable(studentId);
+    }
+
+    @GetMapping("/class/{classId}/student-view")
+    public StudentTimetableResponse getClassStudentView(@PathVariable Long classId) {
+        return timetableService.getClassTimetableStudentView(classId);
     }
 }

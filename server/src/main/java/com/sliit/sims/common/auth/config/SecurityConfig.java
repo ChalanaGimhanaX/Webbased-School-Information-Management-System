@@ -1,0 +1,111 @@
+package com.sliit.sims.common.auth.config;
+
+import com.sliit.sims.common.auth.jwt.JwtAuthFilter;
+import com.sliit.sims.common.auth.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
+
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
+@RequiredArgsConstructor
+public class SecurityConfig {
+
+    private final JwtAuthFilter jwtAuthFilter;
+    private final UserRepository userRepository;
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        return http
+                .cors(cors -> cors.configurationSource(corsConfig()))
+                .csrf(AbstractHttpConfigurer::disable)
+                .headers(h -> h.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/v1/auth/login").permitAll()
+                        .requestMatchers("/api/v1/auth/register").hasRole("ADMIN")
+
+                        // Parent portal: parents can view their children's fees and submit payments/slips
+                        .requestMatchers(HttpMethod.GET,  "/api/v1/fees/accounts/parent/**").hasAnyRole("ADMIN", "PARENT")
+                        .requestMatchers(HttpMethod.GET,  "/api/v1/fees/payments/**").hasAnyRole("ADMIN", "PARENT")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/fees/payments/submit-slip").hasAnyRole("ADMIN", "PARENT")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/fees/payments/record-direct").hasAnyRole("ADMIN", "PARENT")
+                        .requestMatchers(HttpMethod.GET,  "/api/v1/parents/**").hasAnyRole("ADMIN", "PARENT")
+
+                        // Full fee management for admin only
+                        .requestMatchers("/api/v1/fees/**").hasRole("ADMIN")
+
+                        // Read access for any authenticated user on the remaining modules
+                        // (must stay below the fee rules so fees remain admin/parent-only)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/**").authenticated()
+
+                        .requestMatchers("/api/v1/attendance/**", "/api/v1/exams/marks", "/api/v1/exams/results/**").hasAnyRole("ADMIN", "HEAD_OF_ACADEMIC", "TEACHER")
+                        .requestMatchers("/api/v1/students/**", "/api/v1/teachers/**", "/api/v1/timetables/**", "/api/v1/exams/**").hasAnyRole("ADMIN", "HEAD_OF_ACADEMIC")
+                        .requestMatchers("/api/v1/**").authenticated()
+                        .anyRequest().permitAll()
+                )
+                .authenticationProvider(authProvider())
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfig() {
+        var config = new CorsConfiguration();
+        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+        var source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
+    @Bean
+    public AuthenticationProvider authProvider() {
+        var provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService());
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
+    }
+
+    @Bean
+    public UserDetailsService userDetailsService() {
+        return username -> userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+    }
+
+    @Bean
+    public AuthenticationManager authManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}
+

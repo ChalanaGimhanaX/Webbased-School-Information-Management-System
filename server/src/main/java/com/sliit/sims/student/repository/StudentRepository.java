@@ -1,3 +1,4 @@
+// Assigned module owner: IT25100975
 package com.sliit.sims.student.repository;
 
 import com.sliit.sims.student.model.Student;
@@ -9,5 +10,6 @@ import java.util.Optional;
 @Repository
 public interface StudentRepository extends JpaRepository<Student, Long> {
     Optional<Student> findByAdmissionNumber(String admissionNumber);
+    Optional<Student> findByUserId(Long userId);
     boolean existsByAdmissionNumber(String admissionNumber);
 }

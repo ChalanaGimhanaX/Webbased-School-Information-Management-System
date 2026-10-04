@@ -1,3 +1,4 @@
+// Assigned module owner: IT25102861
 package com.sliit.sims.teacher.repository;
 
 import com.sliit.sims.teacher.model.Teacher;

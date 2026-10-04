@@ -1,3 +1,4 @@
+// Assigned module owner: IT25103710
 package com.sliit.sims.fee.service;
 
 import com.sliit.sims.common.exception.PaymentValidationException;
@@ -8,6 +9,8 @@ import com.sliit.sims.fee.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -18,6 +21,9 @@ import java.util.stream.Collectors;
 
 @Service
 public class FeeManagementService {
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private final FeeStructureRepository feeStructureRepository;
     private final StudentFeeAccountRepository feeAccountRepository;
@@ -488,6 +494,19 @@ public class FeeManagementService {
     }
 
     @Transactional
+    public PaymentSlipResponse updatePayment(Long id, PaymentUpdateRequest req) {
+        PaymentSlip slip = paymentSlipRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Payment not found"));
+        if (slip.getVerificationStatus() != SlipStatus.PENDING) throw new PaymentValidationException("Only pending payments can be edited. Cancel an approved payment and record its replacement.");
+        if (slip.getFeeAccount().getStatus() == PaymentStatus.CANCELLED) throw new PaymentValidationException("Fee account is cancelled");
+        if (req.amountPaid().compareTo(slip.getFeeAccount().getBalanceAmount()) > 0) throw new PaymentValidationException("Amount exceeds outstanding balance");
+        slip.setAmountPaid(req.amountPaid());
+        slip.setPaymentMethod(req.paymentMethod());
+        slip.setPaidBy(req.paidBy().trim());
+        slip.setTransactionReference(req.transactionReference());
+        return PaymentSlipResponse.fromEntity(paymentSlipRepository.save(slip));
+    }
+
+    @Transactional
     public PaymentSlipResponse cancelPayment(Long paymentSlipId, String reason, String cancelledBy) {
         PaymentSlip slip = paymentSlipRepository.findById(paymentSlipId)
                 .orElseThrow(() -> new ResourceNotFoundException("Payment slip not found with id: " + paymentSlipId));
@@ -504,6 +523,10 @@ public class FeeManagementService {
         }
 
         slip.setVerificationStatus(SlipStatus.CANCELLED);
+        if (slip.getReceipt() != null) {
+            slip.getReceipt().setNotes("CANCELLED: " + reason);
+            paymentReceiptRepository.save(slip.getReceipt());
+        }
         slip.setReviewRemarks((slip.getReviewRemarks() != null ? slip.getReviewRemarks() + " | " : "") +
                 "Cancelled by " + cancelledBy + ": " + reason);
         slip.setReviewedAt(LocalDateTime.now());
@@ -646,6 +669,31 @@ public class FeeManagementService {
                 .totalOutstanding(balance)
                 .collectionPercentage(pct)
                 .build();
+    }
+
+    // ==========================================
+    // 6. Parent Portal: View Children's Fee Accounts
+    // ==========================================
+
+    @SuppressWarnings("unchecked")
+    public List<StudentFeeAccountResponse> getFeeAccountsForParent(Long parentId) {
+        // Find all student IDs linked to this parent
+        List<?> rawList = entityManager
+                .createNativeQuery("SELECT id FROM students WHERE parent_id = :parentId")
+                .setParameter("parentId", parentId)
+                .getResultList();
+
+        List<Long> childStudentIds = rawList.stream()
+                .map(obj -> ((Number) obj).longValue())
+                .collect(Collectors.toList());
+
+        if (childStudentIds.isEmpty()) {
+            return List.of();
+        }
+
+        return feeAccountRepository.findByStudentIdIn(childStudentIds).stream()
+                .map(StudentFeeAccountResponse::fromEntity)
+                .collect(Collectors.toList());
     }
 
     // ==========================================

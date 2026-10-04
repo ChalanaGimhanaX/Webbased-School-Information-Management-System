@@ -3,25 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduCore SIS - Subject Catalog</title>
+    <title>ඉස්කෝලේ - Subject Catalog</title>
+
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Freestyle Sinhala & UI Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Stick+No+Bills:wght@700;800&family=Yaldevi:wght@600;700&display=swap" rel="stylesheet">
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .iskole-art-font {
+            font-family: 'Stick No Bills', 'Yaldevi', sans-serif;
+            font-style: italic;
+            transform: skewX(-7deg);
+        }
+
+        /* Ambient Glow & Floating style */
+        .brand-glow {
+            filter: drop-shadow(0 0 16px rgba(99, 102, 241, 0.35)) drop-shadow(0 2px 5px rgba(0, 0, 0, 0.7));
+        }
+
+        .brand-badge {
+            background: radial-gradient(circle at center, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0) 75%);
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex">
 
-<!-- Sidebar -->
+<!-- ================= SIDEBAR ================= -->
 <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between shrink-0 hidden md:flex min-h-screen">
     <div>
-        <div class="h-16 flex items-center gap-3 px-6 bg-slate-950/40 border-b border-slate-800">
-            <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white shadow-md">
-                <i class="fa-solid fa-graduation-cap"></i>
-            </div>
-            <span class="font-bold text-lg tracking-wide">EduCore SIS</span>
+        <!-- Modern Freestyle Brand Logo -->
+        <div class="px-4 py-6 border-b border-slate-800/80 flex flex-col items-center justify-center brand-badge relative select-none">
+            <a th:href="@{/exams}" class="group relative flex flex-col items-center transition-all duration-300 transform hover:scale-105">
+
+                <!-- Graphic Elements Layer (Sun & Sprout) -->
+                <div class="w-full relative flex justify-between items-end px-2 mb-[-8px] pointer-events-none">
+                    <!-- Sun Element aligned with center -->
+                    <div class="absolute left-[45%] -translate-x-1/2 -top-2">
+                        <svg width="42" height="24" viewBox="0 0 42 24" fill="none" class="text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]">
+                            <path d="M 9 20 A 12 12 0 0 1 33 20" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                            <line x1="21" y1="2" x2="21" y2="7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                            <line x1="10" y1="6" x2="13" y2="10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                            <line x1="32" y1="6" x2="29" y2="10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                            <line x1="3" y1="18" x2="7" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="39" y1="18" x2="35" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+
+                    <!-- Sprout Element at the tail of 'ලේ' -->
+                    <div class="absolute right-5 -top-4">
+                        <svg width="26" height="28" viewBox="0 0 26 28" fill="none" class="text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.7)]">
+                            <path d="M 6 26 C 8 18 12 10 16 2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                            <!-- Left leaf -->
+                            <path d="M 7 16 C -1 14 -1 7 4 4 C 7 5 8 10 7 16 Z" fill="currentColor"/>
+                            <!-- Right leaf -->
+                            <path d="M 12 12 C 18 9 19 3 15 1 C 11 1 10 6 12 12 Z" fill="currentColor"/>
+                            <!-- Top leaf -->
+                            <path d="M 16 2 C 16 -3 21 -4 23 -2 C 24 1 21 4 16 2 Z" fill="currentColor"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Main Freestyle Calligraphic Text with Italic look and correct 'කෝ' -->
+                <div class="flex items-baseline iskole-art-font brand-glow text-white tracking-wide mt-2">
+                    <span class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-white via-slate-100 to-indigo-200">ඉ</span>
+                    <span class="text-3xl font-extrabold ml-[-2px] tracking-tight text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">ස්කෝ</span>
+                    <span class="text-4xl font-extrabold text-indigo-300 ml-[1px]">ලේ</span>
+                </div>
+            </a>
         </div>
+
         <nav class="p-4 space-y-1.5 text-sm">
             <a th:href="@{/exams}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition">
                 <i class="fa-solid fa-chart-pie w-5"></i>
@@ -43,6 +104,14 @@
                 <i class="fa-solid fa-square-poll-vertical w-5"></i>
                 <span>Batch Analytics</span>
             </a>
+            <a th:href="@{/view-attendance}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-clipboard-user w-5"></i>
+                <span>Student Attendance</span>
+            </a>
+            <a th:href="@{/view-teacher-attendance}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-chalkboard-user w-5"></i>
+                <span>Teacher Attendance</span>
+            </a>
             <a th:href="@{/portal}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition">
                 <i class="fa-solid fa-user-graduate w-5"></i>
                 <span>Student Portal</span>
@@ -59,14 +128,14 @@
     </div>
 </aside>
 
-<!-- Main Content -->
+<!-- ================= MAIN CONTENT ================= -->
 <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
     <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-10">
         <div>
             <h1 class="text-lg font-bold text-slate-900">Subject Management</h1>
             <p class="text-xs text-slate-500">Configure academic subjects, assigned teachers, and course codes</p>
         </div>
-        <button onclick="openSubjectModal()" class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-sm transition">
+        <button onclick="openSubjectModal()" class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-sm transition cursor-pointer">
             <i class="fa-solid fa-plus"></i>
             <span>Add Subject</span>
         </button>

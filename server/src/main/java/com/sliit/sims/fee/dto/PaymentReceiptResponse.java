@@ -1,3 +1,4 @@
+// Assigned module owner: IT25103710
 package com.sliit.sims.fee.dto;
 
 import com.sliit.sims.fee.model.FeeType;

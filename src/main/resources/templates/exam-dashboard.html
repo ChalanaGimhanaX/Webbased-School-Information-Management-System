@@ -11,10 +11,29 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- Freestyle Sinhala Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Stick+No+Bills:wght@700;800&family=Yaldevi:wght@600;700&display=swap" rel="stylesheet">
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
         body {
           font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .iskole-art-font {
+          font-family: 'Stick No Bills', 'Yaldevi', sans-serif;
+          font-style: italic;
+          transform: skewX(-7deg);
+        }
+
+        /* Ambient Glow & Floating style */
+        .brand-glow {
+          filter: drop-shadow(0 0 16px rgba(99, 102, 241, 0.35)) drop-shadow(0 2px 5px rgba(0, 0, 0, 0.7));
+        }
+
+        .brand-badge {
+          background: radial-gradient(circle at center, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0) 75%);
         }
     </style>
 </head>
@@ -23,12 +42,45 @@
 <!-- ================= SIDEBAR ================= -->
 <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between shrink-0 hidden md:flex min-h-screen">
     <div>
-        <!-- Brand Logo -->
-        <div class="h-16 flex items-center gap-3 px-6 bg-slate-950/40 border-b border-slate-800">
-            <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white shadow-md">
-                <i class="fa-solid fa-graduation-cap"></i>
-            </div>
-            <span class="font-bold text-lg tracking-wide">EduCore</span>
+        <!-- Modern Freestyle Brand Logo (Without Portal subtitle & With Italic look) -->
+        <div class="px-4 py-6 border-b border-slate-800/80 flex flex-col items-center justify-center brand-badge relative select-none">
+            <a th:href="@{/exams}" class="group relative flex flex-col items-center transition-all duration-300 transform hover:scale-105">
+
+                <!-- Graphic Elements Layer (Sun & Sprout) -->
+                <div class="w-full relative flex justify-between items-end px-2 mb-[-8px] pointer-events-none">
+                    <!-- Sun Element aligned with center -->
+                    <div class="absolute left-[45%] -translate-x-1/2 -top-2">
+                        <svg width="42" height="24" viewBox="0 0 42 24" fill="none" class="text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]">
+                            <path d="M 9 20 A 12 12 0 0 1 33 20" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                            <line x1="21" y1="2" x2="21" y2="7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                            <line x1="10" y1="6" x2="13" y2="10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                            <line x1="32" y1="6" x2="29" y2="10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                            <line x1="3" y1="18" x2="7" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="39" y1="18" x2="35" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+
+                    <!-- Sprout Element at the tail of 'ලේ' -->
+                    <div class="absolute right-5 -top-4">
+                        <svg width="26" height="28" viewBox="0 0 26 28" fill="none" class="text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.7)]">
+                            <path d="M 6 26 C 8 18 12 10 16 2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                            <!-- Left leaf -->
+                            <path d="M 7 16 C -1 14 -1 7 4 4 C 7 5 8 10 7 16 Z" fill="currentColor"/>
+                            <!-- Right leaf -->
+                            <path d="M 12 12 C 18 9 19 3 15 1 C 11 1 10 6 12 12 Z" fill="currentColor"/>
+                            <!-- Top leaf -->
+                            <path d="M 16 2 C 16 -3 21 -4 23 -2 C 24 1 21 4 16 2 Z" fill="currentColor"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Main Freestyle Calligraphic Text with Italic look and correct 'කෝ' -->
+                <div class="flex items-baseline iskole-art-font brand-glow text-white tracking-wide mt-2">
+                    <span class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-white via-slate-100 to-indigo-200">ඉ</span>
+                    <span class="text-3xl font-extrabold ml-[-2px] tracking-tight text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">ස්කෝ</span>
+                    <span class="text-4xl font-extrabold text-indigo-300 ml-[1px]">ලේ</span>
+                </div>
+            </a>
         </div>
 
         <!-- Navigation -->
@@ -53,6 +105,14 @@
                 <i class="fa-solid fa-square-poll-vertical w-5"></i>
                 <span>Batch Analytics</span>
             </a>
+            <a th:href="@{/view-attendance}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-clipboard-user w-5"></i>
+                <span>Student Attendance</span>
+            </a>
+            <a th:href="@{/view-teacher-attendance}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-chalkboard-user w-5"></i>
+                <span>Teacher Attendance</span>
+            </a>
             <a th:href="@{/portal}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition">
                 <i class="fa-solid fa-user-graduate w-5"></i>
                 <span>Student Portal</span>
@@ -66,7 +126,7 @@
             TC
         </div>
         <div class="overflow-hidden">
-            <p class="text-xs font-semibold text-white truncate">Mr.Pemadasa </p>
+            <p class="text-xs font-semibold text-white truncate">Mr. Pemadasa</p>
             <p class="text-[11px] text-slate-400 truncate">Exam Coordinator</p>
         </div>
     </div>
@@ -108,6 +168,48 @@
             <a th:href="@{/exams}" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></a>
         </div>
 
+        <!-- Hero Section -->
+        <div class="relative bg-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-800">
+            <img th:src="@{/images/schoolstudents.jpg}" 
+                 alt="Students in classroom" 
+                 class="absolute inset-0 w-full h-full object-cover opacity-75 object-[center_35%]">
+
+            <div class="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-900/45 to-transparent"></div>
+
+            <div class="relative z-10 p-6 md:p-8 max-w-3xl text-white">
+                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-600/40 text-indigo-200 border border-indigo-400/40 mb-3 backdrop-blur-md shadow-sm">
+                    <i class="fa-solid fa-graduation-cap"></i> Academic Management System
+                </span>
+
+                <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight drop-shadow-md">
+                    EduCore Model Academy
+                </h2>
+
+                <p class="text-xs md:text-sm text-slate-100 mt-2 leading-relaxed max-w-2xl drop-shadow">
+                    Dedicated to nurturing leadership, character, and academic mastery. Seamlessly schedule term evaluations, record multi-subject performance, and generate formal analytical statements.
+                </p>
+
+                <!-- Embedded Statistics Badges -->
+                <div class="grid grid-cols-3 gap-4 mt-6 pt-5 border-t border-white/20 max-w-lg backdrop-blur-[2px]">
+                    <div>
+                        <p class="text-xl font-extrabold text-indigo-300 drop-shadow" 
+                           th:text="${activeStudentsCount}">0</p>
+                        <p class="text-[11px] text-slate-200 font-medium">Active Students</p>
+                    </div>
+                    <div>
+                        <p class="text-xl font-extrabold text-emerald-300 drop-shadow" 
+                           th:text="${overallPassRate} + '%'">0.0%</p>
+                        <p class="text-[11px] text-slate-200 font-medium">Pass Rate</p>
+                    </div>
+                    <div>
+                        <p class="text-xl font-extrabold text-sky-300 drop-shadow" 
+                           th:text="${facultyMembersCount}">0</p>
+                        <p class="text-[11px] text-slate-200 font-medium">Faculty Members</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Metrics / Stat Counters -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
@@ -126,7 +228,7 @@
                 </div>
                 <div>
                     <p class="text-xs text-slate-500 font-medium">Active Subjects</p>
-                    <h3 class="text-xl font-bold text-slate-800">4</h3>
+                    <h3 class="text-xl font-bold text-slate-800" th:text="${facultyMembersCount}">0</h3>
                 </div>
             </div>
 
@@ -136,7 +238,7 @@
                 </div>
                 <div>
                     <p class="text-xs text-slate-500 font-medium">Enrolled Students</p>
-                    <h3 class="text-xl font-bold text-slate-800">4</h3>
+                    <h3 class="text-xl font-bold text-slate-800" th:text="${activeStudentsCount}">0</h3>
                 </div>
             </div>
 
@@ -160,7 +262,6 @@
                 </div>
             </div>
 
-            <!-- Dynamic Table -->
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-xs">
                     <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-semibold">
@@ -173,7 +274,6 @@
                     </tr>
                     </thead>
                     <tbody id="examTableBody" class="divide-y divide-slate-100">
-                    <!-- Dynamic Rows -->
                     <tr th:each="exam : ${exams}" class="hover:bg-slate-50/70 transition">
                         <td class="py-3.5 px-6 font-mono font-medium text-indigo-600" th:text="${exam.examId}">EX-101</td>
                         <td class="py-3.5 px-6 font-semibold text-slate-800" th:text="${exam.examName}">Mid-Year Assessment 2026</td>
@@ -190,17 +290,15 @@
                                 Marks
                             </a>
 
-                            <!-- Edit Trigger Button -->
                             <button type="button"
                                     th:data-id="${exam.examId}"
                                     th:data-name="${exam.examName}"
                                     th:data-term="${exam.term}"
                                     onclick="openEditModal(this)"
-                                    class="px-2.5 py-1 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded transition font-medium text-xs">
+                                    class="px-2.5 py-1 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded transition font-medium text-xs cursor-pointer">
                                 <i class="fa-solid fa-pen mr-1"></i> Edit
                             </button>
 
-                            <!-- Delete Action Link -->
                             <a th:href="@{/exams/delete/{id}(id=${exam.examId})}"
                                onclick="return confirm('Are you sure you want to permanently delete this exam? All related results will be deleted as well.');"
                                class="px-2.5 py-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition font-medium text-xs">
@@ -209,7 +307,6 @@
                         </td>
                     </tr>
 
-                    <!-- Empty State Fallback -->
                     <tr th:if="${#lists.isEmpty(exams)}">
                         <td colspan="5" class="py-6 text-center text-slate-400">No exams scheduled yet. Click "Create New Exam" above.</td>
                     </tr>
@@ -254,7 +351,7 @@
 
             <div class="pt-2 flex justify-end gap-2">
                 <button type="button" onclick="closeModal()" class="px-3.5 py-2 text-xs font-medium rounded-lg text-slate-600 hover:bg-slate-100 transition">Cancel</button>
-                <button type="submit" class="px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow transition">Save Exam</button>
+                <button type="submit" class="px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow transition cursor-pointer">Save Exam</button>
             </div>
         </form>
     </div>
@@ -293,14 +390,13 @@
 
             <div class="pt-2 flex justify-end gap-2">
                 <button type="button" onclick="closeEditModal()" class="px-3.5 py-2 text-xs font-medium rounded-lg text-slate-600 hover:bg-slate-100 transition">Cancel</button>
-                <button type="submit" class="px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow transition">Update Exam</button>
+                <button type="submit" class="px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow transition cursor-pointer">Update Exam</button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
-    // Create Exam Modal handlers
     function openModal() {
       document.getElementById('examModal').classList.remove('hidden');
     }
@@ -309,7 +405,6 @@
       document.getElementById('examModal').classList.add('hidden');
     }
 
-    // Edit Exam Modal handlers
     function openEditModal(button) {
       document.getElementById('editExamId').value = button.getAttribute('data-id');
       document.getElementById('editExamName').value = button.getAttribute('data-name');
