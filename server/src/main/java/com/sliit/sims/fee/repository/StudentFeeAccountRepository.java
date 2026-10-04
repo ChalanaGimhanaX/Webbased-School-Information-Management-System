@@ -34,6 +34,8 @@ public interface StudentFeeAccountRepository extends JpaRepository<StudentFeeAcc
 
     List<StudentFeeAccount> findByStudentIdAndStatusIn(Long studentId, List<PaymentStatus> statuses);
 
+    List<StudentFeeAccount> findByStudentIdIn(List<Long> studentIds);
+
     @Query("SELECT a FROM StudentFeeAccount a WHERE a.status != 'PAID' AND a.status != 'CANCELLED' AND a.dueDate IS NOT NULL AND a.dueDate < :currentDate")
     List<StudentFeeAccount> findOverdueAccounts(@Param("currentDate") LocalDate currentDate);
 

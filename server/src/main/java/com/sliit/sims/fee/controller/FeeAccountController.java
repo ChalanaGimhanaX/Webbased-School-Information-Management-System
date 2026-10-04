@@ -70,4 +70,13 @@ public class FeeAccountController {
     public void cancelFeeAccount(@PathVariable Long id) {
         feeService.cancelFeeAccount(id);
     }
+
+    /**
+     * Parent Portal: returns fee accounts for all children linked to this parent.
+     * The parentId here is the parents.id (not users.id).
+     */
+    @GetMapping("/parent/{parentId}")
+    public List<StudentFeeAccountResponse> getFeeAccountsForParent(@PathVariable Long parentId) {
+        return feeService.getFeeAccountsForParent(parentId);
+    }
 }

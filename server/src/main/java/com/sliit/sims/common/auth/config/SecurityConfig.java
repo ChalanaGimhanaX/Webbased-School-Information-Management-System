@@ -47,8 +47,17 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/login").permitAll()
                         .requestMatchers("/api/v1/auth/register").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/v1/**").authenticated()
+
+                        // Parent portal: parents can view their children's fees and submit payments/slips
+                        .requestMatchers(HttpMethod.GET,  "/api/v1/fees/accounts/parent/**").hasAnyRole("ADMIN", "PARENT")
+                        .requestMatchers(HttpMethod.GET,  "/api/v1/fees/payments/**").hasAnyRole("ADMIN", "PARENT")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/fees/payments/submit-slip").hasAnyRole("ADMIN", "PARENT")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/fees/payments/record-direct").hasAnyRole("ADMIN", "PARENT")
+                        .requestMatchers(HttpMethod.GET,  "/api/v1/parents/**").hasAnyRole("ADMIN", "PARENT")
+
+                        // Full fee management for admin only
                         .requestMatchers("/api/v1/fees/**").hasRole("ADMIN")
+
                         .requestMatchers("/api/v1/attendance/**", "/api/v1/exams/marks", "/api/v1/exams/results/**").hasAnyRole("ADMIN", "HEAD_OF_ACADEMIC", "TEACHER")
                         .requestMatchers("/api/v1/students/**", "/api/v1/teachers/**", "/api/v1/timetables/**", "/api/v1/exams/**").hasAnyRole("ADMIN", "HEAD_OF_ACADEMIC")
                         .requestMatchers("/api/v1/**").authenticated()

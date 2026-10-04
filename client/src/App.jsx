@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, AuthContext } from './context/AuthContext';
 import DashboardLayout from './layouts/DashboardLayout';
 
 import Login from './pages/Login';
@@ -11,7 +11,15 @@ import Attendance from './pages/Attendance';
 import Exams from './pages/Exams';
 import Timetable from './pages/Timetable';
 import Fees from './pages/Fees';
+import ParentFees from './pages/ParentFees';
 import Reports from './pages/Reports';
+
+// Renders either the admin Fees page or the parent-specific ParentFees page
+function FeesRoute() {
+  const { user } = useContext(AuthContext);
+  if (user?.role === 'PARENT') return <ParentFees />;
+  return <Fees />;
+}
 
 function App() {
   return (
@@ -26,7 +34,7 @@ function App() {
             <Route path="attendance" element={<Attendance />} />
             <Route path="exams" element={<Exams />} />
             <Route path="timetable" element={<Timetable />} />
-            <Route path="fees" element={<Fees />} />
+            <Route path="fees" element={<FeesRoute />} />
             <Route path="reports" element={<Reports />} />
           </Route>
         </Routes>
