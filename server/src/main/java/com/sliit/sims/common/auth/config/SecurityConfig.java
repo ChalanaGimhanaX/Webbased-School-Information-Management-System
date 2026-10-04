@@ -58,6 +58,10 @@ public class SecurityConfig {
                         // Full fee management for admin only
                         .requestMatchers("/api/v1/fees/**").hasRole("ADMIN")
 
+                        // Read access for any authenticated user on the remaining modules
+                        // (must stay below the fee rules so fees remain admin/parent-only)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/**").authenticated()
+
                         .requestMatchers("/api/v1/attendance/**", "/api/v1/exams/marks", "/api/v1/exams/results/**").hasAnyRole("ADMIN", "HEAD_OF_ACADEMIC", "TEACHER")
                         .requestMatchers("/api/v1/students/**", "/api/v1/teachers/**", "/api/v1/timetables/**", "/api/v1/exams/**").hasAnyRole("ADMIN", "HEAD_OF_ACADEMIC")
                         .requestMatchers("/api/v1/**").authenticated()
