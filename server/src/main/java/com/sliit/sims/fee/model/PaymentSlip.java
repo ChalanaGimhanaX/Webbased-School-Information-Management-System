@@ -36,7 +36,8 @@ public class PaymentSlip {
     @Column(name = "transaction_reference", length = 100)
     private String transactionReference;
 
-    @Column(name = "slip_image_url", length = 500)
+    @Lob
+    @Column(name = "slip_image_url", columnDefinition = "LONGTEXT")
     private String slipImageUrl;
 
     @Column(name = "amount_paid", nullable = false, precision = 12, scale = 2)
