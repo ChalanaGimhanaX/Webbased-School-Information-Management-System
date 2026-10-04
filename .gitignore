@@ -61,5 +61,4 @@ uploads/
 
 # OS generated files
 .DS_Store
-Thumbs.db
-application.properties
+Thumbs.db
