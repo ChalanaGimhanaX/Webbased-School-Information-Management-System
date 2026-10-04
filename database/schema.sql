@@ -29,6 +29,7 @@ DROP TABLE IF EXISTS subjects;
 DROP TABLE IF EXISTS student_class_allocations;
 DROP TABLE IF EXISTS academic_classes;
 DROP TABLE IF EXISTS parents;
+DROP TABLE IF EXISTS staff;
 DROP TABLE IF EXISTS teachers;
 DROP TABLE IF EXISTS students;
 DROP TABLE IF EXISTS users;
@@ -68,7 +69,7 @@ CREATE TABLE parents (
 
 CREATE TABLE teachers (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT NOT NULL UNIQUE,
+    user_id BIGINT NULL UNIQUE,
     employee_number VARCHAR(50) NOT NULL UNIQUE,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
@@ -78,6 +79,24 @@ CREATE TABLE teachers (
     hire_date DATE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_teachers_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE staff (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    employee_number VARCHAR(50) NOT NULL UNIQUE,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    job_position VARCHAR(100) NOT NULL,
+    department VARCHAR(100) NOT NULL,
+    qualification VARCHAR(150),
+    phone VARCHAR(20),
+    email VARCHAR(150),
+    employment_type VARCHAR(50),
+    salary DOUBLE,
+    address VARCHAR(255),
+    hire_date DATE,
+    status ENUM('ACTIVE', 'INACTIVE', 'ON_LEAVE') NOT NULL DEFAULT 'ACTIVE',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 CREATE TABLE subjects (
