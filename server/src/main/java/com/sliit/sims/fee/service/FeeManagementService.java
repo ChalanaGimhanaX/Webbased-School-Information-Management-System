@@ -9,6 +9,8 @@ import com.sliit.sims.fee.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -19,6 +21,9 @@ import java.util.stream.Collectors;
 
 @Service
 public class FeeManagementService {
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private final FeeStructureRepository feeStructureRepository;
     private final StudentFeeAccountRepository feeAccountRepository;
@@ -664,6 +669,31 @@ public class FeeManagementService {
                 .totalOutstanding(balance)
                 .collectionPercentage(pct)
                 .build();
+    }
+
+    // ==========================================
+    // 6. Parent Portal: View Children's Fee Accounts
+    // ==========================================
+
+    @SuppressWarnings("unchecked")
+    public List<StudentFeeAccountResponse> getFeeAccountsForParent(Long parentId) {
+        // Find all student IDs linked to this parent
+        List<?> rawList = entityManager
+                .createNativeQuery("SELECT id FROM students WHERE parent_id = :parentId")
+                .setParameter("parentId", parentId)
+                .getResultList();
+
+        List<Long> childStudentIds = rawList.stream()
+                .map(obj -> ((Number) obj).longValue())
+                .collect(Collectors.toList());
+
+        if (childStudentIds.isEmpty()) {
+            return List.of();
+        }
+
+        return feeAccountRepository.findByStudentIdIn(childStudentIds).stream()
+                .map(StudentFeeAccountResponse::fromEntity)
+                .collect(Collectors.toList());
     }
 
     // ==========================================
