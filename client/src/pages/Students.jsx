@@ -14,6 +14,7 @@ const Students = () => {
   const [selectedGrade, setSelectedGrade] = useState('ALL');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [activeTab, setActiveTab] = useState('students');
 
   // Modals
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
@@ -219,7 +220,7 @@ const Students = () => {
     {
       header: 'Student Name',
       cell: (r) => (
-        <span className="font-semibold text-gray-900">
+        <span className="font-semibold text-on-surface">
           {r.firstName} {r.lastName}
         </span>
       ),
@@ -227,7 +228,7 @@ const Students = () => {
     {
       header: 'Gender',
       cell: (r) => (
-        <span className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-800">
+        <span className="px-2.5 py-0.5 text-xs font-medium rounded-full bg-surface-container text-on-surface-variant">
           {r.gender}
         </span>
       ),
@@ -235,7 +236,7 @@ const Students = () => {
     {
       header: 'Enrolled Class',
       cell: (r) => (
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-primary-fixed/40 text-primary border border-primary/20">
           {r.currentClassName || 'Unassigned'}
         </span>
       ),
@@ -247,27 +248,38 @@ const Students = () => {
     {
       header: 'Actions',
       cell: (r) => (
-        <div className="flex space-x-2">
+        <div className="flex items-center space-x-1.5">
           <button
             onClick={() => openEditModal(r)}
-            className="text-indigo-600 hover:text-indigo-900 text-xs font-semibold px-2 py-1 bg-indigo-50 rounded"
+            className="px-2.5 py-1 rounded bg-primary-fixed/40 text-primary hover:bg-primary-fixed/70 text-xs font-semibold transition-colors"
           >
             Edit
           </button>
           <button
             onClick={() => openAllocateModal(r)}
-            className="text-blue-600 hover:text-blue-900 text-xs font-semibold px-2 py-1 bg-blue-50 rounded"
+            className="px-2.5 py-1 rounded bg-secondary-fixed/40 text-secondary hover:bg-secondary-fixed/70 text-xs font-semibold transition-colors"
           >
             Class
           </button>
-          {r.currentClassName && r.currentClassName !== 'Unallocated' && <button className="text-red-700 text-xs" onClick={async () => {
-            if (!window.confirm('Remove the current class allocation?')) return;
-            try { await api.delete(`/students/${r.id}/allocation?year=${new Date().getFullYear()}`); await fetchStudentsAndClasses(); }
-            catch (err) { setError(err.response?.data?.detail || 'Could not remove allocation'); }
-          }}>Remove Class</button>}
+          {r.currentClassName && r.currentClassName !== 'Unallocated' && (
+            <button
+              className="px-2 py-1 rounded text-error hover:bg-error-container/40 text-xs font-medium transition-colors"
+              onClick={async () => {
+                if (!window.confirm('Remove the current class allocation?')) return;
+                try {
+                  await api.delete(`/students/${r.id}/allocation?year=${new Date().getFullYear()}`);
+                  await fetchStudentsAndClasses();
+                } catch (err) {
+                  setError(err.response?.data?.detail || 'Could not remove allocation');
+                }
+              }}
+            >
+              Remove Class
+            </button>
+          )}
           <button
             onClick={() => handleDelete(r.id, `${r.firstName} ${r.lastName}`)}
-            className="text-red-600 hover:text-red-900 text-xs font-semibold px-2 py-1 bg-red-50 rounded"
+            className="px-2.5 py-1 rounded bg-error-container/30 text-error hover:bg-error-container text-xs font-semibold transition-colors"
           >
             Deactivate
           </button>
@@ -277,101 +289,166 @@ const Students = () => {
   ];
 
   return (
-    <div>
-      <RecordMaintenance title="Classes" rows={classes}
-        columns={[{header:'Class', accessor:'className'}, {header:'Grade', accessor:'gradeLevel'}, {header:'Year', accessor:'academicYear'}, {header:'Capacity', accessor:'capacity'}]}
-        fields={[{name:'className',label:'Class name'}, {name:'gradeLevel',label:'Grade',type:'number',min:1,max:13}, {name:'academicYear',label:'Academic year',type:'number',min:2000}, {name:'capacity',label:'Capacity',type:'number',min:1}]}
-        onSave={async (r, values) => { await api.put(`/students/classes/${r.id}`, {...values, classTeacherId:r.classTeacherId}); await fetchStudentsAndClasses(); }} />
-      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Student & Class Management</h2>
-          <p className="text-sm text-gray-500 mt-1">Register students, manage profiles, organize classes, and handle allocations</p>
+          <h1 className="text-2xl font-bold text-on-surface tracking-tight">Student & Class Management</h1>
+          <p className="text-sm text-on-surface-variant mt-1">Register students, manage profiles, organize classes, and handle allocations</p>
         </div>
-        <div className="flex space-x-3">
+        <div className="flex items-center space-x-3">
           <button
             onClick={() => { setError(''); setIsClassModalOpen(true); }}
-            className="border border-indigo-600 text-indigo-600 hover:bg-indigo-50 px-4 py-2 rounded-md shadow-sm text-sm font-medium transition-colors"
+            className="inline-flex items-center gap-1.5 border border-outline-variant/60 hover:bg-surface-container-low text-on-surface px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-xs"
           >
-            + Create Class
+            <span className="material-symbols-outlined text-[18px] text-primary">add_circle</span>
+            <span>New Class</span>
           </button>
           <button
             onClick={() => { setError(''); setIsRegisterOpen(true); }}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md shadow-sm text-sm font-medium transition-colors"
+            className="inline-flex items-center gap-1.5 bg-primary-container hover:bg-primary text-on-primary px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-sm"
           >
-            + Register Student
+            <span className="material-symbols-outlined text-[18px]">person_add</span>
+            <span>Register Student</span>
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
+        <div className="p-3 bg-error-container text-on-error-container border border-error/30 rounded-lg text-sm">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-md text-sm">
+        <div className="p-3 bg-tertiary-container/30 text-on-surface border border-tertiary/40 rounded-lg text-sm">
           {success}
         </div>
       )}
 
       {/* Class Statistics Overview Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-          <span className="text-xs font-semibold uppercase text-gray-400">Total Students</span>
-          <p className="text-2xl font-bold text-gray-800 mt-1">{students.length}</p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/30 shadow-xs">
+          <span className="text-xs font-semibold uppercase text-outline">Total Students</span>
+          <p className="text-2xl font-bold text-on-surface mt-1">{students.length}</p>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-          <span className="text-xs font-semibold uppercase text-gray-400">Total Classes</span>
-          <p className="text-2xl font-bold text-indigo-600 mt-1">{classes.length}</p>
+        <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/30 shadow-xs">
+          <span className="text-xs font-semibold uppercase text-outline">Total Classes</span>
+          <p className="text-2xl font-bold text-primary mt-1">{classes.length}</p>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-          <span className="text-xs font-semibold uppercase text-gray-400">Assigned to Class</span>
-          <p className="text-2xl font-bold text-green-600 mt-1">
-            {students.filter(s => s.currentClassName).length}
+        <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/30 shadow-xs">
+          <span className="text-xs font-semibold uppercase text-outline">Assigned to Class</span>
+          <p className="text-2xl font-bold text-tertiary mt-1">
+            {students.filter((s) => s.currentClassName).length}
           </p>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-          <span className="text-xs font-semibold uppercase text-gray-400">Unassigned</span>
-          <p className="text-2xl font-bold text-yellow-600 mt-1">
-            {students.filter(s => !s.currentClassName).length}
+        <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/30 shadow-xs">
+          <span className="text-xs font-semibold uppercase text-outline">Unassigned</span>
+          <p className="text-2xl font-bold text-secondary mt-1">
+            {students.filter((s) => !s.currentClassName).length}
           </p>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-4">
-          <div className="flex items-center space-x-3 w-full sm:w-auto">
-            <input
-              type="text"
-              placeholder="Search by student name, admission #, or class..."
-              className="w-full sm:w-80 border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <select
-              value={selectedGrade}
-              onChange={(e) => setSelectedGrade(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
-            >
-              <option value="ALL">All Grades</option>
-              <option value="10">Grade 10</option>
-              <option value="11">Grade 11</option>
-              <option value="12">Grade 12</option>
-              <option value="13">Grade 13</option>
-            </select>
+      {/* Tab Switcher */}
+      <div className="flex items-center gap-4 border-b border-outline-variant/30">
+        <button
+          onClick={() => setActiveTab('students')}
+          className={`flex items-center gap-2 pb-3 text-sm font-semibold border-b-2 transition-colors ${
+            activeTab === 'students'
+              ? 'border-primary text-primary font-bold'
+              : 'border-transparent text-on-surface-variant hover:text-on-surface'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[18px]">school</span>
+          <span>Students Directory ({filteredStudents.length})</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('classes')}
+          className={`flex items-center gap-2 pb-3 text-sm font-semibold border-b-2 transition-colors ${
+            activeTab === 'classes'
+              ? 'border-primary text-primary font-bold'
+              : 'border-transparent text-on-surface-variant hover:text-on-surface'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[18px]">class</span>
+          <span>Academic Classes ({classes.length})</span>
+        </button>
+      </div>
+
+      {activeTab === 'students' && (
+        <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-xs p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div className="flex items-center space-x-3 w-full sm:w-auto">
+              <input
+                type="text"
+                placeholder="Search by student name, admission #, or class..."
+                className="w-full sm:w-80 bg-surface-container-low border border-outline-variant/50 rounded-lg px-3.5 py-2 text-sm text-on-surface placeholder:text-outline focus:outline-none focus:border-primary-container"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <select
+                value={selectedGrade}
+                onChange={(e) => setSelectedGrade(e.target.value)}
+                className="bg-surface-container-low border border-outline-variant/50 rounded-lg px-3.5 py-2 text-sm text-on-surface focus:outline-none focus:border-primary-container"
+              >
+                <option value="ALL">All Grades</option>
+                <option value="10">Grade 10</option>
+                <option value="11">Grade 11</option>
+                <option value="12">Grade 12</option>
+                <option value="13">Grade 13</option>
+              </select>
+            </div>
+            <span className="text-xs text-outline">
+              Showing {filteredStudents.length} of {students.length} students
+            </span>
           </div>
-          <span className="text-xs text-gray-500">
-            Showing {filteredStudents.length} of {students.length} students
-          </span>
-        </div>
 
-        {loading ? (
-          <div className="py-12 text-center text-gray-500">Loading students from database...</div>
-        ) : (
-          <DataTable columns={columns} data={filteredStudents} />
-        )}
-      </div>
+          {loading ? (
+            <div className="py-12 text-center text-outline">Loading students from database...</div>
+          ) : (
+            <DataTable columns={columns} data={filteredStudents} />
+          )}
+        </div>
+      )}
+
+      {activeTab === 'classes' && (
+        <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-xs p-6">
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-on-surface">Academic Classes</h2>
+              <p className="text-sm text-on-surface-variant">Class grades, academic years, and enrollment capacity</p>
+            </div>
+            <button
+              onClick={() => { setError(''); setIsClassModalOpen(true); }}
+              className="inline-flex items-center gap-1.5 bg-primary-container hover:bg-primary text-on-primary px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-colors shadow-sm"
+            >
+              <span className="material-symbols-outlined text-[16px]">add</span>
+              <span>Create Class</span>
+            </button>
+          </div>
+          <RecordMaintenance
+            title="Classes"
+            rows={classes}
+            columns={[
+              { header: 'Class', accessor: 'className' },
+              { header: 'Grade', accessor: 'gradeLevel' },
+              { header: 'Year', accessor: 'academicYear' },
+              { header: 'Capacity', accessor: 'capacity' },
+            ]}
+            fields={[
+              { name: 'className', label: 'Class name' },
+              { name: 'gradeLevel', label: 'Grade', type: 'number', min: 1, max: 13 },
+              { name: 'academicYear', label: 'Academic year', type: 'number', min: 2000 },
+              { name: 'capacity', label: 'Capacity', type: 'number', min: 1 },
+            ]}
+            onSave={async (r, values) => {
+              await api.put(`/students/classes/${r.id}`, { ...values, classTeacherId: r.classTeacherId });
+              await fetchStudentsAndClasses();
+            }}
+          />
+        </div>
+      )}
 
       {/* ── MODAL: Register Student ── */}
       <Modal isOpen={isRegisterOpen} onClose={() => setIsRegisterOpen(false)} title="Register New Student">

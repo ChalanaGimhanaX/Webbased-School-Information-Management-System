@@ -37,6 +37,7 @@ class CrudIntegrationTest {
     @Autowired StudentRepository students;
     @Autowired EntityManager entityManager;
     @MockBean FeePaymentDataSeeder feeSeeder;
+    @MockBean com.sliit.sims.student.StudentDataSeeder studentSeeder;
 
     private String token(String username) { return tokens.generateToken(users.findByUsername(username).orElseThrow()); }
     private JsonNode call(String method, String path, Object body) throws Exception {

@@ -76,6 +76,7 @@ class AssistantIntegrationTest {
     @Autowired ExamResultRepository results;
     @MockBean AiChatClient ai;
     @MockBean FeePaymentDataSeeder feeSeeder;
+    @MockBean com.sliit.sims.student.StudentDataSeeder studentSeeder;
 
     private static final String CHAT = "/api/v1/assistant/chat";
 

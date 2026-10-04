@@ -1,28 +1,28 @@
 import React from 'react';
 
-const DataTable = ({ columns, data }) => {
+const DataTable = ({ columns, data = [] }) => {
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
+    <div className="overflow-x-auto rounded-lg border border-outline-variant/30">
+      <table className="w-full text-left border-collapse">
+        <thead className="bg-surface-container-low/70 border-b border-outline-variant/40">
           <tr>
             {columns.map((col, idx) => (
               <th
                 key={idx}
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                className="py-3 px-4 text-xs font-semibold text-outline uppercase tracking-wider"
               >
                 {col.header}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody className="bg-surface-container-lowest divide-y divide-outline-variant/20 font-body-sm text-on-surface">
           {data.map((row, rowIndex) => (
-            <tr key={rowIndex} className="hover:bg-gray-50">
+            <tr key={rowIndex} className="hover:bg-surface-container-low/60 transition-colors">
               {columns.map((col, colIndex) => (
                 <td
                   key={colIndex}
-                  className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                  className="py-3.5 px-4 text-sm text-on-surface"
                 >
                   {col.cell ? col.cell(row) : row[col.accessor]}
                 </td>
@@ -33,9 +33,12 @@ const DataTable = ({ columns, data }) => {
             <tr>
               <td
                 colSpan={columns.length}
-                className="px-6 py-4 text-center text-sm text-gray-500"
+                className="py-10 px-4 text-center text-sm text-outline"
               >
-                No data available
+                <div className="flex flex-col items-center justify-center gap-1">
+                  <span className="material-symbols-outlined text-[28px] opacity-40">folder_open</span>
+                  <span>No data available</span>
+                </div>
               </td>
             </tr>
           )}

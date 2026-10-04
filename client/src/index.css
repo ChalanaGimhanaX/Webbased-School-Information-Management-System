@@ -324,6 +324,46 @@ body {
   --color-on-error-container: #fecaca;
 }
 
+/* Universal Dark Mode overrides for utility classes and standard inputs */
+html.dark .bg-white {
+  background-color: var(--color-surface-container-lowest) !important;
+}
+html.dark .bg-gray-50 {
+  background-color: var(--color-surface-container-low) !important;
+}
+html.dark .bg-gray-100 {
+  background-color: var(--color-surface-container) !important;
+}
+html.dark .text-gray-900,
+html.dark .text-gray-800,
+html.dark .text-gray-700 {
+  color: var(--color-on-surface) !important;
+}
+html.dark .text-gray-600,
+html.dark .text-gray-500,
+html.dark .text-gray-400 {
+  color: var(--color-on-surface-variant) !important;
+}
+html.dark .border-gray-100,
+html.dark .border-gray-200,
+html.dark .border-gray-300 {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+html.dark input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+html.dark select,
+html.dark textarea {
+  background-color: var(--color-surface-container-low) !important;
+  color: var(--color-on-surface) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: var(--color-outline) !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
