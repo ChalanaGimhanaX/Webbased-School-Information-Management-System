@@ -248,3 +248,15 @@ npm install
 npm run dev
 # React app available on http://localhost:5173
 ```
+
+### AI Study Buddy (student assistant)
+Students get an AI chat assistant (`/assistant` page and a floating chat button) backed by Google Gemini. It answers study questions and explains the student's own class, timetable, attendance and **published** results. Staff and parents cannot access it (`/api/v1/assistant/**` is STUDENT-only).
+
+Set the key as an environment variable before starting the backend. Do not commit it.
+
+```bash
+export GEMINI_API_KEY=your-key          # PowerShell: $env:GEMINI_API_KEY="your-key"
+export GEMINI_MODEL=gemini-flash-latest # optional, this is the default (any generateContent model id works, e.g. gemini-2.5-flash)
+```
+
+If no key is set, the chat UI shows that the assistant is not configured and the endpoint returns HTTP 503.

@@ -13,6 +13,7 @@ import Timetable from './pages/Timetable';
 import Fees from './pages/Fees';
 import ParentFees from './pages/ParentFees';
 import Reports from './pages/Reports';
+import Assistant from './pages/Assistant';
 
 // Renders either the admin Fees page or the parent-specific ParentFees page
 function FeesRoute() {
@@ -36,6 +37,7 @@ function App() {
             <Route path="timetable" element={<Timetable />} />
             <Route path="fees" element={<FeesRoute />} />
             <Route path="reports" element={<Reports />} />
+            <Route path="assistant" element={<Assistant />} />
           </Route>
         </Routes>
       </Router>

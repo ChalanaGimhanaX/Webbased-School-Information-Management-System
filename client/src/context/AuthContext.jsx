@@ -38,6 +38,14 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    // Drop any stored AI assistant conversations (shared school computers)
+    try {
+      Object.keys(sessionStorage)
+        .filter((k) => k.startsWith('sims.assistant.'))
+        .forEach((k) => sessionStorage.removeItem(k));
+    } catch {
+      /* storage unavailable */
+    }
     setUser(null);
   };
 

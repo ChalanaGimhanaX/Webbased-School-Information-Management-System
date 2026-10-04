@@ -16,6 +16,7 @@ public interface StudentClassAllocationRepository extends JpaRepository<StudentC
     Optional<StudentClassAllocation> findByStudentIdAndAcademicYearAndStatus(Long studentId, Integer academicYear, AllocationStatus status);
     List<StudentClassAllocation> findByAcademicClassIdAndStatus(Long classId, AllocationStatus status);
     long countByAcademicClassIdAndStatus(Long classId, AllocationStatus status);
+    List<StudentClassAllocation> findByStudentIdAndStatusOrderByAcademicYearDesc(Long studentId, AllocationStatus status);
 
     @Query("SELECT a FROM StudentClassAllocation a JOIN FETCH a.student WHERE a.academicClass.id = :classId AND a.status = 'ACTIVE'")
     List<StudentClassAllocation> findActiveAllocationsByClass(@Param("classId") Long classId);

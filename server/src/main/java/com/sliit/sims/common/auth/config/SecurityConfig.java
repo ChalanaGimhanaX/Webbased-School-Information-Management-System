@@ -58,6 +58,9 @@ public class SecurityConfig {
                         // Full fee management for admin only
                         .requestMatchers("/api/v1/fees/**").hasRole("ADMIN")
 
+                        // Student AI assistant (overview + chat) is for students only
+                        .requestMatchers("/api/v1/assistant/**").hasRole("STUDENT")
+
                         // Read access for any authenticated user on the remaining modules
                         // (must stay below the fee rules so fees remain admin/parent-only)
                         .requestMatchers(HttpMethod.GET, "/api/v1/**").authenticated()
