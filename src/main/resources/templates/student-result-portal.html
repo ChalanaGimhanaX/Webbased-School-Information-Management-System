@@ -3,47 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduCore SIS - Student Result Portal</title>
+    <title>ඉස්කෝලේ-student portal</title>
+
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Freestyle Sinhala & UI Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Stick+No+Bills:wght@700;800&family=Yaldevi:wght@600;700&display=swap" rel="stylesheet">
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .iskole-art-font {
+            font-family: 'Stick No Bills', 'Yaldevi', sans-serif;
+            font-style: italic;
+            transform: skewX(-7deg);
+        }
+
+        .brand-glow {
+            filter: drop-shadow(0 0 12px rgba(99, 102, 241, 0.35)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex">
 
-<!-- ================= TOP NAVIGATION BAR ================= -->
-<header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-20">
-    <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white shadow-md">
-            <i class="fa-solid fa-graduation-cap"></i>
+<!-- ================= SIDEBAR ================= -->
+<aside class="w-64 bg-slate-900 text-white flex flex-col justify-between shrink-0 hidden md:flex min-h-screen">
+    <div>
+        <div class="px-4 py-6 border-b border-slate-800/80 flex flex-col items-center justify-center brand-badge relative select-none">
+            <a th:href="@{/portal}" class="group relative flex flex-col items-center transition-all duration-300 transform hover:scale-105">
+                <div class="w-full relative flex justify-between items-end px-2 mb-[-8px] pointer-events-none">
+                    <div class="absolute left-[45%] -translate-x-1/2 -top-2">
+                        <svg width="42" height="24" viewBox="0 0 42 24" fill="none" class="text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]">
+                            <path d="M 9 20 A 12 12 0 0 1 33 20" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                            <line x1="21" y1="2" x2="21" y2="7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                            <line x1="10" y1="6" x2="13" y2="10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                            <line x1="32" y1="6" x2="29" y2="10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                            <line x1="3" y1="18" x2="7" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="39" y1="18" x2="35" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div class="absolute right-5 -top-4">
+                        <svg width="26" height="28" viewBox="0 0 26 28" fill="none" class="text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.7)]">
+                            <path d="M 6 26 C 8 18 12 10 16 2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                            <path d="M 7 16 C -1 14 -1 7 4 4 C 7 5 8 10 7 16 Z" fill="currentColor"/>
+                            <path d="M 12 12 C 18 9 19 3 15 1 C 11 1 10 6 12 12 Z" fill="currentColor"/>
+                            <path d="M 16 2 C 16 -3 21 -4 23 -2 C 24 1 21 4 16 2 Z" fill="currentColor"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="flex items-baseline iskole-art-font brand-glow text-white tracking-wide mt-2">
+                    <span class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-white via-slate-100 to-indigo-200">ඉ</span>
+                    <span class="text-3xl font-extrabold ml-[-2px] tracking-tight text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">ස්කෝ</span>
+                    <span class="text-4xl font-extrabold text-indigo-300 ml-[1px]">ලේ</span>
+                </div>
+            </a>
         </div>
-        <span class="font-bold text-lg tracking-wide text-slate-900">EduCore <span class="text-xs font-semibold px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md ml-1">Student Portal</span></span>
+
+        <nav class="p-4 space-y-1.5 text-sm">
+            <a th:if="${!isRestrictedUser}" th:href="@{/exams}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-chart-pie w-5"></i>
+                <span>Exams Dashboard</span>
+            </a>
+            <a th:if="${!isRestrictedUser}" th:href="@{/marks/entry}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-pen-to-square w-5"></i>
+                <span>Marks Entry</span>
+            </a>
+            <a th:if="${!isRestrictedUser}" th:href="@{/reports}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-file-lines w-5"></i>
+                <span>Student Report Card</span>
+            </a>
+            <a th:if="${!isRestrictedUser}" th:href="@{/subjects}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-book-open w-5"></i>
+                <span>Subject Catalog</span>
+            </a>
+            <a th:if="${!isRestrictedUser}" th:href="@{/analytics}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-square-poll-vertical w-5"></i>
+                <span>Batch Analytics</span>
+            </a>
+            <a th:href="@{/portal}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-indigo-600 text-white font-medium shadow-sm">
+                <i class="fa-solid fa-user-graduate w-5"></i>
+                <span>Student Portal</span>
+            </a>
+        </nav>
     </div>
 
-    <div class="flex items-center gap-4 text-xs font-medium">
-        <!-- Return to Staff Dashboard if privileged user -->
-        <a th:if="${!isRestrictedUser}" th:href="@{/exams}" class="text-slate-500 hover:text-indigo-600 transition flex items-center gap-1.5">
-            <i class="fa-solid fa-arrow-left"></i> Staff Dashboard
+    <div class="p-4 border-t border-slate-800 bg-slate-950/20 flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-indigo-400 font-bold text-xs"
+             th:text="${currentStudent != null ? #strings.substring(currentStudent.fullName, 0, 2) : 'ST'}">
+            ST
+        </div>
+        <div class="overflow-hidden flex-1">
+            <p class="text-xs font-semibold text-white truncate"
+               th:text="${currentStudent != null ? currentStudent.fullName : (selectedStudentId != null ? selectedStudentId : 'Student Portal')}">
+                Student Portal
+            </p>
+            <p class="text-[11px] text-slate-400 truncate"
+               th:text="${currentStudent != null ? currentStudent.studentId : 'Result Viewer'}">
+                Result Viewer
+            </p>
+        </div>
+        <a th:href="@{/logout}" class="text-slate-400 hover:text-rose-400 transition" aria-label="Logout" title="Logout">
+            <i class="fa-solid fa-right-from-bracket"></i>
         </a>
-        <div th:if="${!isRestrictedUser}" class="h-4 w-px bg-slate-200"></div>
+    </div>
+</aside>
 
-        <!-- Authenticated User Profile Summary -->
+<div class="flex-1 min-w-0 flex flex-col min-h-screen">
+<!-- ================= TOP NAVIGATION BAR ================= -->
+<header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-20">
+    <div>
+        <h1 class="text-lg font-bold text-slate-900">Student Result Portal</h1>
+        <p class="text-xs text-slate-500">View examination results and grades</p>
+    </div>
+    <div class="flex items-center gap-4 text-xs font-medium md:hidden">
         <div class="flex items-center gap-2">
-            <div class="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-600 text-[10px]"
+            <div class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-[10px]"
                  th:text="${currentStudent != null ? #strings.substring(currentStudent.fullName, 0, 2) : 'ST'}">
                 ST
             </div>
-            <span class="font-semibold text-slate-700"
+            <span class="font-semibold text-slate-700 hidden sm:inline"
                   th:text="${currentStudent != null ? currentStudent.fullName + ' (' + currentStudent.studentId + ')' : (selectedStudentId != null ? selectedStudentId : 'Student Portal')}">
                 Student Profile
             </span>
         </div>
-
-        <div class="h-4 w-px bg-slate-200"></div>
         <a th:href="@{/logout}" class="text-rose-500 hover:text-rose-700 transition flex items-center gap-1">
-            <i class="fa-solid fa-right-from-bracket"></i> Logout
+            <i class="fa-solid fa-right-from-bracket"></i><span class="hidden sm:inline">Logout</span>
         </a>
     </div>
 </header>
@@ -56,16 +148,32 @@
         <form th:action="@{/portal}" method="GET" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
             <!-- Student Selector / Display -->
             <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1">Target Student Index</label>
+                <label th:if="${!isRestrictedUser}" for="studentSearchInput" class="block text-xs font-semibold text-slate-600 mb-1">
+                    Search &amp; Select Student <span class="text-indigo-600 font-normal">(Type ID or Name)</span>
+                </label>
+                <label th:if="${isRestrictedUser}" class="block text-xs font-semibold text-slate-600 mb-1">Target Student Index</label>
                 <!-- Unrestricted Staff View: Searchable student selection -->
-                <select th:if="${!isRestrictedUser}" name="studentId" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white font-medium">
-                    <option value="">-- Choose Student Index --</option>
-                    <option th:each="s : ${students}"
-                            th:value="${s.studentId}"
-                            th:text="${s.studentId + ' - ' + s.fullName}"
-                            th:selected="${s.studentId == selectedStudentId}">
-                    </option>
-                </select>
+                <div th:if="${!isRestrictedUser}" class="relative">
+                    <div class="relative mb-1.5">
+                        <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                        </span>
+                        <input type="text"
+                               id="studentSearchInput"
+                               oninput="filterPortalStudentList()"
+                               placeholder="Type Name or ID (e.g. Kasun or 001)..."
+                               class="w-full text-xs pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-slate-50 focus:bg-white placeholder-slate-400">
+                    </div>
+                    <select id="portalStudentFilter" name="studentId" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white font-medium">
+                        <option value="">-- Choose Student Index --</option>
+                        <option th:each="s : ${students}"
+                                th:value="${s.studentId}"
+                                th:data-search="${s.studentId + ' ' + s.fullName}"
+                                th:text="${s.studentId + ' - ' + s.fullName}"
+                                th:selected="${s.studentId == selectedStudentId}">
+                        </option>
+                    </select>
+                </div>
 
                 <!-- Student/Parent View: Locked index card -->
                 <div th:if="${isRestrictedUser}" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg bg-slate-100 text-slate-700 font-mono font-semibold">
@@ -217,7 +325,50 @@
 </main>
 
 <footer class="py-4 text-center text-xs text-slate-400 border-t border-slate-200 bg-white mt-auto">
-    &copy; 2026 EduCore SIS. Exam &amp; Results Module.
+    &copy; 2026 ඉස්කෝලේ SIS. Exam &amp; Results Module.
 </footer>
+</div>
+<script>
+    const portalStudentSelect = document.getElementById('portalStudentFilter');
+    const portalStudentSearchOptions = portalStudentSelect
+        ? Array.from(portalStudentSelect.options).slice(1)
+        : [];
+
+    function filterPortalStudentList() {
+        if (!portalStudentSelect) {
+            return;
+        }
+
+        const searchInput = document.getElementById('studentSearchInput');
+        const query = searchInput.value.toLowerCase().trim();
+        const selectedStudentId = portalStudentSelect.value;
+        const placeholder = portalStudentSelect.options[0].cloneNode(true);
+        portalStudentSelect.replaceChildren(placeholder);
+
+        let matchCount = 0;
+        let firstMatchValue = null;
+        let selectedStudentMatches = false;
+
+        portalStudentSearchOptions.forEach(option => {
+            const searchText = (option.getAttribute('data-search') || option.text).toLowerCase();
+            if (searchText.includes(query)) {
+                const matchingOption = option.cloneNode(true);
+                portalStudentSelect.appendChild(matchingOption);
+                matchCount++;
+                if (firstMatchValue === null) {
+                    firstMatchValue = option.value;
+                }
+                if (option.value === selectedStudentId) {
+                    selectedStudentMatches = true;
+                }
+            }
+        });
+
+        portalStudentSelect.value = selectedStudentMatches ? selectedStudentId : '';
+        if (query.length > 0 && matchCount === 1) {
+            portalStudentSelect.value = firstMatchValue;
+        }
+    }
+</script>
 </body>
 </html>

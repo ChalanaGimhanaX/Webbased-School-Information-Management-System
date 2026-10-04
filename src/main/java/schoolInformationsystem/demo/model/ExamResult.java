@@ -35,6 +35,9 @@ public class ExamResult {
     @Column(name = "grade")
     private String grade;
 
+    @Column(name = "remarks")
+    private String remarks;
+
     public ExamResult() {
     }
 
@@ -92,5 +95,13 @@ public class ExamResult {
 
     public void setGrade(String grade) {
         this.grade = grade;
+    }
+
+    public String getRemarks() {
+        return remarks;
+    }
+
+    public void setRemarks(String remarks) {
+        this.remarks = remarks;
     }
 }

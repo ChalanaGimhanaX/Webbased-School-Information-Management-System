@@ -52,6 +52,13 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- 6. Microsoft SQL Server Connector (used by the 'sqlserver' profile) -->
+        <dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- 7. DevTools (Auto Reload on changes) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
