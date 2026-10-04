@@ -358,20 +358,20 @@ export default function Exams() {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Exams Management</h1>
+        <h1 className="text-2xl font-bold text-on-surface tracking-tight">Exams Management</h1>
       </div>
 
-      {error && <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 shadow-sm rounded-r">{error}</div>}
+      {error && <div className="bg-error-container text-on-error-container border border-error/30 p-4 mb-6 shadow-xs rounded-xl">{error}</div>}
 
-      <div className="mb-6 flex space-x-1 border-b border-gray-200">
+      <div className="mb-6 flex space-x-1 border-b border-outline-variant/30">
         {['exams', 'marks', 'report', 'analytics'].map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-5 py-3 font-medium text-sm capitalize transition-colors duration-200 ${
+            className={`px-5 py-3 font-semibold text-sm capitalize transition-colors duration-200 ${
               activeTab === tab 
-                ? 'border-b-2 border-indigo-500 text-indigo-600 bg-indigo-50/50 rounded-t-md' 
-                : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                ? 'border-b-2 border-primary text-primary bg-primary-fixed/20 rounded-t-lg' 
+                : 'border-b-2 border-transparent text-on-surface-variant hover:text-on-surface hover:border-outline-variant hover:bg-surface-container-low/50'
             }`}
           >
             {tab.replace('-', ' ')}
@@ -379,7 +379,7 @@ export default function Exams() {
         ))}
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+      <div className="bg-surface-container-lowest rounded-xl shadow-xs border border-outline-variant/30 p-6">
         {/* TAB 1: EXAMS */}
         {activeTab === 'exams' && (
           <div>

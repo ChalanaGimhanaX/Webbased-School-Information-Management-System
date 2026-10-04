@@ -81,30 +81,36 @@ const Reports = () => {
     <div>
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Executive Reports & Decision Support</h2>
-          <p className="text-sm text-gray-500 mt-1">Consolidated reports for academic performance, attendance trends, and school financial recovery</p>
+          <h1 className="text-2xl font-bold text-on-surface tracking-tight">Executive Reports & Decision Support</h1>
+          <p className="text-sm text-on-surface-variant mt-1">Consolidated reports for academic performance, attendance trends, and school financial recovery</p>
         </div>
-        <div className="flex space-x-2 bg-gray-200 p-1 rounded-lg">
+        <div className="flex space-x-1 bg-surface-container-low p-1 rounded-xl border border-outline-variant/40">
           <button
             onClick={() => setActiveTab('financial')}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-              activeTab === 'financial' ? 'bg-white text-indigo-600 shadow-sm font-semibold' : 'text-gray-600 hover:text-gray-900'
+            className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+              activeTab === 'financial'
+                ? 'bg-surface-container-lowest text-primary shadow-xs border border-outline-variant/30'
+                : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container/50'
             }`}
           >
             Financial Reports
           </button>
           <button
             onClick={() => setActiveTab('exam')}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-              activeTab === 'exam' ? 'bg-white text-indigo-600 shadow-sm font-semibold' : 'text-gray-600 hover:text-gray-900'
+            className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+              activeTab === 'exam'
+                ? 'bg-surface-container-lowest text-primary shadow-xs border border-outline-variant/30'
+                : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container/50'
             }`}
           >
             Exam Analytics
           </button>
           <button
             onClick={() => setActiveTab('attendance')}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-              activeTab === 'attendance' ? 'bg-white text-indigo-600 shadow-sm font-semibold' : 'text-gray-600 hover:text-gray-900'
+            className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+              activeTab === 'attendance'
+                ? 'bg-surface-container-lowest text-primary shadow-xs border border-outline-variant/30'
+                : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container/50'
             }`}
           >
             Attendance Reports

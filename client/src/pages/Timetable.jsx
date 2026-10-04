@@ -344,14 +344,14 @@ const Timetable = () => {
         <div className="flex items-center gap-3">
           {/* Staff View Switcher Tabs */}
           {!isStudentRole && (
-            <div className="flex bg-gray-100 p-1 rounded-lg border border-gray-200 text-xs font-medium">
+            <div className="flex bg-surface-container-low p-1 rounded-xl border border-outline-variant/40 text-xs font-medium">
               <button
                 type="button"
                 onClick={() => setViewMode('editor')}
-                className={`px-3 py-1.5 rounded-md transition-colors ${
+                className={`px-3 py-1.5 rounded-lg transition-all ${
                   viewMode === 'editor'
-                    ? 'bg-white text-indigo-700 shadow-sm font-semibold'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-surface-container-lowest text-primary shadow-xs border border-outline-variant/30 font-semibold'
+                    : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container/50'
                 }`}
               >
                 Class Timetable Editor
@@ -359,10 +359,10 @@ const Timetable = () => {
               <button
                 type="button"
                 onClick={() => setViewMode('student_view')}
-                className={`px-3 py-1.5 rounded-md transition-colors ${
+                className={`px-3 py-1.5 rounded-lg transition-all ${
                   viewMode === 'student_view'
-                    ? 'bg-white text-indigo-700 shadow-sm font-semibold'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-surface-container-lowest text-primary shadow-xs border border-outline-variant/30 font-semibold'
+                    : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container/50'
                 }`}
               >
                 Student View Preview

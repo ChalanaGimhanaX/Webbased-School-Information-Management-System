@@ -334,6 +334,28 @@ html.dark .bg-gray-50 {
 html.dark .bg-gray-100 {
   background-color: var(--color-surface-container) !important;
 }
+html.dark .bg-gray-200 {
+  background-color: var(--color-surface-container-high) !important;
+}
+html.dark .bg-gray-300 {
+  background-color: var(--color-surface-container-highest) !important;
+}
+
+/* Pill & tab button containers in dark mode */
+html.dark .bg-gray-200 button.bg-white,
+html.dark .bg-gray-100 button.bg-white {
+  background-color: var(--color-surface-container-lowest) !important;
+  color: var(--color-primary) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+}
+html.dark .bg-gray-200 button:not(.bg-white),
+html.dark .bg-gray-100 button:not(.bg-white) {
+  color: var(--color-on-surface-variant) !important;
+}
+html.dark .bg-gray-200 button:not(.bg-white):hover,
+html.dark .bg-gray-100 button:not(.bg-white):hover {
+  color: var(--color-on-surface) !important;
+}
 html.dark .text-gray-900,
 html.dark .text-gray-800,
 html.dark .text-gray-700 {

@@ -240,22 +240,26 @@ const Attendance = () => {
     <div>
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Student Attendance Management</h2>
-          <p className="text-sm text-gray-500 mt-1">Digitally record daily class attendance, correct past entries, and generate reports</p>
+          <h1 className="text-2xl font-bold text-on-surface tracking-tight">Student Attendance Management</h1>
+          <p className="text-sm text-on-surface-variant mt-1">Digitally record daily class attendance, correct past entries, and generate reports</p>
         </div>
-        <div className="flex space-x-2 bg-gray-200 p-1 rounded-lg">
+        <div className="flex space-x-1 bg-surface-container-low p-1 rounded-xl border border-outline-variant/40">
           <button
             onClick={() => { setActiveTab('sheet'); setError(''); setSuccess(''); }}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-              activeTab === 'sheet' ? 'bg-white text-indigo-600 shadow-sm font-semibold' : 'text-gray-600 hover:text-gray-900'
+            className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+              activeTab === 'sheet'
+                ? 'bg-surface-container-lowest text-primary shadow-xs border border-outline-variant/30'
+                : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container/50'
             }`}
           >
             Daily Sheet
           </button>
           <button
             onClick={() => { setActiveTab('reports'); setError(''); setSuccess(''); }}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-              activeTab === 'reports' ? 'bg-white text-indigo-600 shadow-sm font-semibold' : 'text-gray-600 hover:text-gray-900'
+            className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+              activeTab === 'reports'
+                ? 'bg-surface-container-lowest text-primary shadow-xs border border-outline-variant/30'
+                : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container/50'
             }`}
           >
             Attendance Reports
