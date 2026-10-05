@@ -6,7 +6,6 @@ import Icon from '../../components/ui/Icon';
 import {
   BannerButton, Card, CountUp, KpiCard, PeriodList, ProgressBar, ProgressRing, WelcomeBanner,
 } from '../../components/dashboard/DashboardWidgets';
-import { SUGGESTIONS } from '../../components/assistant/suggestions';
 import { usePeriodClock } from '../../lib/usePeriodClock';
 import { formatLongDate, formatTime, getTermInfo, greeting, toMinutes, todayKey } from '../../lib/schoolCalendar';
 
@@ -78,15 +77,7 @@ const StudentDashboard = () => {
   const nowMin = now.getHours() * 60 + now.getMinutes();
   const live = todaysPeriods.find((p) => toMinutes(p.start) <= nowMin && nowMin < toMinutes(p.end));
   const next = todaysPeriods.find((p) => toMinutes(p.start) > nowMin);
-  const ask = (prompt) => navigate('/assistant', { state: { prompt } });
   const firstName = overview?.fullName?.split(' ')[0] || user?.username;
-
-  const quickPrompts = [
-    weakest ? { icon: 'trending_up', text: `Help me improve in ${weakest.subjectName} — what should I focus on?` } : SUGGESTIONS[1],
-    SUGGESTIONS[2],
-    SUGGESTIONS[3],
-    SUGGESTIONS[0],
-  ];
 
   return (
     <div className="flex w-full flex-col space-y-6">
@@ -110,10 +101,7 @@ const StudentDashboard = () => {
           { label: 'Subjects', value: results.length ? `${results.length}` : '8', color: 'text-sky-300' },
         ]}
         actions={
-          <>
-            <BannerButton icon="smart_toy" onClick={() => navigate('/assistant')}>Ask Study Buddy</BannerButton>
-            <BannerButton icon="calendar_month" variant="ghost" onClick={() => navigate('/timetable')}>Timetable</BannerButton>
-          </>
+          <BannerButton icon="calendar_month" variant="ghost" onClick={() => navigate('/timetable')}>Timetable</BannerButton>
         }
       />
 
@@ -199,43 +187,6 @@ const StudentDashboard = () => {
 
       <section className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
         <div className="flex flex-col space-y-6 lg:col-span-8">
-          {/* Study Buddy hero */}
-          <section
-            style={{ '--d': '180ms' }}
-            className="group relative overflow-hidden rounded-xl border border-primary/10 bg-gradient-to-br from-primary-fixed/70 via-surface-container-lowest to-secondary-fixed/60 p-6 shadow-sm animate-fade-up stagger"
-          >
-            <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full bg-primary-container/10 blur-2xl transition-transform duration-700 group-hover:scale-125" />
-            <div className="relative flex flex-col gap-5 md:flex-row md:items-center">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary via-primary-container to-secondary-container text-on-primary shadow-lg animate-float">
-                <Icon name="smart_toy" size={34} filled />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-headline-md font-bold text-on-surface">Study Buddy</h2>
-                  <span className="rounded-full bg-gradient-to-r from-primary to-secondary-container px-2 py-0.5 text-[10px] font-bold text-on-primary">AI POWERED</span>
-                </div>
-                <p className="mt-1 text-body-md text-on-surface-variant">
-                  Your personal AI tutor. It knows your timetable{results.length ? ', results' : ''} and attendance, explains tricky topics step-by-step, builds revision plans and quizzes you before exams.
-                </p>
-              </div>
-            </div>
-            <div className="relative mt-5 grid gap-2 sm:grid-cols-2">
-              {quickPrompts.map((p, i) => (
-                <button
-                  key={p.text}
-                  type="button"
-                  onClick={() => ask(p.text)}
-                  style={{ '--d': `${260 + i * 60}ms` }}
-                  className="group/chip flex items-center gap-2 rounded-xl border border-outline-variant/50 bg-surface-container-lowest/90 px-3 py-2.5 text-left text-body-sm text-on-surface-variant backdrop-blur transition-all animate-fade-up stagger hover:-translate-y-0.5 hover:border-primary-container hover:text-primary hover:shadow-md"
-                >
-                  <Icon name={p.icon} size={18} className="text-primary transition-transform group-hover/chip:scale-110" />
-                  <span className="flex-1">{p.text}</span>
-                  <Icon name="arrow_forward" size={16} className="-translate-x-1 text-outline opacity-0 transition-all group-hover/chip:translate-x-0 group-hover/chip:opacity-100" />
-                </button>
-              ))}
-            </div>
-          </section>
-
           {/* Published results */}
           <Card delay={240}>
             <div className="flex items-center justify-between border-b border-outline-variant/30 pb-4">
