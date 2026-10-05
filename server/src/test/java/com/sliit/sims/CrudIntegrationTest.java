@@ -113,4 +113,20 @@ class CrudIntegrationTest {
         mvc.perform(delete("/api/v1/fees/accounts/1").header("Authorization","Bearer "+token("head_academic"))).andExpect(status().isForbidden());
         mvc.perform(post("/api/v1/auth/register").contentType("application/json").content("{}")).andExpect(status().isForbidden());
     }
+
+    @Test void schoolRecordsAreReadableOnlyByTheRightRoles() throws Exception {
+        // Students and parents cannot browse school-wide records (they use their self-scoped endpoints)
+        for (String user : List.of("student1", "parent1")) {
+            for (String path : List.of("/students", "/teachers", "/teachers/staff", "/exams", "/attendance/class/1?date=2026-09-18")) {
+                mvc.perform(get("/api/v1" + path).header("Authorization", "Bearer " + token(user))).andExpect(status().isForbidden());
+            }
+        }
+        // Teachers can read academic records but not staff HR / salary data
+        mvc.perform(get("/api/v1/students").header("Authorization", "Bearer " + token("teacher1"))).andExpect(status().isOk());
+        mvc.perform(get("/api/v1/exams").header("Authorization", "Bearer " + token("teacher1"))).andExpect(status().isOk());
+        mvc.perform(get("/api/v1/teachers/staff").header("Authorization", "Bearer " + token("teacher1"))).andExpect(status().isForbidden());
+        mvc.perform(get("/api/v1/teachers/staff").header("Authorization", "Bearer " + token("head_academic"))).andExpect(status().isOk());
+        // Timetables stay readable for every signed-in role
+        mvc.perform(get("/api/v1/timetables/slots").header("Authorization", "Bearer " + token("student1"))).andExpect(status().isOk());
+    }
 }

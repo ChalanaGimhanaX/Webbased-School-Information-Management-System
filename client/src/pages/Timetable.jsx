@@ -4,14 +4,29 @@ import Modal from '../components/Modal';
 import api from '../api/axios';
 import { AuthContext } from '../context/AuthContext';
 
+// Subject colour tones with dark-mode variants (keeps the grid readable in both themes)
+const SUBJECT_TONES = {
+  blue: 'bg-blue-50 text-blue-900 border-blue-200 dark:bg-blue-500/10 dark:text-blue-100 dark:border-blue-400/25',
+  emerald: 'bg-emerald-50 text-emerald-900 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-100 dark:border-emerald-400/25',
+  amber: 'bg-amber-50 text-amber-900 border-amber-200 dark:bg-amber-500/10 dark:text-amber-100 dark:border-amber-400/25',
+  purple: 'bg-purple-50 text-purple-900 border-purple-200 dark:bg-purple-500/10 dark:text-purple-100 dark:border-purple-400/25',
+  rose: 'bg-rose-50 text-rose-900 border-rose-200 dark:bg-rose-500/10 dark:text-rose-100 dark:border-rose-400/25',
+  pink: 'bg-pink-50 text-pink-900 border-pink-200 dark:bg-pink-500/10 dark:text-pink-100 dark:border-pink-400/25',
+  teal: 'bg-teal-50 text-teal-900 border-teal-200 dark:bg-teal-500/10 dark:text-teal-100 dark:border-teal-400/25',
+  indigo: 'bg-indigo-50 text-indigo-900 border-indigo-200 dark:bg-indigo-500/10 dark:text-indigo-100 dark:border-indigo-400/25',
+};
+
 const Timetable = () => {
   const { user } = useContext(AuthContext);
-  const isStudent = user?.role === 'STUDENT';
-  const isParent = user?.role === 'PARENT';
+  const role = user?.role;
+  const isStudent = role === 'STUDENT';
+  const isParent = role === 'PARENT';
   const isStudentRole = isStudent || isParent;
+  // Only the Admin and Head of Academic may create / edit timetables (UC-05). Teachers get a read-only class view.
+  const canEdit = role === 'ADMIN' || role === 'HEAD_OF_ACADEMIC';
 
-  // View state for non-student users: 'editor' | 'student_view'
-  const [viewMode, setViewMode] = useState(isStudentRole ? 'student_view' : 'editor');
+  // View state for staff users: 'editor' | 'student_view'
+  const [viewMode, setViewMode] = useState(canEdit ? 'editor' : 'student_view');
 
   // Shared / Admin state
   const [classes, setClasses] = useState([]);
@@ -63,14 +78,14 @@ const Timetable = () => {
   // Color mapping by subject keyword / ID
   const getSubjectBadgeColor = (name = '') => {
     const lower = name.toLowerCase();
-    if (lower.includes('math')) return 'bg-blue-50 text-blue-800 border-blue-200';
-    if (lower.includes('sci')) return 'bg-emerald-50 text-emerald-800 border-emerald-200';
-    if (lower.includes('eng')) return 'bg-amber-50 text-amber-800 border-amber-200';
-    if (lower.includes('comp') || lower.includes('ict')) return 'bg-purple-50 text-purple-800 border-purple-200';
-    if (lower.includes('hist')) return 'bg-rose-50 text-rose-800 border-rose-200';
-    if (lower.includes('art') || lower.includes('music')) return 'bg-pink-50 text-pink-800 border-pink-200';
-    if (lower.includes('sinhala') || lower.includes('tamil')) return 'bg-teal-50 text-teal-800 border-teal-200';
-    return 'bg-indigo-50 text-indigo-800 border-indigo-200';
+    if (lower.includes('math')) return SUBJECT_TONES.blue;
+    if (lower.includes('sci')) return SUBJECT_TONES.emerald;
+    if (lower.includes('eng')) return SUBJECT_TONES.amber;
+    if (lower.includes('comp') || lower.includes('ict')) return SUBJECT_TONES.purple;
+    if (lower.includes('hist')) return SUBJECT_TONES.rose;
+    if (lower.includes('art') || lower.includes('music')) return SUBJECT_TONES.pink;
+    if (lower.includes('sinhala') || lower.includes('tamil')) return SUBJECT_TONES.teal;
+    return SUBJECT_TONES.indigo;
   };
 
   const flash = (msg) => {
@@ -322,28 +337,30 @@ const Timetable = () => {
   return (
     <div className="space-y-6">
       {/* ── Top Header Bar ── */}
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-gray-200 pb-4 print:hidden">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-outline-variant/40 pb-4 print:hidden">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-2xl font-bold text-gray-900">
-              {isStudentRole ? 'My Class Timetable' : 'Timetable & Academic Scheduling'}
+            <h2 className="text-2xl font-bold text-on-surface tracking-tight">
+              {isStudentRole ? 'My Class Timetable' : canEdit ? 'Timetable & Academic Scheduling' : 'Class Timetables'}
             </h2>
-            {isStudentRole && (
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800">
-                Student View
+            {(isStudentRole || !canEdit) && (
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary-fixed text-on-primary-fixed">
+                {isStudentRole ? 'Student View' : 'Read only'}
               </span>
             )}
           </div>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-on-surface-variant mt-1">
             {isStudentRole
               ? 'View your weekly class schedule, subject periods, assigned teachers, and classroom locations'
-              : 'Manage weekly periods, rooms, teacher assignments, and schedule entries'}
+              : canEdit
+                ? 'Manage weekly periods, rooms, teacher assignments, and schedule entries'
+                : 'View the weekly schedule of any class. Timetables are managed by the Head of Academic.'}
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Staff View Switcher Tabs */}
-          {!isStudentRole && (
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Editor / preview switcher (Admin + Head of Academic only) */}
+          {canEdit && (
             <div className="flex bg-surface-container-low p-1 rounded-xl border border-outline-variant/40 text-xs font-medium">
               <button
                 type="button"
@@ -373,11 +390,11 @@ const Timetable = () => {
           {/* Staff Class Selector */}
           {!isStudentRole && (
             <div className="flex items-center space-x-2">
-              <label className="text-xs font-medium text-gray-700">Class:</label>
+              <label className="text-xs font-medium text-on-surface-variant">Class:</label>
               <select
                 value={selectedClassId}
                 onChange={(e) => setSelectedClassId(e.target.value)}
-                className="border border-gray-300 rounded-md px-3 py-1.5 bg-white text-sm focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
+                className="border border-outline-variant rounded-lg px-3 py-1.5 bg-surface-container-lowest text-on-surface text-sm focus:ring-primary focus:border-primary shadow-xs"
               >
                 {classes.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -388,11 +405,11 @@ const Timetable = () => {
             </div>
           )}
 
-          {/* Add Period Entry Button (Staff Editor Only) */}
-          {!isStudentRole && viewMode === 'editor' && currentTimetable && (
+          {/* Add Period Entry Button (Editor only) */}
+          {canEdit && viewMode === 'editor' && currentTimetable && (
             <button
               onClick={() => openAddEntryModal()}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-md shadow-sm transition-colors"
+              className="px-4 py-2 bg-primary-container hover:bg-primary text-on-primary text-sm font-medium rounded-lg shadow-sm transition-colors"
             >
               + Add Period Entry
             </button>
@@ -403,7 +420,7 @@ const Timetable = () => {
             <button
               type="button"
               onClick={() => window.print()}
-              className="px-3.5 py-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-md shadow-sm flex items-center gap-1.5 transition-colors"
+              className="px-3.5 py-1.5 bg-surface-container-lowest border border-outline-variant hover:bg-surface-container-low text-on-surface text-sm font-medium rounded-lg shadow-xs flex items-center gap-1.5 transition-colors"
             >
               <span>🖨️ Print Timetable</span>
             </button>
@@ -411,8 +428,9 @@ const Timetable = () => {
         </div>
       </div>
 
-      {error && <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">{error}</div>}
-      {success && <div className="p-3 bg-green-50 border border-green-200 text-green-700 rounded-md text-sm">{success}</div>}
+      {error && <div className="p-3 bg-error-container text-on-error-container border border-error/30 rounded-lg text-sm">{error}</div>}
+      {success && <div className="p-3 bg-tertiary-fixed/50 text-on-tertiary-fixed border border-tertiary/30 rounded-lg text-sm">{success}</div>}
+
 
       {/* ========================================================================= */}
       {/* ── VIEW 1: STUDENT TIMETABLE TABLE (FOR STUDENTS OR PREVIEW) ── */}
@@ -420,16 +438,16 @@ const Timetable = () => {
       {(isStudentRole || viewMode === 'student_view') && (
         <div className="space-y-6">
           {studentLoading && (
-            <div className="bg-white rounded-lg p-12 text-center text-gray-500 shadow-sm border border-gray-100">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mb-3"></div>
+            <div className="bg-surface-container-lowest rounded-xl p-12 text-center text-on-surface-variant shadow-xs border border-outline-variant/40">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-3"></div>
               <div>Loading student timetable...</div>
             </div>
           )}
 
           {studentError && !studentLoading && (
-            <div className="bg-white rounded-lg p-8 text-center shadow-sm border border-red-100">
-              <p className="text-red-600 font-medium mb-2">{studentError}</p>
-              <p className="text-gray-500 text-sm">Please contact the academic administration office if your class timetable has not yet been assigned.</p>
+            <div className="bg-surface-container-lowest rounded-xl p-8 text-center shadow-xs border border-error/30">
+              <p className="text-error font-medium mb-2">{studentError}</p>
+              <p className="text-on-surface-variant text-sm">Please contact the academic administration office if your class timetable has not yet been assigned.</p>
             </div>
           )}
 
@@ -481,25 +499,25 @@ const Timetable = () => {
               </div>
 
               {/* Today's Schedule Highlight Widget */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 print:hidden">
+              <div className="bg-surface-container-lowest rounded-xl shadow-xs border border-outline-variant/40 p-5 print:hidden">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">📅</span>
-                    <h4 className="font-bold text-gray-800 text-sm uppercase tracking-wide">
+                    <h4 className="font-bold text-on-surface text-sm uppercase tracking-wide">
                       Today's Schedule ({todayDayName})
                     </h4>
                   </div>
-                  <span className="text-xs text-gray-500 font-medium">
+                  <span className="text-xs text-on-surface-variant font-medium">
                     {new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' })}
                   </span>
                 </div>
 
                 {isWeekend ? (
-                  <div className="p-4 bg-gray-50 rounded-lg text-center text-sm text-gray-500">
+                  <div className="p-4 bg-surface-container-low rounded-lg text-center text-sm text-on-surface-variant">
                     🎉 It's the weekend! No classes are scheduled for today. Review the weekly schedule below.
                   </div>
                 ) : todayEntries.length === 0 ? (
-                  <div className="p-4 bg-gray-50 rounded-lg text-center text-sm text-gray-500">
+                  <div className="p-4 bg-surface-container-low rounded-lg text-center text-sm text-on-surface-variant">
                     No classes scheduled for today.
                   </div>
                 ) : (
@@ -507,18 +525,18 @@ const Timetable = () => {
                     {todayEntries.map((slot) => (
                       <div
                         key={slot.entryId}
-                        className="p-3 rounded-lg border border-indigo-100 bg-indigo-50/40 hover:bg-indigo-50/70 transition-colors"
+                        className={`p-3 rounded-lg border transition-all hover:-translate-y-0.5 hover:shadow-sm ${getSubjectBadgeColor(slot.subjectName)}`}
                       >
-                        <div className="flex items-center justify-between text-xs text-indigo-700 font-semibold mb-1">
+                        <div className="flex items-center justify-between text-xs font-semibold mb-1">
                           <span>Period {slot.periodNumber}</span>
-                          <span className="font-mono text-[11px] text-gray-500">
+                          <span className="font-mono text-[11px] opacity-70">
                             {slot.startTime?.substring(0, 5)} - {slot.endTime?.substring(0, 5)}
                           </span>
                         </div>
-                        <div className="font-bold text-gray-900 text-sm truncate">{slot.subjectName}</div>
-                        <div className="flex items-center justify-between text-xs text-gray-600 mt-2 pt-1.5 border-t border-indigo-100">
-                          <span className="truncate">👤 {slot.teacherName}</span>
-                          <span className="font-mono text-indigo-900 bg-white px-1.5 py-0.5 rounded border border-indigo-200 text-[10px] font-semibold">
+                        <div className="font-bold text-sm truncate">{slot.subjectName}</div>
+                        <div className="flex items-center justify-between text-xs mt-2 pt-1.5 border-t border-current/10">
+                          <span className="truncate opacity-80">👤 {slot.teacherName}</span>
+                          <span className="font-mono px-1.5 py-0.5 rounded border border-current/20 text-[10px] font-semibold">
                             {slot.roomNumber}
                           </span>
                         </div>
@@ -529,88 +547,91 @@ const Timetable = () => {
               </div>
 
               {/* The Dedicated Student Timetable Table (Read-Only) */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200 border-collapse">
-                    <thead className="bg-gray-50 text-gray-700">
+              <div className="bg-surface-container-lowest rounded-xl shadow-xs border border-outline-variant/60 dark:border-white/10 overflow-hidden">
+                <div className="overflow-x-auto thin-scroll">
+                  <table className="min-w-full border-separate border-spacing-0">
+                    <thead className="bg-surface-container-low">
                       <tr>
-                        <th className="px-4 py-3.5 border-b border-r text-left text-xs font-bold uppercase tracking-wider min-w-[110px]">
+                        <th className="sticky left-0 z-10 bg-surface-container-low px-4 py-3.5 border-b border-r border-outline-variant/60 dark:border-white/10 text-left text-xs font-bold uppercase tracking-wider text-on-surface-variant min-w-[120px]">
                           Day / Period
                         </th>
                         {periods.map((p) => (
-                          <th key={p} className="px-3 py-3 border-b border-r text-center min-w-[135px]">
-                            <div className="text-xs font-bold uppercase text-gray-800">Period {p}</div>
-                            <div className="text-[10px] font-normal text-gray-500 font-mono mt-0.5">
+                          <th key={p} className="px-3 py-3 border-b border-r border-outline-variant/60 dark:border-white/10 last:border-r-0 text-center min-w-[135px]">
+                            <div className="text-xs font-bold uppercase text-on-surface">Period {p}</div>
+                            <div className="text-[10px] font-normal text-on-surface-variant font-mono mt-0.5">
                               {periodTimings[p] || ''}
                             </div>
                           </th>
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {days.map((day) => (
-                        <tr key={day} className="hover:bg-gray-50/50">
-                          {/* Day Row Header */}
-                          <td className="px-4 py-4 border-r font-bold text-gray-800 text-xs bg-gray-50/80 whitespace-nowrap">
-                            <div className="flex items-center gap-1.5">
-                              <span>{day}</span>
-                              {day === todayDayName && (
-                                <span className="w-2 h-2 rounded-full bg-emerald-500" title="Today"></span>
-                              )}
-                            </div>
-                          </td>
+                    <tbody>
+                      {days.map((day, rowIdx) => {
+                        const isToday = day === todayDayName;
+                        const rowBorder = rowIdx < days.length - 1 ? 'border-b' : '';
+                        return (
+                          <tr key={day} className="group/row">
+                            {/* Day Row Header */}
+                            <td className={`sticky left-0 z-10 px-4 py-4 border-r ${rowBorder} border-outline-variant/60 dark:border-white/10 font-bold text-xs whitespace-nowrap ${isToday ? 'bg-primary-fixed text-on-primary-fixed' : 'bg-surface-container-low text-on-surface'}`}>
+                              <div className="flex items-center gap-1.5">
+                                <span>{day}</span>
+                                {isToday && (
+                                  <span className="w-2 h-2 rounded-full bg-tertiary animate-pulse" title="Today"></span>
+                                )}
+                              </div>
+                            </td>
 
-                          {/* 8 Periods */}
-                          {periods.map((period) => {
-                            const slot = studentScheduleLookup[`${day}-${period}`];
-                            const badgeColor = slot ? getSubjectBadgeColor(slot.subjectName) : '';
+                            {/* 8 Periods */}
+                            {periods.map((period) => {
+                              const slot = studentScheduleLookup[`${day}-${period}`];
+                              const badgeColor = slot ? getSubjectBadgeColor(slot.subjectName) : '';
 
-                            return (
-                              <td
-                                key={period}
-                                className="px-2 py-2 border-r text-center align-top min-w-[135px] h-[100px]"
-                              >
-                                {slot ? (
-                                  <div
-                                    className={`h-full flex flex-col justify-between p-2 rounded-lg border text-left transition-shadow shadow-xs hover:shadow-sm ${badgeColor}`}
-                                  >
-                                    <div>
-                                      <div className="flex items-center justify-between gap-1">
-                                        <span className="font-bold text-xs leading-tight line-clamp-2">
-                                          {slot.subjectName}
+                              return (
+                                <td
+                                  key={period}
+                                  className={`px-2 py-2 border-r ${rowBorder} border-outline-variant/60 dark:border-white/10 last:border-r-0 text-center align-top min-w-[135px] h-[100px] ${isToday ? 'bg-primary-fixed/10' : ''}`}
+                                >
+                                  {slot ? (
+                                    <div
+                                      className={`h-full flex flex-col justify-between p-2 rounded-lg border text-left transition-all shadow-xs hover:-translate-y-0.5 hover:shadow-md ${badgeColor}`}
+                                    >
+                                      <div>
+                                        <div className="flex items-center justify-between gap-1">
+                                          <span className="font-bold text-xs leading-tight line-clamp-2">
+                                            {slot.subjectName}
+                                          </span>
+                                        </div>
+                                        {slot.subjectCode && (
+                                          <div className="text-[10px] opacity-70 font-mono mt-0.5">
+                                            {slot.subjectCode}
+                                          </div>
+                                        )}
+                                        <div className="text-[11px] opacity-80 mt-1 font-medium truncate flex items-center gap-1">
+                                          <span>👤</span>
+                                          <span className="truncate">{slot.teacherName}</span>
+                                        </div>
+                                      </div>
+
+                                      <div className="flex items-center justify-between pt-1.5 mt-1 border-t border-current/10 text-[10px]">
+                                        <span className="font-mono font-semibold px-1.5 py-0.5 rounded border border-current/20">
+                                          📍 {slot.roomNumber}
+                                        </span>
+                                        <span className="font-mono opacity-70 text-[9px]">
+                                          {slot.startTime?.substring(0, 5)}
                                         </span>
                                       </div>
-                                      {slot.subjectCode && (
-                                        <div className="text-[10px] opacity-75 font-mono mt-0.5">
-                                          {slot.subjectCode}
-                                        </div>
-                                      )}
-                                      <div className="text-[11px] text-gray-600 mt-1 font-medium truncate flex items-center gap-1">
-                                        <span>👤</span>
-                                        <span className="truncate">{slot.teacherName}</span>
-                                      </div>
                                     </div>
-
-                                    <div className="flex items-center justify-between pt-1.5 mt-1 border-t border-black/5 text-[10px]">
-                                      <span className="font-mono font-semibold px-1.5 py-0.5 rounded bg-white/80 border border-black/10 text-gray-700">
-                                        📍 {slot.roomNumber}
-                                      </span>
-                                      <span className="font-mono text-gray-500 text-[9px]">
-                                        {slot.startTime?.substring(0, 5)}
-                                      </span>
+                                  ) : (
+                                    <div className="w-full h-full rounded-lg border border-dashed border-outline-variant/70 flex flex-col items-center justify-center bg-surface-container-low/30">
+                                      <span className="text-[11px] font-medium text-outline">Free Period</span>
                                     </div>
-                                  </div>
-                                ) : (
-                                  <div className="w-full h-full rounded-lg border border-dashed border-gray-100 flex flex-col items-center justify-center text-gray-400 bg-gray-50/30">
-                                    <span className="text-[11px] font-medium text-gray-400">Free Period</span>
-                                    <span className="text-[9px] text-gray-300 font-mono">—</span>
-                                  </div>
-                                )}
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      ))}
+                                  )}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -621,17 +642,17 @@ const Timetable = () => {
       )}
 
       {/* ========================================================================= */}
-      {/* ── VIEW 2: STAFF CLASS TIMETABLE EDITOR (ADMIN / TEACHERS ONLY) ── */}
+      {/* ── VIEW 2: CLASS TIMETABLE EDITOR (ADMIN / HEAD OF ACADEMIC ONLY) ── */}
       {/* ========================================================================= */}
-      {!isStudentRole && viewMode === 'editor' && (
+      {canEdit && viewMode === 'editor' && (
         <div className="space-y-4">
           {!currentTimetable && !loading && (
-            <div className="bg-white rounded-lg shadow-sm p-8 text-center border border-gray-100">
-              <p className="text-gray-600 mb-4">No active timetable found for this class in Academic Year 2026.</p>
+            <div className="bg-surface-container-lowest rounded-xl shadow-xs p-8 text-center border border-outline-variant/40">
+              <p className="text-on-surface-variant mb-4">No active timetable found for this class in Academic Year {new Date().getFullYear()}.</p>
               <button
                 onClick={handleCreateTimetable}
                 disabled={submitting}
-                className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm font-medium shadow-sm"
+                className="px-6 py-2 bg-primary-container hover:bg-primary text-on-primary rounded-lg text-sm font-medium shadow-sm transition-colors"
               >
                 {submitting ? 'Initializing...' : '+ Initialize Class Timetable'}
               </button>
@@ -639,74 +660,79 @@ const Timetable = () => {
           )}
 
           {currentTimetable && (
-            <div className="bg-white rounded-lg shadow-sm overflow-x-auto border border-gray-100">
+            <div className="bg-surface-container-lowest rounded-xl shadow-xs overflow-x-auto thin-scroll border border-outline-variant/60 dark:border-white/10">
               {loading ? (
-                <div className="py-16 text-center text-gray-500">Loading schedule...</div>
+                <div className="py-16 text-center text-on-surface-variant">Loading schedule...</div>
               ) : (
-                <table className="min-w-full divide-y divide-gray-200 border-collapse">
-                  <thead className="bg-gray-50">
+                <table className="min-w-full border-separate border-spacing-0">
+                  <thead className="bg-surface-container-low">
                     <tr>
-                      <th className="px-4 py-3 border text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      <th className="sticky left-0 z-10 bg-surface-container-low px-4 py-3 border-b border-r border-outline-variant/60 dark:border-white/10 text-left text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
                         Day / Period
                       </th>
                       {periods.map((p) => (
-                        <th key={p} className="px-3 py-3 border text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        <th key={p} className="px-3 py-3 border-b border-r border-outline-variant/60 dark:border-white/10 last:border-r-0 text-center text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
                           Period {p}
+                          <div className="text-[10px] font-normal normal-case font-mono mt-0.5 opacity-80">{periodTimings[p]}</div>
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {days.map((day) => (
-                      <tr key={day} className="hover:bg-gray-50/50">
-                        <td className="px-4 py-3 border font-semibold text-gray-700 text-xs bg-gray-50 whitespace-nowrap">
-                          {day}
-                        </td>
-                        {periods.map((period) => {
-                          const entry = editorScheduleLookup[`${day}-${period}`];
-                          return (
-                            <td key={period} className="px-2 py-2 border text-center align-top min-w-[130px] h-[90px] group relative">
-                              {entry ? (
-                                <div className="h-full flex flex-col justify-between p-1.5 bg-indigo-50 border border-indigo-100 rounded text-left">
-                                  <div>
-                                    <div className="font-semibold text-indigo-900 text-xs leading-tight">
-                                      {subjectsMap[entry.subjectId] || `Subj #${entry.subjectId}`}
+                  <tbody>
+                    {days.map((day, rowIdx) => {
+                      const rowBorder = rowIdx < days.length - 1 ? 'border-b' : '';
+                      return (
+                        <tr key={day}>
+                          <td className={`sticky left-0 z-10 px-4 py-3 border-r ${rowBorder} border-outline-variant/60 dark:border-white/10 font-semibold text-on-surface text-xs bg-surface-container-low whitespace-nowrap`}>
+                            {day}
+                          </td>
+                          {periods.map((period) => {
+                            const entry = editorScheduleLookup[`${day}-${period}`];
+                            const subjectName = entry ? (subjectsMap[entry.subjectId] || `Subj #${entry.subjectId}`) : '';
+                            return (
+                              <td key={period} className={`px-2 py-2 border-r ${rowBorder} border-outline-variant/60 dark:border-white/10 last:border-r-0 text-center align-top min-w-[130px] h-[90px] group relative`}>
+                                {entry ? (
+                                  <div className={`h-full flex flex-col justify-between p-1.5 border rounded-lg text-left transition-shadow hover:shadow-md ${getSubjectBadgeColor(subjectName)}`}>
+                                    <div>
+                                      <div className="font-semibold text-xs leading-tight">
+                                        {subjectName}
+                                      </div>
+                                      <div className="text-[11px] opacity-80 mt-1">
+                                        {teachersMap[entry.teacherId] || `Teacher #${entry.teacherId}`}
+                                      </div>
                                     </div>
-                                    <div className="text-[11px] text-gray-600 mt-1">
-                                      {teachersMap[entry.teacherId] || `Teacher #${entry.teacherId}`}
+                                    <div className="flex justify-between items-center mt-2 pt-1 border-t border-current/10 text-[10px]">
+                                      <span className="font-mono opacity-70">{entry.roomNumber || 'Room 101'}</span>
+                                      <button
+                                        onClick={() => openEditEntryModal(entry)}
+                                        className="font-semibold px-1 hover:underline"
+                                        title="Edit Entry"
+                                      >
+                                        Edit
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeleteEntry(entry.id, day, period)}
+                                        className="text-error hover:opacity-80 font-bold px-1"
+                                        title="Delete Entry"
+                                      >
+                                        ×
+                                      </button>
                                     </div>
                                   </div>
-                                  <div className="flex justify-between items-center mt-2 pt-1 border-t border-indigo-200/50 text-[10px]">
-                                    <span className="font-mono text-gray-500">{entry.roomNumber || 'Room 101'}</span>
-                                    <button
-                                      onClick={() => openEditEntryModal(entry)}
-                                      className="text-indigo-600 hover:text-indigo-900 px-1"
-                                      title="Edit Entry"
-                                    >
-                                      Edit
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteEntry(entry.id, day, period)}
-                                      className="text-red-500 hover:text-red-700 font-bold px-1"
-                                      title="Delete Entry"
-                                    >
-                                      ×
-                                    </button>
-                                  </div>
-                                </div>
-                              ) : (
-                                <button
-                                  onClick={() => openAddEntryModal(day, period)}
-                                  className="w-full h-full border border-dashed border-gray-200 rounded flex items-center justify-center text-gray-300 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50/30 transition-colors text-xs"
-                                >
-                                  + Assign
-                                </button>
-                              )}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
+                                ) : (
+                                  <button
+                                    onClick={() => openAddEntryModal(day, period)}
+                                    className="w-full h-full border border-dashed border-outline-variant/80 dark:border-white/10 rounded-lg flex items-center justify-center text-outline hover:text-primary hover:border-primary/50 hover:bg-primary-fixed/20 transition-colors text-xs"
+                                  >
+                                    + Assign
+                                  </button>
+                                )}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               )}
@@ -715,8 +741,8 @@ const Timetable = () => {
         </div>
       )}
 
-      {/* ── MODAL: Add / Edit Schedule Entry (Staff Only) ── */}
-      {!isStudentRole && (
+      {/* ── MODAL: Add / Edit Schedule Entry (Admin / Head of Academic only) ── */}
+      {canEdit && (
         <Modal
           isOpen={isEntryModalOpen}
           onClose={() => setIsEntryModalOpen(false)}

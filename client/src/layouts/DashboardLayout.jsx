@@ -12,20 +12,20 @@ const quickActionsByRole = {
   ADMIN: [
     { label: 'Register student', icon: 'person_add', to: '/students' },
     { label: 'Mark attendance', icon: 'fact_check', to: '/attendance' },
-    { label: 'Enter exam marks', icon: 'edit_note', to: '/exams' },
+    { label: 'Manage exams', icon: 'edit_note', to: '/exams' },
     { label: 'Edit timetable', icon: 'calendar_month', to: '/timetable' },
     { label: 'Record fee payment', icon: 'payments', to: '/fees' },
   ],
   HEAD_OF_ACADEMIC: [
     { label: 'Register student', icon: 'person_add', to: '/students' },
     { label: 'Mark attendance', icon: 'fact_check', to: '/attendance' },
-    { label: 'Enter exam marks', icon: 'edit_note', to: '/exams' },
+    { label: 'Manage exams', icon: 'edit_note', to: '/exams' },
     { label: 'Edit timetable', icon: 'calendar_month', to: '/timetable' },
   ],
   TEACHER: [
     { label: 'Mark attendance', icon: 'fact_check', to: '/attendance' },
     { label: 'Enter exam marks', icon: 'edit_note', to: '/exams' },
-    { label: 'My timetable', icon: 'calendar_month', to: '/timetable' },
+    { label: 'View class timetables', icon: 'calendar_month', to: '/timetable' },
   ],
   STUDENT: [
     { label: 'Ask Study Buddy', icon: 'smart_toy', to: '/assistant' },
@@ -33,8 +33,7 @@ const quickActionsByRole = {
     { label: 'My results', icon: 'assignment', to: '/exams' },
   ],
   PARENT: [
-    { label: 'Exam results', icon: 'assignment', to: '/exams' },
-    { label: 'Class timetable', icon: 'calendar_month', to: '/timetable' },
+    { label: 'View & pay fees', icon: 'payments', to: '/fees' },
   ],
 };
 
@@ -90,7 +89,7 @@ const DashboardLayout = () => {
 
   const role = user?.role || 'ADMIN';
   const term = getTermInfo();
-  const pageTitle = pageTitleFor(location.pathname);
+  const pageTitle = pageTitleFor(location.pathname, role);
   const navResults = useMemo(() => {
     const q = query.trim().toLowerCase();
     const items = visibleNavItems(role);

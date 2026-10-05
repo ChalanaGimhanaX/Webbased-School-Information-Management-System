@@ -62,3 +62,6 @@ uploads/
 # OS generated files
 .DS_Store
 Thumbs.db
+# Portable runtimes downloaded by SIMS-Setup-and-Run.bat
+.runtime/
+

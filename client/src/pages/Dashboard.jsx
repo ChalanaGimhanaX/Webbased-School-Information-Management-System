@@ -3,11 +3,14 @@ import React, { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import AdminDashboard from './dashboard/AdminDashboard';
 import StudentDashboard from './dashboard/StudentDashboard';
+import ParentDashboard from './dashboard/ParentDashboard';
 
-/** Role-aware landing page: students get their personal learning dashboard, everyone else the academic overview. */
+/** Role-aware landing page: students get their learning dashboard, parents their family portal, staff the academic overview. */
 const Dashboard = () => {
   const { user } = useContext(AuthContext);
-  return user?.role === 'STUDENT' ? <StudentDashboard /> : <AdminDashboard />;
+  if (user?.role === 'STUDENT') return <StudentDashboard />;
+  if (user?.role === 'PARENT') return <ParentDashboard />;
+  return <AdminDashboard />;
 };
 
 export default Dashboard;

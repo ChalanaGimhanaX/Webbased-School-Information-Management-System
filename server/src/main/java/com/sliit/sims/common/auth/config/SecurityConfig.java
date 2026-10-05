@@ -61,8 +61,14 @@ public class SecurityConfig {
                         // Student AI assistant (overview + chat) is for students only
                         .requestMatchers("/api/v1/assistant/**").hasRole("STUDENT")
 
-                        // Read access for any authenticated user on the remaining modules
-                        // (must stay below the fee rules so fees remain admin/parent-only)
+                        // Role-scoped READ access (students & parents use only their self-scoped endpoints:
+                        // /assistant/overview, /timetables/my-timetable, /parents/by-user, parent fee portal)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/teachers/staff", "/api/v1/teachers/staff/**").hasAnyRole("ADMIN", "HEAD_OF_ACADEMIC")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/students/**", "/api/v1/teachers/**", "/api/v1/exams/**", "/api/v1/attendance/**")
+                                .hasAnyRole("ADMIN", "HEAD_OF_ACADEMIC", "TEACHER")
+
+                        // Read access for any authenticated user on the remaining modules (timetables)
+                        // (must stay below the fee and role-scoped rules above)
                         .requestMatchers(HttpMethod.GET, "/api/v1/**").authenticated()
 
                         .requestMatchers("/api/v1/attendance/**", "/api/v1/exams/marks", "/api/v1/exams/results/**").hasAnyRole("ADMIN", "HEAD_OF_ACADEMIC", "TEACHER")

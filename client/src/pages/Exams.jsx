@@ -1,9 +1,10 @@
 // Assigned module owner: IT25103724
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import api from '../api/axios';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
 import RecordMaintenance from '../components/RecordMaintenance';
+import { AuthContext } from '../context/AuthContext';
 
 // auto-grade logic
 const calculateGrade = (marks, maximum = 100) => {
@@ -19,6 +20,9 @@ const calculateGrade = (marks, maximum = 100) => {
 };
 
 export default function Exams() {
+  const { user } = useContext(AuthContext);
+  // UC-04: Admin / Head of Academic manage exams & papers; Teachers enter marks and view results only.
+  const canManage = user?.role === 'ADMIN' || user?.role === 'HEAD_OF_ACADEMIC';
   const [activeTab, setActiveTab] = useState('exams');
   const [exams, setExams] = useState([]);
   const [students, setStudents] = useState([]);
@@ -301,9 +305,9 @@ export default function Exams() {
       header: 'Actions',
       cell: (row) => (
         <div className="flex flex-wrap gap-2">
-          <button onClick={() => openExamModal(row)} className="text-blue-600 hover:text-blue-900 text-sm font-medium">Edit</button>
-          <button onClick={() => handleDeleteExam(row.id)} className="text-red-600 hover:text-red-900 text-sm font-medium">Delete</button>
-          {row.status !== 'PUBLISHED' && (
+          {canManage && <button onClick={() => openExamModal(row)} className="text-blue-600 hover:text-blue-900 text-sm font-medium">Edit</button>}
+          {canManage && <button onClick={() => handleDeleteExam(row.id)} className="text-red-600 hover:text-red-900 text-sm font-medium">Delete</button>}
+          {canManage && row.status !== 'PUBLISHED' && (
             <button onClick={() => handlePublish(row.id)} className="text-indigo-600 hover:text-indigo-900 text-sm font-medium">Publish</button>
           )}
           <button 
@@ -358,7 +362,12 @@ export default function Exams() {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-on-surface tracking-tight">Exams Management</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-on-surface tracking-tight">{canManage ? 'Exams Management' : 'Exams & Marks Entry'}</h1>
+          {!canManage && (
+            <p className="text-sm text-on-surface-variant mt-1">Enter marks for your papers and review results. Exams are created and published by the Head of Academic.</p>
+          )}
+        </div>
       </div>
 
       {error && <div className="bg-error-container text-on-error-container border border-error/30 p-4 mb-6 shadow-xs rounded-xl">{error}</div>}
@@ -385,12 +394,14 @@ export default function Exams() {
           <div>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-lg font-semibold text-gray-700">All Exams</h2>
-              <button 
-                onClick={() => openExamModal()}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-md shadow-sm hover:bg-indigo-700 transition-colors font-medium text-sm"
-              >
-                + Create Exam
-              </button>
+              {canManage && (
+                <button 
+                  onClick={() => openExamModal()}
+                  className="bg-indigo-600 text-white px-4 py-2 rounded-md shadow-sm hover:bg-indigo-700 transition-colors font-medium text-sm"
+                >
+                  + Create Exam
+                </button>
+              )}
             </div>
             <DataTable columns={examColumns} data={exams} />
             
@@ -424,7 +435,7 @@ export default function Exams() {
         {/* TAB 2: MARKS ENTRY */}
         {activeTab === 'marks' && (
           <div>
-            {marksExamId && <RecordMaintenance title="Exam papers" rows={papers}
+            {canManage && marksExamId && <RecordMaintenance title="Exam papers" rows={papers}
               columns={[{header:'Subject',cell:r => subjects.find(s => s.id === r.subjectId)?.subjectName || r.subjectId},{header:'Grade',accessor:'gradeLevel'},{header:'Maximum marks',accessor:'maxMarks'}]}
               fields={[{name:'subjectId',label:'Subject',type:'number',options:subjects.map(s => ({value:s.id,label:s.subjectName}))},{name:'gradeLevel',label:'Grade',type:'number',min:1,max:13},{name:'maxMarks',label:'Maximum marks',type:'number',min:1,step:'0.01'}]}
               onSave={async (r,values) => { await api.put(`/exams/papers/${r.id}`,{...values,examId:Number(marksExamId)}); await fetchPapers(marksExamId); }} />}
@@ -449,11 +460,13 @@ export default function Exams() {
                         return <option key={p.id} value={p.id}>{sub ? sub.subjectName : `Subject ID ${p.subjectId}`} (Grade {p.gradeLevel})</option>
                       })}
                     </select>
-                    <button onClick={() => setIsPaperModalOpen(true)} className="bg-white text-gray-700 px-4 border border-gray-300 rounded-md hover:bg-gray-50 whitespace-nowrap shadow-sm font-medium text-sm">
-                      + Add Paper
-                    </button>
+                    {canManage && (
+                      <button onClick={() => setIsPaperModalOpen(true)} className="bg-white text-gray-700 px-4 border border-gray-300 rounded-md hover:bg-gray-50 whitespace-nowrap shadow-sm font-medium text-sm">
+                        + Add Paper
+                      </button>
+                    )}
                   </div>
-                  {marksPaperId && <button onClick={handleDeletePaper} className="mt-2 text-red-600 hover:text-red-900 text-sm">Delete Paper</button>}
+                  {canManage && marksPaperId && <button onClick={handleDeletePaper} className="mt-2 text-red-600 hover:text-red-900 text-sm">Delete Paper</button>}
                 </div>
               )}
             </div>

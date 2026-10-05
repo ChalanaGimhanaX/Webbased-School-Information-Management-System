@@ -1,9 +1,13 @@
 // Assigned module owners: IT25103724 (Exams), IT25103710 (Fees), IT25101863 (Attendance)
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import api from '../api/axios';
+import { AuthContext } from '../context/AuthContext';
 
 const Reports = () => {
-  const [activeTab, setActiveTab] = useState('financial'); // 'financial' | 'exam' | 'attendance'
+  const { user } = useContext(AuthContext);
+  // Financial data is restricted to the Administrator (UC-06); academic staff see exam + attendance reports.
+  const isAdmin = user?.role === 'ADMIN';
+  const [activeTab, setActiveTab] = useState(isAdmin ? 'financial' : 'exam'); // 'financial' | 'exam' | 'attendance'
 
   // Data states
   const [financialSummary, setFinancialSummary] = useState(null);
@@ -25,8 +29,8 @@ const Reports = () => {
       try {
         setLoading(true);
         const [sumRes, ovRes, exRes, clRes] = await Promise.all([
-          api.get('/fees/reports/summary').catch(() => ({ data: null })),
-          api.get('/fees/reports/overdue').catch(() => ({ data: [] })),
+          isAdmin ? api.get('/fees/reports/summary').catch(() => ({ data: null })) : Promise.resolve({ data: null }),
+          isAdmin ? api.get('/fees/reports/overdue').catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
           api.get('/exams').catch(() => ({ data: [] })),
           api.get('/students/classes').catch(() => ({ data: [] })),
         ]);
@@ -82,9 +86,10 @@ const Reports = () => {
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-on-surface tracking-tight">Executive Reports & Decision Support</h1>
-          <p className="text-sm text-on-surface-variant mt-1">Consolidated reports for academic performance, attendance trends, and school financial recovery</p>
+          <p className="text-sm text-on-surface-variant mt-1">{isAdmin ? 'Consolidated reports for academic performance, attendance trends, and school financial recovery' : 'Consolidated reports for academic performance and attendance trends'}</p>
         </div>
         <div className="flex space-x-1 bg-surface-container-low p-1 rounded-xl border border-outline-variant/40">
+          {isAdmin && (
           <button
             onClick={() => setActiveTab('financial')}
             className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
@@ -95,6 +100,7 @@ const Reports = () => {
           >
             Financial Reports
           </button>
+          )}
           <button
             onClick={() => setActiveTab('exam')}
             className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
@@ -119,7 +125,7 @@ const Reports = () => {
       </div>
 
       {/* ── TAB 1: FINANCIAL REPORTS ── */}
-      {activeTab === 'financial' && (
+      {isAdmin && activeTab === 'financial' && (
         <div className="space-y-6">
           {financialSummary ? (
             <>
