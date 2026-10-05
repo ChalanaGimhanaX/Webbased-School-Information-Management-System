@@ -37,17 +37,22 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        var token = header.substring(7);
-        var username = tokenProvider.extractUsername(token);
+        try {
+            var token = header.substring(7);
+            var username = tokenProvider.extractUsername(token);
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            var userDetails = userDetailsService.loadUserByUsername(username);
-            if (tokenProvider.isValid(token, userDetails)) {
-                var auth = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(auth);
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                var userDetails = userDetailsService.loadUserByUsername(username);
+                if (tokenProvider.isValid(token, userDetails)) {
+                    var auth = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                    auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                }
             }
+        } catch (Exception e) {
+            // Invalid, expired, or malformed JWT token: leave context unauthenticated
+            SecurityContextHolder.clearContext();
         }
 
         chain.doFilter(request, response);
