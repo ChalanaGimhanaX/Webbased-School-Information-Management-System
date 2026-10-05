@@ -24,6 +24,12 @@ public class TeacherController {
         return teacherService.updateSubject(id, req);
     }
 
+    @DeleteMapping("/subjects/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteSubject(@PathVariable Long id) {
+        teacherService.deleteSubject(id);
+    }
+
     @DeleteMapping("/{id}/assignments/{assignmentId}")
     public void removeAssignment(@PathVariable Long id, @PathVariable Long assignmentId) {
         teacherService.removeAssignment(id, assignmentId);

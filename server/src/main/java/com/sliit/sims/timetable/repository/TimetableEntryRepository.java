@@ -86,8 +86,9 @@ public interface TimetableEntryRepository extends JpaRepository<TimetableEntry, 
     @Query("""
         SELECT e FROM TimetableEntry e
         JOIN FETCH e.timeSlot
+        JOIN FETCH e.timetable
         WHERE e.teacherId = :teacherId
-          AND e.timetable.status = com.sliit.sims.timetable.model.TimetableStatus.PUBLISHED
+          AND e.timetable.status != com.sliit.sims.timetable.model.TimetableStatus.ARCHIVED
         ORDER BY e.timeSlot.dayOfWeek, e.timeSlot.periodNumber
     """)
     List<TimetableEntry> findPublishedEntriesByTeacher(@Param("teacherId") Long teacherId);
@@ -95,10 +96,13 @@ public interface TimetableEntryRepository extends JpaRepository<TimetableEntry, 
     @Query("""
         SELECT e FROM TimetableEntry e
         JOIN FETCH e.timeSlot
+        JOIN FETCH e.timetable
         WHERE LOWER(e.roomNumber) = LOWER(:roomNumber)
           AND e.timetable.status = com.sliit.sims.timetable.model.TimetableStatus.PUBLISHED
         ORDER BY e.timeSlot.dayOfWeek, e.timeSlot.periodNumber
     """)
     List<TimetableEntry> findPublishedEntriesByRoom(@Param("roomNumber") String roomNumber);
+
+    boolean existsBySubjectId(Long subjectId);
 }
 

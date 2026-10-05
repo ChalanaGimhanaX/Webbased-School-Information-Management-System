@@ -123,6 +123,14 @@ public class TeacherService {
         return new SubjectResponse(id, subject.getSubjectCode(), subject.getSubjectName(), subject.getGradeLevel());
     }
 
+    @Transactional
+    public void deleteSubject(Long id) {
+        Subject subject = subjectRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Subject not found: " + id));
+        assignmentRepository.deleteBySubjectId(id);
+        subjectRepository.delete(subject);
+    }
+
     private TeacherResponse mapToResponse(Teacher t) {
         return new TeacherResponse(
                 t.getId(),

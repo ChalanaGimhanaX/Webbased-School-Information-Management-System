@@ -1,6 +1,9 @@
 // Assigned module owner: IT25101913
 package com.sliit.sims.timetable.controller;
 
+import com.sliit.sims.teacher.dto.SubjectCreateRequest;
+import com.sliit.sims.teacher.dto.SubjectResponse;
+import com.sliit.sims.teacher.service.TeacherService;
 import com.sliit.sims.timetable.dto.*;
 import com.sliit.sims.timetable.model.TimeSlot;
 import com.sliit.sims.timetable.service.TimetableService;
@@ -18,6 +21,32 @@ import java.util.List;
 public class TimetableController {
 
     private final TimetableService timetableService;
+    private final TeacherService teacherService;
+
+    @GetMapping("/subjects")
+    public List<SubjectResponse> getSubjects(@RequestParam(required = false) Integer grade) {
+        if (grade != null) {
+            return teacherService.getSubjectsByGrade(grade);
+        }
+        return teacherService.getAllSubjects();
+    }
+
+    @PostMapping("/subjects")
+    @ResponseStatus(HttpStatus.CREATED)
+    public SubjectResponse createSubject(@Valid @RequestBody SubjectCreateRequest req) {
+        return teacherService.createSubject(req);
+    }
+
+    @PutMapping("/subjects/{id}")
+    public SubjectResponse updateSubject(@PathVariable Long id, @Valid @RequestBody SubjectCreateRequest req) {
+        return teacherService.updateSubject(id, req);
+    }
+
+    @DeleteMapping("/subjects/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteSubject(@PathVariable Long id) {
+        teacherService.deleteSubject(id);
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

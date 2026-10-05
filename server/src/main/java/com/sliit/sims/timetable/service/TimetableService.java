@@ -322,6 +322,7 @@ public class TimetableService {
     }
 
     private TimetableEntryResponse mapToEntryResponse(TimetableEntry e) {
+        Long classId = e.getTimetable() != null ? e.getTimetable().getClassId() : null;
         return new TimetableEntryResponse(
                 e.getId(),
                 e.getTimeSlot().getId(),
@@ -331,7 +332,8 @@ public class TimetableService {
                 e.getTimeSlot().getEndTime(),
                 e.getSubjectId(),
                 e.getTeacherId(),
-                e.getRoomNumber()
+                e.getRoomNumber(),
+                classId
         );
     }
 }

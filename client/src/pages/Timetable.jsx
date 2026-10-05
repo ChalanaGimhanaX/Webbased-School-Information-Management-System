@@ -25,8 +25,8 @@ const Timetable = () => {
   // Only the Admin and Head of Academic may create / edit timetables (UC-05). Teachers get a read-only class view.
   const canEdit = role === 'ADMIN' || role === 'HEAD_OF_ACADEMIC';
 
-  // View state for staff users: 'editor' | 'student_view'
-  const [viewMode, setViewMode] = useState(canEdit ? 'editor' : 'student_view');
+  // Navigation tabs for staff: 'class_timetable' | 'teacher_timetable' | 'subjects' | 'time_slots' | 'student_view'
+  const [viewMode, setViewMode] = useState(isStudentRole ? 'student_view' : 'class_timetable');
 
   // Shared / Admin state
   const [classes, setClasses] = useState([]);
@@ -37,6 +37,7 @@ const Timetable = () => {
   const [subjects, setSubjects] = useState([]);
   const [teachers, setTeachers] = useState([]);
 
+  const [classesMap, setClassesMap] = useState({});
   const [subjectsMap, setSubjectsMap] = useState({});
   const [teachersMap, setTeachersMap] = useState({});
   const [loading, setLoading] = useState(false);
@@ -45,7 +46,7 @@ const Timetable = () => {
   const [success, setSuccess] = useState('');
   const [modalError, setModalError] = useState('');
 
-  // Modals for editing
+  // Modals for editing period entries
   const [isEntryModalOpen, setIsEntryModalOpen] = useState(false);
   const [editingEntryId, setEditingEntryId] = useState(null);
   const [entryForm, setEntryForm] = useState({
@@ -60,6 +61,23 @@ const Timetable = () => {
   const [studentTimetable, setStudentTimetable] = useState(null);
   const [studentLoading, setStudentLoading] = useState(false);
   const [studentError, setStudentError] = useState('');
+
+  // Teacher Timetable View State
+  const [selectedTeacherId, setSelectedTeacherId] = useState('');
+  const [teacherEntries, setTeacherEntries] = useState([]);
+  const [teacherLoading, setTeacherLoading] = useState(false);
+  const [teacherError, setTeacherError] = useState('');
+
+  // Subject Management State (CRUD)
+  const [isSubjectModalOpen, setIsSubjectModalOpen] = useState(false);
+  const [editingSubjectId, setEditingSubjectId] = useState(null);
+  const [subjectForm, setSubjectForm] = useState({
+    subjectCode: '',
+    subjectName: '',
+    gradeLevel: 10,
+  });
+  const [subjectSearch, setSubjectSearch] = useState('');
+  const [subjectGradeFilter, setSubjectGradeFilter] = useState('');
 
   const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'];
   const periods = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -95,46 +113,55 @@ const Timetable = () => {
   };
 
   // Load general dependencies for staff or fallback
-  useEffect(() => {
-    const fetchDependencies = async () => {
-      try {
-        const [cRes, sRes, tRes, slotRes] = await Promise.all([
-          api.get('/students/classes').catch(() => ({ data: [] })),
-          api.get('/teachers/subjects').catch(() => ({ data: [] })),
-          api.get('/teachers').catch(() => ({ data: [] })),
-          api.get('/timetables/slots').catch(() => ({ data: [] })),
-        ]);
+  const fetchDependencies = async () => {
+    try {
+      const [cRes, sRes, tRes, slotRes] = await Promise.all([
+        api.get('/students/classes').catch(() => ({ data: [] })),
+        api.get('/timetables/subjects').catch(() => api.get('/teachers/subjects')).catch(() => ({ data: [] })),
+        api.get('/teachers').catch(() => ({ data: [] })),
+        api.get('/timetables/slots').catch(() => ({ data: [] })),
+      ]);
 
-        const cl = cRes.data || [];
-        const sl = sRes.data || [];
-        const tl = tRes.data || [];
-        const slotList = slotRes.data || [];
+      const cl = cRes.data || [];
+      const sl = sRes.data || [];
+      const tl = tRes.data || [];
+      const slotList = slotRes.data || [];
 
-        setClasses(cl);
-        setSubjects(sl);
-        setTeachers(tl);
-        setSlots(slotList);
+      setClasses(cl);
+      setSubjects(sl);
+      setTeachers(tl);
+      setSlots(slotList);
 
-        if (cl.length > 0 && !selectedClassId) {
-          setSelectedClassId(cl[0].id);
-        }
-
-        const sMap = {};
-        sl.forEach((s) => {
-          sMap[s.id] = s.subjectName || s.name || `Subject #${s.id}`;
-        });
-        setSubjectsMap(sMap);
-
-        const tMap = {};
-        tl.forEach((t) => {
-          tMap[t.id] = `${t.firstName} ${t.lastName}`;
-        });
-        setTeachersMap(tMap);
-      } catch (err) {
-        console.error('Failed to load timetable dependencies:', err);
+      if (cl.length > 0 && !selectedClassId) {
+        setSelectedClassId(cl[0].id);
       }
-    };
+      if (tl.length > 0 && !selectedTeacherId) {
+        setSelectedTeacherId(tl[0].id);
+      }
 
+      const cMap = {};
+      cl.forEach((c) => {
+        cMap[c.id] = c.className || c.name || `Class #${c.id}`;
+      });
+      setClassesMap(cMap);
+
+      const sMap = {};
+      sl.forEach((s) => {
+        sMap[s.id] = s.subjectName || s.name || `Subject #${s.id}`;
+      });
+      setSubjectsMap(sMap);
+
+      const tMap = {};
+      tl.forEach((t) => {
+        tMap[t.id] = `${t.firstName} ${t.lastName}`;
+      });
+      setTeachersMap(tMap);
+    } catch (err) {
+      console.error('Failed to load timetable dependencies:', err);
+    }
+  };
+
+  useEffect(() => {
     if (!isStudentRole) {
       fetchDependencies();
     }
@@ -166,10 +193,33 @@ const Timetable = () => {
   };
 
   useEffect(() => {
-    if (!isStudentRole && selectedClassId && viewMode === 'editor') {
+    if (!isStudentRole && selectedClassId && viewMode === 'class_timetable') {
       fetchEditorTimetable(selectedClassId);
     }
   }, [selectedClassId, viewMode, isStudentRole]);
+
+  // Load Teacher Timetable
+  const fetchTeacherTimetable = async (teacherId) => {
+    if (!teacherId) return;
+    try {
+      setTeacherLoading(true);
+      setTeacherError('');
+      const res = await api.get(`/timetables/teacher/${teacherId}`);
+      setTeacherEntries(res.data || []);
+    } catch (err) {
+      console.error('Failed to load teacher timetable:', err);
+      setTeacherError('Could not retrieve schedule for this teacher.');
+      setTeacherEntries([]);
+    } finally {
+      setTeacherLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isStudentRole && selectedTeacherId && viewMode === 'teacher_timetable') {
+      fetchTeacherTimetable(selectedTeacherId);
+    }
+  }, [selectedTeacherId, viewMode, isStudentRole]);
 
   // Load Student Timetable (either logged-in student or preview for class)
   const fetchStudentTimetableData = async () => {
@@ -178,10 +228,8 @@ const Timetable = () => {
       setStudentError('');
       let res;
       if (isStudentRole) {
-        // Logged-in student fetches their own schedule
         res = await api.get('/timetables/my-timetable');
       } else if (selectedClassId) {
-        // Staff previewing student view for a selected class
         res = await api.get(`/timetables/class/${selectedClassId}/student-view`);
       }
       if (res && res.data) {
@@ -217,6 +265,23 @@ const Timetable = () => {
       fetchEditorTimetable(selectedClassId);
     } catch (err) {
       setError('Failed to initialize timetable.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Publish Timetable
+  const handlePublishTimetable = async () => {
+    if (!currentTimetable) return;
+    try {
+      setSubmitting(true);
+      setError('');
+      await api.patch(`/timetables/${currentTimetable.id}/publish`);
+      flash('Timetable published successfully! Students can now view this schedule.');
+      fetchEditorTimetable(selectedClassId);
+    } catch (err) {
+      const msg = err.response?.data?.detail || err.response?.data?.message || 'Failed to publish timetable.';
+      setError(msg);
     } finally {
       setSubmitting(false);
     }
@@ -309,11 +374,95 @@ const Timetable = () => {
     }
   };
 
+  // 5. SUBJECT CRUD HANDLERS
+  const openAddSubjectModal = () => {
+    setEditingSubjectId(null);
+    setSubjectForm({
+      subjectCode: '',
+      subjectName: '',
+      gradeLevel: 10,
+    });
+    setModalError('');
+    setIsSubjectModalOpen(true);
+  };
+
+  const openEditSubjectModal = (subj) => {
+    setEditingSubjectId(subj.id);
+    setSubjectForm({
+      subjectCode: subj.subjectCode || '',
+      subjectName: subj.subjectName || subj.name || '',
+      gradeLevel: subj.gradeLevel || 10,
+    });
+    setModalError('');
+    setIsSubjectModalOpen(true);
+  };
+
+  const handleSubjectSubmit = async (e) => {
+    e.preventDefault();
+    if (!subjectForm.subjectCode.trim() || !subjectForm.subjectName.trim()) {
+      setModalError('Subject Code and Subject Name are required.');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setModalError('');
+      const payload = {
+        subjectCode: subjectForm.subjectCode.trim().toUpperCase(),
+        subjectName: subjectForm.subjectName.trim(),
+        gradeLevel: Number(subjectForm.gradeLevel),
+      };
+
+      if (editingSubjectId) {
+        await api.put(`/timetables/subjects/${editingSubjectId}`, payload).catch(() =>
+          api.put(`/teachers/subjects/${editingSubjectId}`, payload)
+        );
+        flash(`Subject "${payload.subjectName}" updated successfully!`);
+      } else {
+        await api.post('/timetables/subjects', payload).catch(() =>
+          api.post('/teachers/subjects', payload)
+        );
+        flash(`Subject "${payload.subjectName}" created successfully!`);
+      }
+
+      setIsSubjectModalOpen(false);
+      await fetchDependencies();
+    } catch (err) {
+      const msg = err.response?.data?.message || err.response?.data?.detail || 'Failed to save subject.';
+      setModalError(msg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteSubject = async (subjectId, subjectName) => {
+    if (!window.confirm(`Are you sure you want to delete "${subjectName}"? This action cannot be undone.`)) {
+      return;
+    }
+    try {
+      await api.delete(`/timetables/subjects/${subjectId}`).catch(() =>
+        api.delete(`/teachers/subjects/${subjectId}`)
+      );
+      flash(`Subject "${subjectName}" deleted successfully.`);
+      await fetchDependencies();
+    } catch (err) {
+      const msg = err.response?.data?.message || err.response?.data?.detail || 'Could not delete subject. It may be referenced in schedules or exams.';
+      setError(msg);
+    }
+  };
+
   // Build lookup index for staff editor: "DAY-PERIOD" -> entry
   const editorScheduleLookup = {};
   entries.forEach((entry) => {
     const key = `${entry.dayOfWeek?.toUpperCase()}-${entry.periodNumber}`;
     editorScheduleLookup[key] = entry;
+  });
+
+  // Build lookup index for teacher view: "DAY-PERIOD" -> entry
+  const teacherScheduleLookup = {};
+  teacherEntries.forEach((entry) => {
+    const key = `${entry.dayOfWeek?.toUpperCase()}-${entry.periodNumber}`;
+    teacherScheduleLookup[key] = entry;
   });
 
   // Build lookup index for student view: "DAY-PERIOD" -> student slot
@@ -324,6 +473,16 @@ const Timetable = () => {
       studentScheduleLookup[key] = slot;
     });
   }
+
+  // Filtered Subjects List for Subjects Management Tab
+  const filteredSubjects = subjects.filter((s) => {
+    const code = (s.subjectCode || '').toLowerCase();
+    const name = (s.subjectName || s.name || '').toLowerCase();
+    const q = subjectSearch.toLowerCase();
+    const matchesSearch = code.includes(q) || name.includes(q);
+    const matchesGrade = !subjectGradeFilter || s.gradeLevel === Number(subjectGradeFilter);
+    return matchesSearch && matchesGrade;
+  });
 
   // Today's schedule calculation for student
   const dayNames = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
@@ -341,7 +500,7 @@ const Timetable = () => {
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-2xl font-bold text-on-surface tracking-tight">
-              {isStudentRole ? 'My Class Timetable' : canEdit ? 'Timetable & Academic Scheduling' : 'Class Timetables'}
+              {isStudentRole ? 'My Class Timetable' : 'Timetable & Academic Scheduling'}
             </h2>
             {(isStudentRole || !canEdit) && (
               <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary-fixed text-on-primary-fixed">
@@ -352,43 +511,14 @@ const Timetable = () => {
           <p className="text-sm text-on-surface-variant mt-1">
             {isStudentRole
               ? 'View your weekly class schedule, subject periods, assigned teachers, and classroom locations'
-              : canEdit
-                ? 'Manage weekly periods, rooms, teacher assignments, and schedule entries'
-                : 'View the weekly schedule of any class. Timetables are managed by the Head of Academic.'}
+              : 'Manage subjects, weekly class schedules, teacher allocations, classrooms, and time slots'}
           </p>
         </div>
 
+        {/* Action Controls for Staff */}
         <div className="flex flex-wrap items-center gap-3">
-          {/* Editor / preview switcher (Admin + Head of Academic only) */}
-          {canEdit && (
-            <div className="flex bg-surface-container-low p-1 rounded-xl border border-outline-variant/40 text-xs font-medium">
-              <button
-                type="button"
-                onClick={() => setViewMode('editor')}
-                className={`px-3 py-1.5 rounded-lg transition-all ${
-                  viewMode === 'editor'
-                    ? 'bg-surface-container-lowest text-primary shadow-xs border border-outline-variant/30 font-semibold'
-                    : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container/50'
-                }`}
-              >
-                Class Timetable Editor
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('student_view')}
-                className={`px-3 py-1.5 rounded-lg transition-all ${
-                  viewMode === 'student_view'
-                    ? 'bg-surface-container-lowest text-primary shadow-xs border border-outline-variant/30 font-semibold'
-                    : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container/50'
-                }`}
-              >
-                Student View Preview
-              </button>
-            </div>
-          )}
-
-          {/* Staff Class Selector */}
-          {!isStudentRole && (
+          {/* Class Selector when on Class Timetable tab */}
+          {!isStudentRole && (viewMode === 'class_timetable' || viewMode === 'student_view') && (
             <div className="flex items-center space-x-2">
               <label className="text-xs font-medium text-on-surface-variant">Class:</label>
               <select
@@ -406,16 +536,37 @@ const Timetable = () => {
           )}
 
           {/* Add Period Entry Button (Editor only) */}
-          {canEdit && viewMode === 'editor' && currentTimetable && (
+          {canEdit && viewMode === 'class_timetable' && currentTimetable && (
             <button
               onClick={() => openAddEntryModal()}
-              className="px-4 py-2 bg-primary-container hover:bg-primary text-on-primary text-sm font-medium rounded-lg shadow-sm transition-colors"
+              className="px-4 py-2 bg-primary-container hover:bg-primary text-on-primary text-sm font-medium rounded-lg shadow-sm transition-colors flex items-center gap-1.5"
             >
-              + Add Period Entry
+              <span>+ Add Period Entry</span>
             </button>
           )}
 
-          {/* Print Button (Available in Student View for all) */}
+          {/* Publish Timetable Button */}
+          {canEdit && viewMode === 'class_timetable' && currentTimetable && currentTimetable.status === 'DRAFT' && (
+            <button
+              onClick={handlePublishTimetable}
+              disabled={submitting}
+              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors flex items-center gap-1.5"
+            >
+              <span>🚀 Publish Timetable</span>
+            </button>
+          )}
+
+          {/* Add Subject Button when on Subjects tab */}
+          {canEdit && viewMode === 'subjects' && (
+            <button
+              onClick={openAddSubjectModal}
+              className="px-4 py-2 bg-primary-container hover:bg-primary text-on-primary text-sm font-medium rounded-lg shadow-sm transition-colors flex items-center gap-1.5"
+            >
+              <span>+ Add New Subject</span>
+            </button>
+          )}
+
+          {/* Print Button (Available in Student View or Timetables) */}
           {(isStudentRole || viewMode === 'student_view') && studentTimetable && (
             <button
               type="button"
@@ -425,15 +576,514 @@ const Timetable = () => {
               <span>🖨️ Print Timetable</span>
             </button>
           )}
+          {!isStudentRole && viewMode === 'teacher_timetable' && selectedTeacherId && (
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="px-3.5 py-1.5 bg-surface-container-lowest border border-outline-variant hover:bg-surface-container-low text-on-surface text-sm font-medium rounded-lg shadow-xs flex items-center gap-1.5 transition-colors"
+            >
+              <span>🖨️ Print Teacher Schedule</span>
+            </button>
+          )}
+          {!isStudentRole && viewMode === 'class_timetable' && currentTimetable && (
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="px-3.5 py-1.5 bg-surface-container-lowest border border-outline-variant hover:bg-surface-container-low text-on-surface text-sm font-medium rounded-lg shadow-xs flex items-center gap-1.5 transition-colors"
+            >
+              <span>🖨️ Print Class Schedule</span>
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Staff View Navigation Tabs */}
+      {!isStudentRole && (
+        <div className="flex bg-surface-container-low p-1.5 rounded-xl border border-outline-variant/40 text-xs font-medium overflow-x-auto gap-1 print:hidden">
+          <button
+            type="button"
+            onClick={() => setViewMode('class_timetable')}
+            className={`px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              viewMode === 'class_timetable'
+                ? 'bg-surface-container-lowest text-primary shadow-xs border border-outline-variant/30 font-bold'
+                : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container/50'
+            }`}
+          >
+            <span>📅 Class Timetables</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setViewMode('teacher_timetable')}
+            className={`px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              viewMode === 'teacher_timetable'
+                ? 'bg-surface-container-lowest text-primary shadow-xs border border-outline-variant/30 font-bold'
+                : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container/50'
+            }`}
+          >
+            <span>👨‍🏫 Teacher Timetables</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setViewMode('subjects')}
+            className={`px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              viewMode === 'subjects'
+                ? 'bg-surface-container-lowest text-primary shadow-xs border border-outline-variant/30 font-bold'
+                : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container/50'
+            }`}
+          >
+            <span>📚 Subjects Management</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setViewMode('time_slots')}
+            className={`px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              viewMode === 'time_slots'
+                ? 'bg-surface-container-lowest text-primary shadow-xs border border-outline-variant/30 font-bold'
+                : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container/50'
+            }`}
+          >
+            <span>⏰ Time Slots</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setViewMode('student_view')}
+            className={`px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              viewMode === 'student_view'
+                ? 'bg-surface-container-lowest text-primary shadow-xs border border-outline-variant/30 font-bold'
+                : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container/50'
+            }`}
+          >
+            <span>👁️ Student View Preview</span>
+          </button>
+        </div>
+      )}
 
       {error && <div className="p-3 bg-error-container text-on-error-container border border-error/30 rounded-lg text-sm">{error}</div>}
       {success && <div className="p-3 bg-tertiary-fixed/50 text-on-tertiary-fixed border border-tertiary/30 rounded-lg text-sm">{success}</div>}
 
+      {/* ========================================================================= */}
+      {/* ── TAB 1: CLASS TIMETABLES (ADMIN / TEACHERS) ── */}
+      {/* ========================================================================= */}
+      {!isStudentRole && viewMode === 'class_timetable' && (
+        <div className="space-y-4">
+          {!currentTimetable && !loading && (
+            <div className="bg-surface-container-lowest rounded-xl shadow-xs p-10 text-center border border-outline-variant/40">
+              <div className="text-4xl mb-3">📅</div>
+              <h3 className="text-lg font-bold text-on-surface mb-1">No Active Timetable Found</h3>
+              <p className="text-on-surface-variant mb-5 text-sm max-w-md mx-auto">
+                No active timetable has been created for this class in Academic Year {new Date().getFullYear()}.
+              </p>
+              {canEdit ? (
+                <button
+                  onClick={handleCreateTimetable}
+                  disabled={submitting}
+                  className="px-6 py-2.5 bg-primary-container hover:bg-primary text-on-primary rounded-lg text-sm font-semibold shadow-sm transition-colors"
+                >
+                  {submitting ? 'Initializing...' : '+ Initialize Class Timetable'}
+                </button>
+              ) : (
+                <p className="text-xs text-on-surface-variant italic">Please contact the Head of Academic to initialize this schedule.</p>
+              )}
+            </div>
+          )}
+
+          {currentTimetable && (
+            <div className="space-y-3">
+              {/* Class Schedule Meta Banner */}
+              <div className="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant/40 shadow-xs flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div>
+                    <span className="text-xs text-on-surface-variant font-medium">Class Timetable:</span>
+                    <h3 className="text-base font-bold text-on-surface">
+                      {classesMap[selectedClassId] || `Class #${selectedClassId}`} • Academic Year {currentTimetable.academicYear} (Term {currentTimetable.term})
+                    </h3>
+                  </div>
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                      currentTimetable.status === 'PUBLISHED'
+                        ? 'bg-emerald-500 text-white'
+                        : 'bg-amber-400 text-amber-950'
+                    }`}
+                  >
+                    {currentTimetable.status}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-4 text-xs text-on-surface-variant font-medium">
+                  <div>
+                    Allocated Periods: <strong className="text-on-surface">{entries.length} / 40</strong>
+                  </div>
+                  <div>
+                    Free Periods: <strong className="text-on-surface">{40 - entries.length}</strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* 5-day x 8-period Timetable Grid */}
+              <div className="bg-surface-container-lowest rounded-xl shadow-xs overflow-x-auto thin-scroll border border-outline-variant/60 dark:border-white/10">
+                {loading ? (
+                  <div className="py-16 text-center text-on-surface-variant">Loading schedule...</div>
+                ) : (
+                  <table className="min-w-full border-separate border-spacing-0">
+                    <thead className="bg-surface-container-low">
+                      <tr>
+                        <th className="sticky left-0 z-10 bg-surface-container-low px-4 py-3 border-b border-r border-outline-variant/60 dark:border-white/10 text-left text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
+                          Day / Period
+                        </th>
+                        {periods.map((p) => (
+                          <th key={p} className="px-3 py-3 border-b border-r border-outline-variant/60 dark:border-white/10 last:border-r-0 text-center text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
+                            Period {p}
+                            <div className="text-[10px] font-normal normal-case font-mono mt-0.5 opacity-80">{periodTimings[p]}</div>
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {days.map((day, rowIdx) => {
+                        const rowBorder = rowIdx < days.length - 1 ? 'border-b' : '';
+                        return (
+                          <tr key={day}>
+                            <td className={`sticky left-0 z-10 px-4 py-3 border-r ${rowBorder} border-outline-variant/60 dark:border-white/10 font-semibold text-on-surface text-xs bg-surface-container-low whitespace-nowrap`}>
+                              {day}
+                            </td>
+                            {periods.map((period) => {
+                              const entry = editorScheduleLookup[`${day}-${period}`];
+                              const subjectName = entry ? (subjectsMap[entry.subjectId] || `Subj #${entry.subjectId}`) : '';
+                              return (
+                                <td key={period} className={`px-2 py-2 border-r ${rowBorder} border-outline-variant/60 dark:border-white/10 last:border-r-0 text-center align-top min-w-[130px] h-[95px] group relative`}>
+                                  {entry ? (
+                                    <div className={`h-full flex flex-col justify-between p-2 border rounded-lg text-left transition-shadow hover:shadow-md ${getSubjectBadgeColor(subjectName)}`}>
+                                      <div>
+                                        <div className="font-bold text-xs leading-tight line-clamp-2">
+                                          {subjectName}
+                                        </div>
+                                        <div className="text-[11px] opacity-80 mt-1 truncate">
+                                          👤 {teachersMap[entry.teacherId] || `Teacher #${entry.teacherId}`}
+                                        </div>
+                                      </div>
+                                      <div className="flex justify-between items-center mt-2 pt-1 border-t border-current/10 text-[10px]">
+                                        <span className="font-mono font-semibold opacity-75">📍 {entry.roomNumber || 'Room 101'}</span>
+                                        {canEdit && (
+                                          <div className="flex items-center gap-1">
+                                            <button
+                                              onClick={() => openEditEntryModal(entry)}
+                                              className="font-semibold px-1 text-primary hover:underline"
+                                              title="Edit Entry"
+                                            >
+                                              Edit
+                                            </button>
+                                            <button
+                                              onClick={() => handleDeleteEntry(entry.id, day, period)}
+                                              className="text-error hover:opacity-80 font-bold px-1"
+                                              title="Delete Entry"
+                                            >
+                                              ×
+                                            </button>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ) : canEdit ? (
+                                    <button
+                                      onClick={() => openAddEntryModal(day, period)}
+                                      className="w-full h-full border border-dashed border-outline-variant/80 dark:border-white/10 rounded-lg flex items-center justify-center text-outline hover:text-primary hover:border-primary/50 hover:bg-primary-fixed/20 transition-colors text-xs"
+                                    >
+                                      + Assign
+                                    </button>
+                                  ) : (
+                                    <div className="w-full h-full border border-dashed border-outline-variant/30 rounded-lg flex items-center justify-center text-outline-variant text-[11px]">
+                                      Free
+                                    </div>
+                                  )}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ========================================================================= */}
-      {/* ── VIEW 1: STUDENT TIMETABLE TABLE (FOR STUDENTS OR PREVIEW) ── */}
+      {/* ── TAB 2: TEACHER TIMETABLES VIEW ── */}
+      {/* ========================================================================= */}
+      {!isStudentRole && viewMode === 'teacher_timetable' && (
+        <div className="space-y-4">
+          {/* Teacher Selector & Workload Header */}
+          <div className="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant/40 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <label className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
+                Select Teacher:
+              </label>
+              <select
+                value={selectedTeacherId}
+                onChange={(e) => setSelectedTeacherId(e.target.value)}
+                className="border border-outline-variant rounded-lg px-3 py-2 bg-surface-container-lowest text-on-surface text-sm font-semibold focus:ring-primary focus:border-primary shadow-xs min-w-[240px]"
+              >
+                {teachers.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.firstName} {t.lastName} ({t.employeeNumber})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {selectedTeacherId && (
+              <div className="flex items-center gap-4 text-xs text-on-surface-variant font-medium">
+                <div>
+                  Weekly Teaching Periods: <strong className="text-on-surface">{teacherEntries.length}</strong>
+                </div>
+                <div>
+                  Free Periods: <strong className="text-on-surface">{40 - teacherEntries.length}</strong>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {teacherError && (
+            <div className="p-4 bg-error-container text-on-error-container rounded-lg text-sm">
+              {teacherError}
+            </div>
+          )}
+
+          {/* Teacher Weekly Schedule Matrix */}
+          <div className="bg-surface-container-lowest rounded-xl shadow-xs overflow-x-auto thin-scroll border border-outline-variant/60 dark:border-white/10">
+            {teacherLoading ? (
+              <div className="py-16 text-center text-on-surface-variant">Loading teacher schedule...</div>
+            ) : (
+              <table className="min-w-full border-separate border-spacing-0">
+                <thead className="bg-surface-container-low">
+                  <tr>
+                    <th className="sticky left-0 z-10 bg-surface-container-low px-4 py-3 border-b border-r border-outline-variant/60 dark:border-white/10 text-left text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
+                      Day / Period
+                    </th>
+                    {periods.map((p) => (
+                      <th key={p} className="px-3 py-3 border-b border-r border-outline-variant/60 dark:border-white/10 last:border-r-0 text-center text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
+                        Period {p}
+                        <div className="text-[10px] font-normal normal-case font-mono mt-0.5 opacity-80">{periodTimings[p]}</div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {days.map((day, rowIdx) => {
+                    const rowBorder = rowIdx < days.length - 1 ? 'border-b' : '';
+                    return (
+                      <tr key={day}>
+                        <td className={`sticky left-0 z-10 px-4 py-3 border-r ${rowBorder} border-outline-variant/60 dark:border-white/10 font-semibold text-on-surface text-xs bg-surface-container-low whitespace-nowrap`}>
+                          {day}
+                        </td>
+                        {periods.map((period) => {
+                          const entry = teacherScheduleLookup[`${day}-${period}`];
+                          const subjectName = entry ? (subjectsMap[entry.subjectId] || `Subj #${entry.subjectId}`) : '';
+                          const className = entry && entry.classId ? (classesMap[entry.classId] || `Class #${entry.classId}`) : '';
+
+                          return (
+                            <td key={period} className={`px-2 py-2 border-r ${rowBorder} border-outline-variant/60 dark:border-white/10 last:border-r-0 text-center align-top min-w-[130px] h-[95px]`}>
+                              {entry ? (
+                                <div className={`h-full flex flex-col justify-between p-2 border rounded-lg text-left transition-shadow shadow-xs hover:shadow-md ${getSubjectBadgeColor(subjectName)}`}>
+                                  <div>
+                                    <div className="font-bold text-xs leading-tight line-clamp-2">
+                                      {subjectName}
+                                    </div>
+                                    {className && (
+                                      <div className="text-[11px] font-semibold text-primary mt-1">
+                                        🏫 {className}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="flex justify-between items-center mt-2 pt-1 border-t border-current/10 text-[10px]">
+                                    <span className="font-mono font-semibold opacity-75">📍 {entry.roomNumber || 'Room 101'}</span>
+                                    <span className="font-mono text-[9px] opacity-60">
+                                      {entry.startTime ? String(entry.startTime).substring(0, 5) : ''}
+                                    </span>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="w-full h-full border border-dashed border-outline-variant/30 rounded-lg flex flex-col items-center justify-center text-outline-variant text-[11px]">
+                                  <span className="opacity-60">Free Period</span>
+                                </div>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* ── TAB 3: SUBJECTS & CURRICULUM MANAGEMENT (CRUD) ── */}
+      {/* ========================================================================= */}
+      {!isStudentRole && viewMode === 'subjects' && (
+        <div className="space-y-4">
+          {/* KPI Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/40 shadow-xs">
+              <div className="text-xs text-on-surface-variant font-medium">Total Curriculum Subjects</div>
+              <div className="text-2xl font-bold text-on-surface mt-1">{subjects.length}</div>
+            </div>
+            <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/40 shadow-xs">
+              <div className="text-xs text-on-surface-variant font-medium">Senior Secondary (Grades 10-13)</div>
+              <div className="text-2xl font-bold text-primary mt-1">
+                {subjects.filter((s) => s.gradeLevel >= 10).length}
+              </div>
+            </div>
+            <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/40 shadow-xs">
+              <div className="text-xs text-on-surface-variant font-medium">Junior / Middle (Grades 1-9)</div>
+              <div className="text-2xl font-bold text-secondary mt-1">
+                {subjects.filter((s) => s.gradeLevel < 10).length}
+              </div>
+            </div>
+          </div>
+
+          {/* Filter Bar */}
+          <div className="bg-surface-container-lowest p-3 rounded-xl border border-outline-variant/40 shadow-xs flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+              <span className="text-sm">🔍</span>
+              <input
+                type="text"
+                placeholder="Search subject code or title..."
+                value={subjectSearch}
+                onChange={(e) => setSubjectSearch(e.target.value)}
+                className="w-full bg-transparent text-sm text-on-surface focus:outline-none"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-on-surface-variant font-medium">Grade:</label>
+              <select
+                value={subjectGradeFilter}
+                onChange={(e) => setSubjectGradeFilter(e.target.value)}
+                className="border border-outline-variant rounded-lg px-2.5 py-1 text-xs bg-surface-container-lowest text-on-surface"
+              >
+                <option value="">All Grades</option>
+                {[6, 7, 8, 9, 10, 11, 12, 13].map((g) => (
+                  <option key={g} value={g}>Grade {g}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Subjects Table */}
+          <div className="bg-surface-container-lowest rounded-xl shadow-xs overflow-hidden border border-outline-variant/40">
+            <table className="min-w-full divide-y divide-outline-variant/40">
+              <thead className="bg-surface-container-low text-on-surface-variant text-xs font-semibold uppercase tracking-wider text-left">
+                <tr>
+                  <th className="px-5 py-3.5">Subject Code</th>
+                  <th className="px-5 py-3.5">Subject Name</th>
+                  <th className="px-5 py-3.5">Grade Level</th>
+                  {canEdit && <th className="px-5 py-3.5 text-right">Actions</th>}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-outline-variant/40 text-sm">
+                {filteredSubjects.length === 0 ? (
+                  <tr>
+                    <td colSpan={canEdit ? 4 : 3} className="px-5 py-8 text-center text-on-surface-variant">
+                      No curriculum subjects found matching the filter criteria.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredSubjects.map((s) => (
+                    <tr key={s.id} className="hover:bg-surface-container-low/50 transition-colors">
+                      <td className="px-5 py-3.5 font-mono font-bold text-primary">
+                        {s.subjectCode}
+                      </td>
+                      <td className="px-5 py-3.5 font-medium text-on-surface">
+                        {s.subjectName || s.name}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-surface-container-high text-on-surface">
+                          Grade {s.gradeLevel}
+                        </span>
+                      </td>
+                      {canEdit && (
+                        <td className="px-5 py-3.5 text-right space-x-2">
+                          <button
+                            onClick={() => openEditSubjectModal(s)}
+                            className="px-2.5 py-1 text-xs font-medium text-primary hover:bg-primary-fixed/20 rounded-md transition-colors"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteSubject(s.id, s.subjectName || s.name)}
+                            className="px-2.5 py-1 text-xs font-medium text-error hover:bg-error-container rounded-md transition-colors"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* ── TAB 4: TIME SLOTS & BELL SCHEDULE ── */}
+      {/* ========================================================================= */}
+      {!isStudentRole && viewMode === 'time_slots' && (
+        <div className="space-y-4">
+          <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/40 shadow-xs">
+            <h3 className="text-base font-bold text-on-surface mb-2">School Bell Schedule & Academic Time Slots</h3>
+            <p className="text-sm text-on-surface-variant mb-6">
+              Official 8-period daily scheduling structure for Wycherley International School. Each period spans 45 minutes of instructional time, separated by a 20-minute interval break between periods 4 and 5.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {periods.map((p) => (
+                <div
+                  key={p}
+                  className="p-4 rounded-xl border border-outline-variant/50 bg-surface-container-low/40 flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="w-8 h-8 rounded-full bg-primary-container text-on-primary font-bold text-xs flex items-center justify-center">
+                      {p}
+                    </span>
+                    <div>
+                      <div className="font-bold text-sm text-on-surface">Period {p}</div>
+                      <div className="text-xs text-on-surface-variant font-mono">{periodTimings[p]} (45 mins)</div>
+                    </div>
+                  </div>
+                  <span className="text-xs font-medium px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant">
+                    {p <= 4 ? 'Morning Session' : p <= 6 ? 'Midday Session' : 'Afternoon Session'}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Collision Engine Invariant Rules */}
+            <div className="mt-6 p-4 rounded-xl bg-primary-fixed/20 border border-primary/20 text-xs text-on-surface space-y-1.5">
+              <strong className="block text-sm font-bold text-primary mb-1">
+                🛡️ Automatic Scheduling Conflict Prevention Rules (UC-05 Lead Module):
+              </strong>
+              <div>• <strong>Class Slot Conflict:</strong> A class cannot be assigned more than one subject during the same period.</div>
+              <div>• <strong>Teacher Busy Conflict:</strong> A teacher cannot be booked in two different classes during the same period.</div>
+              <div>• <strong>Room Occupied Conflict:</strong> A classroom or laboratory cannot host two classes simultaneously during the same period.</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* ── TAB 5 / VIEW 1: DEDICATED STUDENT TIMETABLE TABLE (READ-ONLY) ── */}
       {/* ========================================================================= */}
       {(isStudentRole || viewMode === 'student_view') && (
         <div className="space-y-6">
@@ -525,18 +1175,18 @@ const Timetable = () => {
                     {todayEntries.map((slot) => (
                       <div
                         key={slot.entryId}
-                        className={`p-3 rounded-lg border transition-all hover:-translate-y-0.5 hover:shadow-sm ${getSubjectBadgeColor(slot.subjectName)}`}
+                        className="p-3 rounded-lg border border-primary/20 bg-primary-fixed/15 hover:bg-primary-fixed/25 transition-colors"
                       >
-                        <div className="flex items-center justify-between text-xs font-semibold mb-1">
+                        <div className="flex items-center justify-between text-xs text-primary font-semibold mb-1">
                           <span>Period {slot.periodNumber}</span>
-                          <span className="font-mono text-[11px] opacity-70">
+                          <span className="font-mono text-[11px] text-on-surface-variant">
                             {slot.startTime?.substring(0, 5)} - {slot.endTime?.substring(0, 5)}
                           </span>
                         </div>
-                        <div className="font-bold text-sm truncate">{slot.subjectName}</div>
-                        <div className="flex items-center justify-between text-xs mt-2 pt-1.5 border-t border-current/10">
-                          <span className="truncate opacity-80">👤 {slot.teacherName}</span>
-                          <span className="font-mono px-1.5 py-0.5 rounded border border-current/20 text-[10px] font-semibold">
+                        <div className="font-bold text-on-surface text-sm truncate">{slot.subjectName}</div>
+                        <div className="flex items-center justify-between text-xs text-on-surface-variant mt-2 pt-1.5 border-t border-primary/10">
+                          <span className="truncate">👤 {slot.teacherName}</span>
+                          <span className="font-mono text-on-surface bg-surface-container-lowest px-1.5 py-0.5 rounded border border-outline-variant/60 text-[10px] font-semibold">
                             {slot.roomNumber}
                           </span>
                         </div>
@@ -546,13 +1196,13 @@ const Timetable = () => {
                 )}
               </div>
 
-              {/* The Dedicated Student Timetable Table (Read-Only) */}
+              {/* Weekly Student Timetable Table */}
               <div className="bg-surface-container-lowest rounded-xl shadow-xs border border-outline-variant/60 dark:border-white/10 overflow-hidden">
                 <div className="overflow-x-auto thin-scroll">
                   <table className="min-w-full border-separate border-spacing-0">
-                    <thead className="bg-surface-container-low">
+                    <thead className="bg-surface-container-low text-on-surface-variant">
                       <tr>
-                        <th className="sticky left-0 z-10 bg-surface-container-low px-4 py-3.5 border-b border-r border-outline-variant/60 dark:border-white/10 text-left text-xs font-bold uppercase tracking-wider text-on-surface-variant min-w-[120px]">
+                        <th className="sticky left-0 z-10 bg-surface-container-low px-4 py-3.5 border-b border-r border-outline-variant/60 dark:border-white/10 text-left text-xs font-bold uppercase tracking-wider min-w-[110px]">
                           Day / Period
                         </th>
                         {periods.map((p) => (
@@ -567,21 +1217,18 @@ const Timetable = () => {
                     </thead>
                     <tbody>
                       {days.map((day, rowIdx) => {
-                        const isToday = day === todayDayName;
                         const rowBorder = rowIdx < days.length - 1 ? 'border-b' : '';
                         return (
-                          <tr key={day} className="group/row">
-                            {/* Day Row Header */}
-                            <td className={`sticky left-0 z-10 px-4 py-4 border-r ${rowBorder} border-outline-variant/60 dark:border-white/10 font-bold text-xs whitespace-nowrap ${isToday ? 'bg-primary-fixed text-on-primary-fixed' : 'bg-surface-container-low text-on-surface'}`}>
+                          <tr key={day}>
+                            <td className={`sticky left-0 z-10 px-4 py-4 border-r ${rowBorder} border-outline-variant/60 dark:border-white/10 font-bold text-on-surface text-xs bg-surface-container-low whitespace-nowrap`}>
                               <div className="flex items-center gap-1.5">
                                 <span>{day}</span>
-                                {isToday && (
-                                  <span className="w-2 h-2 rounded-full bg-tertiary animate-pulse" title="Today"></span>
+                                {day === todayDayName && (
+                                  <span className="w-2 h-2 rounded-full bg-emerald-500" title="Today"></span>
                                 )}
                               </div>
                             </td>
 
-                            {/* 8 Periods */}
                             {periods.map((period) => {
                               const slot = studentScheduleLookup[`${day}-${period}`];
                               const badgeColor = slot ? getSubjectBadgeColor(slot.subjectName) : '';
@@ -589,11 +1236,11 @@ const Timetable = () => {
                               return (
                                 <td
                                   key={period}
-                                  className={`px-2 py-2 border-r ${rowBorder} border-outline-variant/60 dark:border-white/10 last:border-r-0 text-center align-top min-w-[135px] h-[100px] ${isToday ? 'bg-primary-fixed/10' : ''}`}
+                                  className={`px-2 py-2 border-r ${rowBorder} border-outline-variant/60 dark:border-white/10 last:border-r-0 text-center align-top min-w-[135px] h-[100px]`}
                                 >
                                   {slot ? (
                                     <div
-                                      className={`h-full flex flex-col justify-between p-2 rounded-lg border text-left transition-all shadow-xs hover:-translate-y-0.5 hover:shadow-md ${badgeColor}`}
+                                      className={`h-full flex flex-col justify-between p-2 rounded-lg border text-left transition-shadow shadow-xs hover:shadow-sm ${badgeColor}`}
                                     >
                                       <div>
                                         <div className="flex items-center justify-between gap-1">
@@ -602,7 +1249,7 @@ const Timetable = () => {
                                           </span>
                                         </div>
                                         {slot.subjectCode && (
-                                          <div className="text-[10px] opacity-70 font-mono mt-0.5">
+                                          <div className="text-[10px] opacity-75 font-mono mt-0.5">
                                             {slot.subjectCode}
                                           </div>
                                         )}
@@ -613,17 +1260,18 @@ const Timetable = () => {
                                       </div>
 
                                       <div className="flex items-center justify-between pt-1.5 mt-1 border-t border-current/10 text-[10px]">
-                                        <span className="font-mono font-semibold px-1.5 py-0.5 rounded border border-current/20">
+                                        <span className="font-mono font-semibold px-1.5 py-0.5 rounded bg-surface-container-lowest/80 border border-outline-variant/40">
                                           📍 {slot.roomNumber}
                                         </span>
-                                        <span className="font-mono opacity-70 text-[9px]">
+                                        <span className="font-mono text-[9px] opacity-70">
                                           {slot.startTime?.substring(0, 5)}
                                         </span>
                                       </div>
                                     </div>
                                   ) : (
-                                    <div className="w-full h-full rounded-lg border border-dashed border-outline-variant/70 flex flex-col items-center justify-center bg-surface-container-low/30">
-                                      <span className="text-[11px] font-medium text-outline">Free Period</span>
+                                    <div className="w-full h-full rounded-lg border border-dashed border-outline-variant/30 flex flex-col items-center justify-center text-outline-variant">
+                                      <span className="text-[11px] font-medium">Free Period</span>
+                                      <span className="text-[9px] font-mono opacity-50">—</span>
                                     </div>
                                   )}
                                 </td>
@@ -642,106 +1290,8 @@ const Timetable = () => {
       )}
 
       {/* ========================================================================= */}
-      {/* ── VIEW 2: CLASS TIMETABLE EDITOR (ADMIN / HEAD OF ACADEMIC ONLY) ── */}
+      {/* ── MODAL: Add / Edit Timetable Period Entry (Staff Only) ── */}
       {/* ========================================================================= */}
-      {canEdit && viewMode === 'editor' && (
-        <div className="space-y-4">
-          {!currentTimetable && !loading && (
-            <div className="bg-surface-container-lowest rounded-xl shadow-xs p-8 text-center border border-outline-variant/40">
-              <p className="text-on-surface-variant mb-4">No active timetable found for this class in Academic Year {new Date().getFullYear()}.</p>
-              <button
-                onClick={handleCreateTimetable}
-                disabled={submitting}
-                className="px-6 py-2 bg-primary-container hover:bg-primary text-on-primary rounded-lg text-sm font-medium shadow-sm transition-colors"
-              >
-                {submitting ? 'Initializing...' : '+ Initialize Class Timetable'}
-              </button>
-            </div>
-          )}
-
-          {currentTimetable && (
-            <div className="bg-surface-container-lowest rounded-xl shadow-xs overflow-x-auto thin-scroll border border-outline-variant/60 dark:border-white/10">
-              {loading ? (
-                <div className="py-16 text-center text-on-surface-variant">Loading schedule...</div>
-              ) : (
-                <table className="min-w-full border-separate border-spacing-0">
-                  <thead className="bg-surface-container-low">
-                    <tr>
-                      <th className="sticky left-0 z-10 bg-surface-container-low px-4 py-3 border-b border-r border-outline-variant/60 dark:border-white/10 text-left text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
-                        Day / Period
-                      </th>
-                      {periods.map((p) => (
-                        <th key={p} className="px-3 py-3 border-b border-r border-outline-variant/60 dark:border-white/10 last:border-r-0 text-center text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
-                          Period {p}
-                          <div className="text-[10px] font-normal normal-case font-mono mt-0.5 opacity-80">{periodTimings[p]}</div>
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {days.map((day, rowIdx) => {
-                      const rowBorder = rowIdx < days.length - 1 ? 'border-b' : '';
-                      return (
-                        <tr key={day}>
-                          <td className={`sticky left-0 z-10 px-4 py-3 border-r ${rowBorder} border-outline-variant/60 dark:border-white/10 font-semibold text-on-surface text-xs bg-surface-container-low whitespace-nowrap`}>
-                            {day}
-                          </td>
-                          {periods.map((period) => {
-                            const entry = editorScheduleLookup[`${day}-${period}`];
-                            const subjectName = entry ? (subjectsMap[entry.subjectId] || `Subj #${entry.subjectId}`) : '';
-                            return (
-                              <td key={period} className={`px-2 py-2 border-r ${rowBorder} border-outline-variant/60 dark:border-white/10 last:border-r-0 text-center align-top min-w-[130px] h-[90px] group relative`}>
-                                {entry ? (
-                                  <div className={`h-full flex flex-col justify-between p-1.5 border rounded-lg text-left transition-shadow hover:shadow-md ${getSubjectBadgeColor(subjectName)}`}>
-                                    <div>
-                                      <div className="font-semibold text-xs leading-tight">
-                                        {subjectName}
-                                      </div>
-                                      <div className="text-[11px] opacity-80 mt-1">
-                                        {teachersMap[entry.teacherId] || `Teacher #${entry.teacherId}`}
-                                      </div>
-                                    </div>
-                                    <div className="flex justify-between items-center mt-2 pt-1 border-t border-current/10 text-[10px]">
-                                      <span className="font-mono opacity-70">{entry.roomNumber || 'Room 101'}</span>
-                                      <button
-                                        onClick={() => openEditEntryModal(entry)}
-                                        className="font-semibold px-1 hover:underline"
-                                        title="Edit Entry"
-                                      >
-                                        Edit
-                                      </button>
-                                      <button
-                                        onClick={() => handleDeleteEntry(entry.id, day, period)}
-                                        className="text-error hover:opacity-80 font-bold px-1"
-                                        title="Delete Entry"
-                                      >
-                                        ×
-                                      </button>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <button
-                                    onClick={() => openAddEntryModal(day, period)}
-                                    className="w-full h-full border border-dashed border-outline-variant/80 dark:border-white/10 rounded-lg flex items-center justify-center text-outline hover:text-primary hover:border-primary/50 hover:bg-primary-fixed/20 transition-colors text-xs"
-                                  >
-                                    + Assign
-                                  </button>
-                                )}
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ── MODAL: Add / Edit Schedule Entry (Admin / Head of Academic only) ── */}
       {canEdit && (
         <Modal
           isOpen={isEntryModalOpen}
@@ -751,51 +1301,68 @@ const Timetable = () => {
           <form onSubmit={handleEntrySubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Day of Week <span className="text-red-500">*</span></label>
+                <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">
+                  Day of Week <span className="text-error">*</span>
+                </label>
                 <select
                   value={entryForm.dayOfWeek}
                   onChange={(e) => setEntryForm({ ...entryForm, dayOfWeek: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full border border-outline-variant rounded-lg px-3 py-2 text-sm bg-surface-container-lowest text-on-surface focus:ring-primary focus:border-primary"
                 >
                   {days.map((d) => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Period Number <span className="text-red-500">*</span></label>
+                <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">
+                  Period Number <span className="text-error">*</span>
+                </label>
                 <select
                   value={entryForm.periodNumber}
                   onChange={(e) => setEntryForm({ ...entryForm, periodNumber: Number(e.target.value) })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full border border-outline-variant rounded-lg px-3 py-2 text-sm bg-surface-container-lowest text-on-surface focus:ring-primary focus:border-primary"
                 >
-                  {periods.map((p) => <option key={p} value={p}>Period {p}</option>)}
+                  {periods.map((p) => <option key={p} value={p}>Period {p} ({periodTimings[p]})</option>)}
                 </select>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Subject <span className="text-red-500">*</span></label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
+                  Subject <span className="text-error">*</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={openAddSubjectModal}
+                  className="text-xs text-primary font-semibold hover:underline"
+                >
+                  + New Subject
+                </button>
+              </div>
               <select
                 required
                 value={entryForm.subjectId}
                 onChange={(e) => setEntryForm({ ...entryForm, subjectId: e.target.value })}
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full border border-outline-variant rounded-lg px-3 py-2 text-sm bg-surface-container-lowest text-on-surface focus:ring-primary focus:border-primary"
               >
                 <option value="">-- Select Subject --</option>
                 {subjects.map((s) => (
                   <option key={s.id} value={s.id}>
-                    {s.subjectCode} - {s.subjectName} (Grade {s.gradeLevel})
+                    {s.subjectCode} - {s.subjectName || s.name} (Grade {s.gradeLevel})
                   </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Teacher <span className="text-red-500">*</span></label>
+              <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">
+                Teacher <span className="text-error">*</span>
+              </label>
               <select
                 required
                 value={entryForm.teacherId}
                 onChange={(e) => setEntryForm({ ...entryForm, teacherId: e.target.value })}
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full border border-outline-variant rounded-lg px-3 py-2 text-sm bg-surface-container-lowest text-on-surface focus:ring-primary focus:border-primary"
               >
                 <option value="">-- Select Teacher --</option>
                 {teachers.map((t) => (
@@ -807,18 +1374,21 @@ const Timetable = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Room Number</label>
+              <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">
+                Classroom / Room Number <span className="text-error">*</span>
+              </label>
               <input
                 type="text"
-                placeholder="e.g. Science Lab 2"
+                required
+                placeholder="e.g. Science Lab 1, Room 204"
                 value={entryForm.roomNumber}
                 onChange={(e) => setEntryForm({ ...entryForm, roomNumber: e.target.value })}
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full border border-outline-variant rounded-lg px-3 py-2 text-sm bg-surface-container-lowest text-on-surface focus:ring-primary focus:border-primary"
               />
             </div>
 
             {modalError && (
-              <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-xs font-semibold flex items-start gap-2">
+              <div className="p-3 bg-error-container text-on-error-container rounded-lg text-xs font-semibold flex items-start gap-2">
                 <span className="text-base leading-none">⚠️</span>
                 <div className="flex-1">
                   <span className="font-bold block mb-0.5">Scheduling Conflict:</span>
@@ -827,20 +1397,100 @@ const Timetable = () => {
               </div>
             )}
 
-            <div className="flex justify-end pt-4 border-t space-x-3">
+            <div className="flex justify-end pt-4 border-t border-outline-variant/40 space-x-3">
               <button
                 type="button"
                 onClick={() => setIsEntryModalOpen(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 text-sm font-medium"
+                className="px-4 py-2 border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container text-sm font-medium transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm font-medium disabled:opacity-50"
+                className="px-5 py-2 bg-primary-container hover:bg-primary text-on-primary rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
               >
                 {submitting ? 'Saving...' : editingEntryId ? 'Update Period' : 'Assign Period'}
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* ========================================================================= */}
+      {/* ── MODAL: Add / Edit Curriculum Subject (Staff Only) ── */}
+      {/* ========================================================================= */}
+      {canEdit && (
+        <Modal
+          isOpen={isSubjectModalOpen}
+          onClose={() => setIsSubjectModalOpen(false)}
+          title={editingSubjectId ? 'Edit Curriculum Subject' : 'Add New Curriculum Subject'}
+        >
+          <form onSubmit={handleSubjectSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">
+                Subject Code <span className="text-error">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. MATH-10, ICT-11, SCI-10"
+                value={subjectForm.subjectCode}
+                onChange={(e) => setSubjectForm({ ...subjectForm, subjectCode: e.target.value.toUpperCase() })}
+                className="w-full border border-outline-variant rounded-lg px-3 py-2 text-sm bg-surface-container-lowest text-on-surface font-mono uppercase focus:ring-primary focus:border-primary"
+              />
+              <span className="text-[11px] text-on-surface-variant mt-0.5 block">Unique uppercase identifier for syllabus cataloging</span>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">
+                Subject Name <span className="text-error">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Information & Communication Technology"
+                value={subjectForm.subjectName}
+                onChange={(e) => setSubjectForm({ ...subjectForm, subjectName: e.target.value })}
+                className="w-full border border-outline-variant rounded-lg px-3 py-2 text-sm bg-surface-container-lowest text-on-surface focus:ring-primary focus:border-primary"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">
+                Target Grade Level <span className="text-error">*</span>
+              </label>
+              <select
+                value={subjectForm.gradeLevel}
+                onChange={(e) => setSubjectForm({ ...subjectForm, gradeLevel: Number(e.target.value) })}
+                className="w-full border border-outline-variant rounded-lg px-3 py-2 text-sm bg-surface-container-lowest text-on-surface focus:ring-primary focus:border-primary"
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].map((g) => (
+                  <option key={g} value={g}>Grade {g}</option>
+                ))}
+              </select>
+            </div>
+
+            {modalError && (
+              <div className="p-3 bg-error-container text-on-error-container rounded-lg text-xs font-semibold">
+                {modalError}
+              </div>
+            )}
+
+            <div className="flex justify-end pt-4 border-t border-outline-variant/40 space-x-3">
+              <button
+                type="button"
+                onClick={() => setIsSubjectModalOpen(false)}
+                className="px-4 py-2 border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container text-sm font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="px-5 py-2 bg-primary-container hover:bg-primary text-on-primary rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
+              >
+                {submitting ? 'Saving...' : editingSubjectId ? 'Update Subject' : 'Create Subject'}
               </button>
             </div>
           </form>

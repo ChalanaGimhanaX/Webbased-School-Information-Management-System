@@ -11,5 +11,7 @@ import java.util.List;
 public interface TeacherSubjectAssignmentRepository extends JpaRepository<TeacherSubjectAssignment, Long> {
     List<TeacherSubjectAssignment> findByTeacherIdAndAcademicYear(Long teacherId, Integer academicYear);
     List<TeacherSubjectAssignment> findByClassIdAndAcademicYear(Long classId, Integer academicYear);
+    List<TeacherSubjectAssignment> findBySubjectId(Long subjectId);
+    void deleteBySubjectId(Long subjectId);
     boolean existsByTeacherIdAndSubjectIdAndClassIdAndAcademicYear(Long teacherId, Long subjectId, Long classId, Integer academicYear);
 }
