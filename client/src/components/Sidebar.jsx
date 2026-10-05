@@ -47,7 +47,8 @@ const Sidebar = ({ open = false, onClose = () => {} }) => {
             >
               <Icon name="close" size={20} />
             </button>
-            <BrandLogo subtitle="Wycherley Gampaha" />
+            <BrandLogo subtitle="Student Attendance Management" />
+            <div className="text-[10px] text-amber-400 font-mono mt-1 font-semibold text-center">UC-03 · IT25101863 (Dissanayake D.M.S.A)</div>
           </div>
 
           {/* Navigation */}
