@@ -47,7 +47,8 @@ const Sidebar = ({ open = false, onClose = () => {} }) => {
             >
               <Icon name="close" size={20} />
             </button>
-            <BrandLogo subtitle="Wycherley Gampaha" />
+            <BrandLogo subtitle="Timetable & Academic Scheduling" />
+            <div className="text-[10px] text-amber-400 font-mono mt-1 font-semibold text-center">UC-05 · IT25101913 (Gimhana D.B.C)</div>
           </div>
 
           {/* Navigation */}
