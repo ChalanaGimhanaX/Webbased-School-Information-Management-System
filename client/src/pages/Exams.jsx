@@ -304,23 +304,47 @@ export default function Exams() {
     {
       header: 'Actions',
       cell: (row) => (
-        <div className="flex flex-wrap gap-2">
-          {canManage && <button onClick={() => openExamModal(row)} className="text-blue-600 hover:text-blue-900 text-sm font-medium">Edit</button>}
-          {canManage && <button onClick={() => handleDeleteExam(row.id)} className="text-red-600 hover:text-red-900 text-sm font-medium">Delete</button>}
+        <div className="flex flex-wrap items-center gap-1.5">
+          {canManage && (
+            <button
+              onClick={() => openExamModal(row)}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200/80 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-400/30 transition-all shadow-xs"
+              title="Edit Exam"
+            >
+              <span>✏️</span> Edit
+            </button>
+          )}
+          {canManage && (
+            <button
+              onClick={() => handleDeleteExam(row.id)}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-50 text-red-700 hover:bg-red-100 border border-red-200/80 dark:bg-red-500/10 dark:text-red-300 dark:border-red-400/30 transition-all shadow-xs"
+              title="Delete Exam"
+            >
+              <span>🗑️</span> Delete
+            </button>
+          )}
           {canManage && row.status !== 'PUBLISHED' && (
-            <button onClick={() => handlePublish(row.id)} className="text-indigo-600 hover:text-indigo-900 text-sm font-medium">Publish</button>
+            <button
+              onClick={() => handlePublish(row.id)}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/80 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-400/30 transition-all shadow-xs"
+              title="Publish Exam Results"
+            >
+              <span>🚀</span> Publish
+            </button>
           )}
           <button 
             onClick={() => { setMarksExamId(row.id.toString()); setActiveTab('marks'); }} 
-            className="text-blue-600 hover:text-blue-900 text-sm font-medium"
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200/80 dark:bg-indigo-500/10 dark:text-indigo-300 dark:border-indigo-400/30 transition-all shadow-xs"
+            title="Batch Marks Entry"
           >
-            Marks
+            <span>📝</span> Marks
           </button>
           <button 
             onClick={() => { setAnalyticsExamId(row.id.toString()); setActiveTab('analytics'); }} 
-            className="text-purple-600 hover:text-purple-900 text-sm font-medium"
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200/80 dark:bg-purple-500/10 dark:text-purple-300 dark:border-purple-400/30 transition-all shadow-xs"
+            title="Class Analytics & Merit List"
           >
-            Analytics
+            <span>📊</span> Analytics
           </button>
         </div>
       )
@@ -328,7 +352,18 @@ export default function Exams() {
   ];
 
   const marksColumns = [
-    { header: 'Actions', cell: (r) => resultIds[r.id] ? <button onClick={() => handleDeleteResult(r.id)} className="text-red-600 hover:text-red-900 text-sm">Delete Result</button> : null },
+    { 
+      header: 'Actions', 
+      cell: (r) => resultIds[r.id] ? (
+        <button 
+          onClick={() => handleDeleteResult(r.id)} 
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-50 text-red-700 hover:bg-red-100 border border-red-200/80 dark:bg-red-500/10 dark:text-red-300 dark:border-red-400/30 transition-all shadow-xs"
+          title="Delete Result"
+        >
+          <span>🗑️</span> Delete
+        </button>
+      ) : null 
+    },
     { header: 'Student ID', accessor: 'id' },
     { header: 'Name', cell: (r) => `${r.firstName || ''} ${r.lastName || ''}` },
     { 
@@ -466,7 +501,14 @@ export default function Exams() {
                       </button>
                     )}
                   </div>
-                  {canManage && marksPaperId && <button onClick={handleDeletePaper} className="mt-2 text-red-600 hover:text-red-900 text-sm">Delete Paper</button>}
+                  {canManage && marksPaperId && (
+                    <button
+                      onClick={handleDeletePaper}
+                      className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 dark:bg-red-500/10 dark:text-red-300 dark:border-red-400/30 transition-all shadow-xs"
+                    >
+                      <span>🗑️</span> Delete Paper
+                    </button>
+                  )}
                 </div>
               )}
             </div>

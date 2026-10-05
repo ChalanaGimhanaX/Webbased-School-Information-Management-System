@@ -866,35 +866,29 @@ const Teachers = () => {
     {
       header: 'Actions',
       cell: (r) => (
-        <div className="flex space-x-2">
+        <div className="flex items-center space-x-1.5">
           <button
-            onClick={() =>
-              openEditModal(r)
-            }
-            className="text-indigo-600 hover:text-indigo-900 text-xs font-semibold px-2 py-1 bg-indigo-50 rounded"
+            onClick={() => openEditModal(r)}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200/80 dark:bg-indigo-500/10 dark:text-indigo-300 dark:border-indigo-400/30 transition-all shadow-xs"
+            title="Edit Teacher"
           >
-            Edit
+            <span>✏️</span> Edit
           </button>
 
           <button
-            onClick={() =>
-              openAssignModal(r)
-            }
-            className="text-blue-600 hover:text-blue-900 text-xs font-semibold px-2 py-1 bg-blue-50 rounded"
+            onClick={() => openAssignModal(r)}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200/80 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-400/30 transition-all shadow-xs"
+            title="Assign Subject & Class"
           >
-            Assign
+            <span>📚</span> Assign
           </button>
 
           <button
-            onClick={() =>
-              handleDelete(
-                r.id,
-                `${r.firstName} ${r.lastName}`
-              )
-            }
-            className="text-red-600 hover:text-red-900 text-xs font-semibold px-2 py-1 bg-red-50 rounded"
+            onClick={() => handleDelete(r.id, `${r.firstName} ${r.lastName}`)}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-50 text-red-700 hover:bg-red-100 border border-red-200/80 dark:bg-red-500/10 dark:text-red-300 dark:border-red-400/30 transition-all shadow-xs"
+            title="Deactivate Teacher"
           >
-            Deactivate
+            <span>🚫</span> Deactivate
           </button>
         </div>
       ),
@@ -995,26 +989,21 @@ const Teachers = () => {
     {
       header: 'Actions',
       cell: (r) => (
-        <div className="flex space-x-2">
+        <div className="flex items-center space-x-1.5">
           <button
-            onClick={() =>
-              openEditStaffModal(r)
-            }
-            className="text-indigo-600 hover:text-indigo-900 text-xs font-semibold px-2 py-1 bg-indigo-50 rounded"
+            onClick={() => openEditStaffModal(r)}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200/80 dark:bg-indigo-500/10 dark:text-indigo-300 dark:border-indigo-400/30 transition-all shadow-xs"
+            title="Edit Staff Member"
           >
-            Edit
+            <span>✏️</span> Edit
           </button>
 
           <button
-            onClick={() =>
-              handleDeleteStaff(
-                r.id,
-                `${r.firstName} ${r.lastName}`
-              )
-            }
-            className="text-red-600 hover:text-red-900 text-xs font-semibold px-2 py-1 bg-red-50 rounded"
+            onClick={() => handleDeleteStaff(r.id, `${r.firstName} ${r.lastName}`)}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-50 text-red-700 hover:bg-red-100 border border-red-200/80 dark:bg-red-500/10 dark:text-red-300 dark:border-red-400/30 transition-all shadow-xs"
+            title="Deactivate Staff Member"
           >
-            Deactivate
+            <span>🚫</span> Deactivate
           </button>
         </div>
       ),

@@ -370,9 +370,21 @@ const Fees = () => {
     {
       header: 'Actions',
       cell: (r) => (
-        <div className="flex space-x-2">
-          <button onClick={() => openEditStructure(r)} className="text-indigo-600 hover:text-indigo-900 text-xs font-semibold px-2 py-1 bg-indigo-50 rounded">Edit</button>
-          <button onClick={() => deleteStructure(r)} className="text-red-600 hover:text-red-900 text-xs font-semibold px-2 py-1 bg-red-50 rounded">Delete</button>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => openEditStructure(r)}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200/80 dark:bg-indigo-500/10 dark:text-indigo-300 dark:border-indigo-400/30 transition-all shadow-xs"
+            title="Edit Fee Structure"
+          >
+            <span>✏️</span> Edit
+          </button>
+          <button
+            onClick={() => deleteStructure(r)}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-50 text-red-700 hover:bg-red-100 border border-red-200/80 dark:bg-red-500/10 dark:text-red-300 dark:border-red-400/30 transition-all shadow-xs"
+            title="Delete Fee Structure"
+          >
+            <span>🗑️</span> Delete
+          </button>
         </div>
       ),
     },
@@ -406,28 +418,31 @@ const Fees = () => {
     {
       header: 'Actions',
       cell: (r) => (
-        <div className="flex space-x-1.5">
+        <div className="flex items-center space-x-1.5">
           <button
             onClick={() => openPaymentModal(r)}
             disabled={r.balanceAmount <= 0 || r.status === 'CANCELLED'}
-            className="text-indigo-600 hover:text-indigo-900 text-xs font-semibold px-2 py-1 bg-indigo-50 rounded disabled:text-gray-400 disabled:bg-gray-50"
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200/80 dark:bg-indigo-500/10 dark:text-indigo-300 dark:border-indigo-400/30 transition-all shadow-xs disabled:opacity-40 disabled:pointer-events-none"
+            title="Record Direct Payment"
           >
-            {r.balanceAmount <= 0 ? 'Settled' : 'Pay'}
+            <span>💳</span> {r.balanceAmount <= 0 ? 'Settled' : 'Pay'}
           </button>
           {r.paidAmount > 0 && (
             <button
               onClick={() => viewReceiptsForStudent(r.studentId)}
-              className="text-green-600 hover:text-green-900 text-xs font-semibold px-2 py-1 bg-green-50 rounded"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/80 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-400/30 transition-all shadow-xs"
+              title="View Payment Receipts"
             >
-              Receipt
+              <span>🧾</span> Receipt
             </button>
           )}
           <button
             onClick={() => cancelAccount(r)}
             disabled={r.status === 'CANCELLED' || r.status === 'PAID'}
-            className="text-red-600 hover:text-red-900 text-xs font-semibold px-2 py-1 bg-red-50 rounded disabled:text-gray-400 disabled:bg-gray-50"
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-50 text-red-700 hover:bg-red-100 border border-red-200/80 dark:bg-red-500/10 dark:text-red-300 dark:border-red-400/30 transition-all shadow-xs disabled:opacity-40 disabled:pointer-events-none"
+            title="Cancel Account"
           >
-            Cancel
+            <span>❌</span> Cancel
           </button>
         </div>
       ),
