@@ -94,7 +94,7 @@ const ChatPanel = ({ variant = 'widget', onClose, initialPrompt, onInitialPrompt
         <div className="relative min-w-0 flex-1">
           <p className="text-headline-sm font-bold leading-tight">Study Buddy</p>
           <p className="truncate text-label-md text-on-primary-container">
-            {status.loading ? 'Connecting…' : offline ? 'Offline · not configured' : `AI tutor · ${status.model || 'Gemini'}`}
+            {status.loading ? 'Connecting…' : offline ? 'Offline · not configured' : 'AI Academic Tutor · Online'}
           </p>
         </div>
         <div className="relative flex items-center gap-1">

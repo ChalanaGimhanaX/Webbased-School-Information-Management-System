@@ -1068,16 +1068,6 @@ const Timetable = () => {
                 </div>
               ))}
             </div>
-
-            {/* Collision Engine Invariant Rules */}
-            <div className="mt-6 p-4 rounded-xl bg-primary-fixed/20 border border-primary/20 text-xs text-on-surface space-y-1.5">
-              <strong className="block text-sm font-bold text-primary mb-1">
-                🛡️ Automatic Scheduling Conflict Prevention Rules (UC-05 Lead Module):
-              </strong>
-              <div>• <strong>Class Slot Conflict:</strong> A class cannot be assigned more than one subject during the same period.</div>
-              <div>• <strong>Teacher Busy Conflict:</strong> A teacher cannot be booked in two different classes during the same period.</div>
-              <div>• <strong>Room Occupied Conflict:</strong> A classroom or laboratory cannot host two classes simultaneously during the same period.</div>
-            </div>
           </div>
         </div>
       )}
