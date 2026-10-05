@@ -13,6 +13,7 @@ import java.util.Optional;
 
 @Repository
 public interface StudentClassAllocationRepository extends JpaRepository<StudentClassAllocation, Long> {
+    Optional<StudentClassAllocation> findByStudentIdAndAcademicYear(Long studentId, Integer academicYear);
     Optional<StudentClassAllocation> findByStudentIdAndAcademicYearAndStatus(Long studentId, Integer academicYear, AllocationStatus status);
     List<StudentClassAllocation> findByAcademicClassIdAndStatus(Long classId, AllocationStatus status);
     long countByAcademicClassIdAndStatus(Long classId, AllocationStatus status);

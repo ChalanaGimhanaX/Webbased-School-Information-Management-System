@@ -71,6 +71,12 @@ public class FeeAccountController {
         feeService.cancelFeeAccount(id);
     }
 
+    @PostMapping("/{id}/cancel")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void cancelFeeAccountPost(@PathVariable Long id) {
+        feeService.cancelFeeAccount(id);
+    }
+
     /**
      * Parent Portal: returns fee accounts for all children linked to this parent.
      * The parentId here is the parents.id (not users.id).

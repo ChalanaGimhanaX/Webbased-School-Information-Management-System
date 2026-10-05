@@ -410,7 +410,7 @@ const Fees = () => {
       cell: (r) => {
         const s = r.status;
         if (s === 'PAID') return <span className="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-800 font-medium">Paid</span>;
-        if (s === 'PARTIALLY_PAID') return <span className="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-800 font-medium">Partial</span>;
+        if (s === 'PARTIAL' || s === 'PARTIALLY_PAID') return <span className="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-800 font-medium">Partial</span>;
         if (s === 'CANCELLED') return <span className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-500 font-medium">Cancelled</span>;
         return <span className="px-2 py-0.5 text-xs rounded-full bg-yellow-100 text-yellow-800 font-medium">Pending</span>;
       },
@@ -897,7 +897,7 @@ const Fees = () => {
                   </div>
                   <div className="flex justify-between border-b pb-2">
                     <span className="text-gray-600">Partially Paid Accounts:</span>
-                    <span className="font-semibold text-gray-900">{financialSummary.partiallyPaidAccountsCount}</span>
+                    <span className="font-semibold text-gray-900">{financialSummary.partialAccountsCount ?? financialSummary.partiallyPaidAccountsCount ?? 0}</span>
                   </div>
                   <div className="flex justify-between border-b pb-2">
                     <span className="text-gray-600">Unpaid / Pending Accounts:</span>

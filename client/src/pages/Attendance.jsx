@@ -140,6 +140,25 @@ const Attendance = () => {
     setAttendance((prev) => ({ ...prev, [id]: status }));
   };
 
+  const handleLockAttendance = async () => {
+    if (!currentRecordId || isRecordLocked) return;
+    if (!window.confirm(`Permanently lock attendance for ${attendanceDate}? Once locked, records cannot be edited.`)) return;
+
+    try {
+      setSubmitting(true);
+      setError('');
+      setSuccess('');
+      await api.patch(`/attendance/${currentRecordId}/lock`);
+      setIsRecordLocked(true);
+      setSuccess(`Attendance for ${attendanceDate} has been locked.`);
+    } catch (err) {
+      const msg = err.response?.data?.message || err.response?.data?.error || 'Failed to lock attendance record.';
+      setError(msg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleDeleteAttendance = async () => {
     if (!currentRecordId || isRecordLocked) return;
     if (!window.confirm(`Delete attendance record for ${attendanceDate}?`)) return;
@@ -338,14 +357,25 @@ const Attendance = () => {
                   {isRecordLocked ? 'Locked' : 'Edit Mode'}
                 </span>
                 {!isRecordLocked && (
-                  <button
-                    type="button"
-                    onClick={handleDeleteAttendance}
-                    disabled={submitting}
-                    className="px-2 py-1 bg-white border border-red-200 text-red-600 rounded text-xs font-semibold hover:bg-red-50 disabled:opacity-50"
-                  >
-                    Delete Record
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleLockAttendance}
+                      disabled={submitting}
+                      className="px-2 py-1 bg-amber-50 border border-amber-300 text-amber-800 rounded text-xs font-semibold hover:bg-amber-100 disabled:opacity-50"
+                      title="Lock attendance to prevent any further changes"
+                    >
+                      🔒 Lock Record
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDeleteAttendance}
+                      disabled={submitting}
+                      className="px-2 py-1 bg-white border border-red-200 text-red-600 rounded text-xs font-semibold hover:bg-red-50 disabled:opacity-50"
+                    >
+                      Delete Record
+                    </button>
+                  </>
                 )}
               </div>
             </div>

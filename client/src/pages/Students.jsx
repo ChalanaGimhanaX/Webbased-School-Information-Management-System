@@ -393,10 +393,9 @@ const Students = () => {
                 className="bg-surface-container-low border border-outline-variant/50 rounded-lg px-3.5 py-2 text-sm text-on-surface focus:outline-none focus:border-primary-container"
               >
                 <option value="ALL">All Grades</option>
-                <option value="10">Grade 10</option>
-                <option value="11">Grade 11</option>
-                <option value="12">Grade 12</option>
-                <option value="13">Grade 13</option>
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].map((g) => (
+                  <option key={g} value={g.toString()}>Grade {g}</option>
+                ))}
               </select>
             </div>
             <span className="text-xs text-outline">

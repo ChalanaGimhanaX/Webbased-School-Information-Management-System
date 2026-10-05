@@ -1076,6 +1076,10 @@ const Teachers = () => {
 
           await fetchDependencies();
         }}
+        onDelete={async (r) => {
+          await api.delete(`/teachers/subjects/${r.id}`);
+          await fetchDependencies();
+        }}
       />
 
       {/* =====================================================

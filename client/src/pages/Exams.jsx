@@ -47,6 +47,7 @@ export default function Exams() {
   const [reportStudentId, setReportStudentId] = useState('');
   const [reportExamId, setReportExamId] = useState('');
   const [reportData, setReportData] = useState(null);
+  const [reportPapers, setReportPapers] = useState([]);
 
   // Tab 4 state
   const [analyticsExamId, setAnalyticsExamId] = useState('');
@@ -249,6 +250,16 @@ export default function Exams() {
   };
 
   // --- Tab 3 Actions ---
+  useEffect(() => {
+    if (reportExamId) {
+      api.get(`/exams/${reportExamId}/papers`)
+        .then(res => setReportPapers(res.data || []))
+        .catch(err => console.error(err));
+    } else {
+      setReportPapers([]);
+    }
+  }, [reportExamId]);
+
   useEffect(() => {
     if (reportStudentId && reportExamId) {
       fetchReportCard();
@@ -604,17 +615,22 @@ export default function Exams() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                      {(reportData.subjectResults || []).map((r, i) => (
-                        <tr key={i} className="hover:bg-gray-50 transition-colors">
-                          <td className="p-4 text-gray-800">Paper ID: {r.examPaperId}</td>
-                          <td className="p-4 font-medium text-right text-gray-900">{r.marksObtained}</td>
-                          <td className="p-4 font-bold text-center">
-                            <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full ${['A','A+'].includes(r.grade) ? 'bg-green-100 text-green-700' : r.grade === 'F' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
-                              {r.grade}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
+                      {(reportData.subjectResults || []).map((r, i) => {
+                        const paper = reportPapers.find(p => p.id === r.examPaperId);
+                        const subj = paper ? subjects.find(s => s.id === paper.subjectId) : null;
+                        const subjectDisplay = subj ? `${subj.subjectName} (${subj.subjectCode})` : (paper ? `Subject #${paper.subjectId}` : `Paper #${r.examPaperId}`);
+                        return (
+                          <tr key={i} className="hover:bg-gray-50 transition-colors">
+                            <td className="p-4 text-gray-800 font-medium">{subjectDisplay}</td>
+                            <td className="p-4 font-medium text-right text-gray-900">{r.marksObtained}</td>
+                            <td className="p-4 font-bold text-center">
+                              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full ${['A','A+'].includes(r.grade) ? 'bg-green-100 text-green-700' : r.grade === 'F' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
+                                {r.grade}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -717,25 +733,32 @@ export default function Exams() {
                         <thead className="bg-white sticky top-0 border-b border-gray-200 shadow-sm">
                           <tr>
                             <th className="p-4 text-gray-500 uppercase tracking-wider font-semibold text-xs">Rank</th>
-                            <th className="p-4 text-gray-500 uppercase tracking-wider font-semibold text-xs">Student ID</th>
+                            <th className="p-4 text-gray-500 uppercase tracking-wider font-semibold text-xs">Student</th>
                             <th className="p-4 text-gray-500 uppercase tracking-wider font-semibold text-xs text-right">Total</th>
                             <th className="p-4 text-gray-500 uppercase tracking-wider font-semibold text-xs text-right">Average</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                          {(analyticsData.meritList || []).map((m, i) => (
-                            <tr key={i} className="hover:bg-gray-50 transition-colors">
-                              <td className="p-4">
-                                {m.rank === 1 && <span className="text-yellow-500 font-bold flex items-center gap-1"><span className="text-lg">🥇</span> 1st</span>}
-                                {m.rank === 2 && <span className="text-gray-400 font-bold flex items-center gap-1"><span className="text-lg">🥈</span> 2nd</span>}
-                                {m.rank === 3 && <span className="text-amber-700 font-bold flex items-center gap-1"><span className="text-lg">🥉</span> 3rd</span>}
-                                {m.rank > 3 && <span className="text-gray-600 font-medium ml-6">{m.rank}th</span>}
-                              </td>
-                              <td className="p-4 font-medium text-gray-900">{m.studentId}</td>
-                              <td className="p-4 text-right font-semibold text-gray-700">{m.totalMarks}</td>
-                              <td className="p-4 text-right font-bold text-indigo-600">{m.averageMarks}%</td>
-                            </tr>
-                          ))}
+                          {(analyticsData.meritList || []).map((m, i) => {
+                            const st = students.find(s => s.id === m.studentId);
+                            const studentName = st ? `${st.firstName} ${st.lastName}` : `Student #${m.studentId}`;
+                            return (
+                              <tr key={i} className="hover:bg-gray-50 transition-colors">
+                                <td className="p-4">
+                                  {m.rank === 1 && <span className="text-yellow-500 font-bold flex items-center gap-1"><span className="text-lg">🥇</span> 1st</span>}
+                                  {m.rank === 2 && <span className="text-gray-400 font-bold flex items-center gap-1"><span className="text-lg">🥈</span> 2nd</span>}
+                                  {m.rank === 3 && <span className="text-amber-700 font-bold flex items-center gap-1"><span className="text-lg">🥉</span> 3rd</span>}
+                                  {m.rank > 3 && <span className="text-gray-600 font-medium ml-6">{m.rank}th</span>}
+                                </td>
+                                <td className="p-4">
+                                  <div className="font-semibold text-gray-900">{studentName}</div>
+                                  {st?.admissionNumber && <div className="text-xs text-gray-400">{st.admissionNumber}</div>}
+                                </td>
+                                <td className="p-4 text-right font-semibold text-gray-700">{m.totalMarks}</td>
+                                <td className="p-4 text-right font-bold text-indigo-600">{m.averageMarks}%</td>
+                              </tr>
+                            );
+                          })}
                           {(!analyticsData.meritList || analyticsData.meritList.length === 0) && (
                             <tr>
                               <td colSpan="4" className="p-8 text-center text-gray-500">No data available for merit list.</td>

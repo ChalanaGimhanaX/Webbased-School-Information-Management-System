@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -96,22 +97,24 @@ public class StudentService {
             throw new IllegalStateException("Class " + targetClass.getClassName() + " has reached maximum capacity of " + targetClass.getCapacity());
         }
 
-        // Archive previous allocation to retain historical records (UC-01 Open Issue 02)
-        allocationRepository.findByStudentIdAndAcademicYearAndStatus(student.getId(), year, AllocationStatus.ACTIVE)
-                .ifPresent(prev -> {
-                    prev.setStatus(AllocationStatus.TRANSFERRED);
-                    allocationRepository.save(prev);
-                });
-
-        StudentClassAllocation allocation = StudentClassAllocation.builder()
-                .student(student)
-                .academicClass(targetClass)
-                .academicYear(year)
-                .allocatedDate(LocalDate.now())
-                .status(AllocationStatus.ACTIVE)
-                .build();
-
-        allocationRepository.save(allocation);
+        // Update existing allocation or create new to honor UNIQUE(student_id, academic_year)
+        Optional<StudentClassAllocation> existing = allocationRepository.findByStudentIdAndAcademicYear(student.getId(), year);
+        if (existing.isPresent()) {
+            StudentClassAllocation alloc = existing.get();
+            alloc.setAcademicClass(targetClass);
+            alloc.setAllocatedDate(LocalDate.now());
+            alloc.setStatus(AllocationStatus.ACTIVE);
+            allocationRepository.save(alloc);
+        } else {
+            StudentClassAllocation allocation = StudentClassAllocation.builder()
+                    .student(student)
+                    .academicClass(targetClass)
+                    .academicYear(year)
+                    .allocatedDate(LocalDate.now())
+                    .status(AllocationStatus.ACTIVE)
+                    .build();
+            allocationRepository.save(allocation);
+        }
     }
 
     @Transactional
