@@ -15,13 +15,18 @@ if exist "C:\Users\Chalana\.jdks\jdk-21.0.12.1+1\bin\java.exe" (
 )
 
 :: 2. Ensure MySQL service is running
-echo [1/3] Checking MySQL Service (MySQL80)...
+echo [1/3] Checking MySQL Service (MySQL80 / MySQL84)...
 sc query MySQL80 | find "RUNNING" >nul
 if %ERRORLEVEL% equ 0 (
     echo       MySQL80 service is RUNNING.
 ) else (
-    echo       Starting MySQL80 service...
-    net start MySQL80 >nul 2>&1
+    sc query MySQL84 | find "RUNNING" >nul
+    if %ERRORLEVEL% equ 0 (
+        echo       MySQL84 service is RUNNING.
+    ) else (
+        echo       Attempting to start MySQL service...
+        net start MySQL80 >nul 2>&1 || net start MySQL84 >nul 2>&1
+    )
 )
 
 :: 3. Start Backend in a dedicated window

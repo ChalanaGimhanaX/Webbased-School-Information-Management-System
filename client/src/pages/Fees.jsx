@@ -1685,7 +1685,7 @@ const Fees = () => {
                 <span className="font-semibold text-red-600">LKR {Number(activeReceipt.remainingBalance).toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-xs text-gray-400 pt-2 border-t">
-                <span>Issued: {new Date(activeReceipt.issuedDate || Date.now()).toLocaleDateString()}</span>
+                <span>Issued: {activeReceipt.issuedDate ? new Date(activeReceipt.issuedDate).toLocaleDateString() : 'N/A'}</span>
                 <span>Counter: {activeReceipt.issuedBy || 'Cashier'}</span>
               </div>
             </div>

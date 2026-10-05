@@ -254,11 +254,17 @@ SIMS-Setup-and-Run.bat h2     :: Run using embedded H2 file database without Mar
 SIMS-Setup-and-Run.bat stop   :: Gracefully stop all backend, frontend, and DB processes
 ```
 
-### Option B: Quick Development Launcher
+### Option B: Quick Development Launchers
 If Java, Node, and MySQL are already installed on your machine:
 ```bat
-start-local.bat               :: Checks MySQL, launches Spring Boot (:8080) & Vite (:5173)
+start-sims.bat                :: Unified Windows launcher: checks MySQL (8.0/8.4), frees :8080, launches server + client
+start-local.bat               :: Alternate Windows launcher: checks MySQL80/84, launches backend & frontend
 stop-local.bat                :: Stops local servers on port 8080 and 5173
+```
+On Linux / macOS:
+```bash
+chmod +x start-local.sh
+./start-local.sh              :: Launches Spring Boot (:8080) & Vite (:5173) with graceful trap cleanup
 ```
 
 ### Option C: Manual CLI Execution
@@ -300,7 +306,8 @@ To package production-ready artifacts:
 ```bash
 # 1. Package backend JAR
 cd server
-./mvnw clean package -DskipTests
+./mvnw clean package -DskipTests        # Linux / macOS
+.\mvnw.cmd clean package -DskipTests    # Windows PowerShell / CMD
 # Output: server/target/sims-server-0.0.1-SNAPSHOT.jar
 
 # 2. Compile frontend static assets
