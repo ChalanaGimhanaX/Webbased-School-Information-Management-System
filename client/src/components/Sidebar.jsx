@@ -47,7 +47,8 @@ const Sidebar = ({ open = false, onClose = () => {} }) => {
             >
               <Icon name="close" size={20} />
             </button>
-            <BrandLogo subtitle="Wycherley Gampaha" />
+            <BrandLogo subtitle="Teacher & Staff Management" />
+            <div className="text-[10px] text-amber-400 font-mono mt-1 font-semibold text-center">UC-02 · IT25102861 (Bandara R.M.K.G.R.L)</div>
           </div>
 
           {/* Navigation */}
