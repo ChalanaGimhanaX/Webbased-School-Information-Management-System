@@ -15,6 +15,7 @@ import com.sliit.sims.teacher.model.Subject;
 import com.sliit.sims.teacher.model.Teacher;
 import com.sliit.sims.teacher.repository.SubjectRepository;
 import com.sliit.sims.teacher.repository.TeacherRepository;
+import com.sliit.sims.parent.repository.ParentRepository;
 import com.sliit.sims.common.auth.model.User;
 import com.sliit.sims.common.auth.repository.UserRepository;
 import com.sliit.sims.timetable.dto.*;
@@ -43,6 +44,7 @@ public class TimetableService {
     private final SubjectRepository subjectRepository;
     private final TeacherRepository teacherRepository;
     private final UserRepository userRepository;
+    private final ParentRepository parentRepository;
 
     @Transactional
     public TimetableResponse createTimetable(TimetableCreateRequest req) {
@@ -227,10 +229,24 @@ public class TimetableService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + username));
 
-        Student student = studentRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("No student profile found for user account: " + username));
+        var studentOpt = studentRepository.findByUserId(user.getId());
+        if (studentOpt.isPresent()) {
+            return getStudentTimetable(studentOpt.get().getId());
+        }
 
-        return getStudentTimetable(student.getId());
+        var parentOpt = parentRepository.findByUserId(user.getId());
+        if (parentOpt.isPresent()) {
+            List<Student> children = studentRepository.findByParentIdAndActiveTrue(parentOpt.get().getId());
+            if (children.isEmpty()) {
+                children = studentRepository.findByParentId(parentOpt.get().getId());
+            }
+            if (!children.isEmpty()) {
+                return getStudentTimetable(children.get(0).getId());
+            }
+            throw new ResourceNotFoundException("No children registered for parent account: " + username);
+        }
+
+        throw new ResourceNotFoundException("No student or parent profile found for user account: " + username);
     }
 
     public StudentTimetableResponse getClassTimetableStudentView(Long classId) {

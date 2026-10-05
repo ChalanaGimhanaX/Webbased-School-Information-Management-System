@@ -61,6 +61,8 @@ const Timetable = () => {
   const [studentTimetable, setStudentTimetable] = useState(null);
   const [studentLoading, setStudentLoading] = useState(false);
   const [studentError, setStudentError] = useState('');
+  const [parentChildren, setParentChildren] = useState([]);
+  const [selectedChildId, setSelectedChildId] = useState(null);
 
   // Teacher Timetable View State
   const [selectedTeacherId, setSelectedTeacherId] = useState('');
@@ -221,13 +223,30 @@ const Timetable = () => {
     }
   }, [selectedTeacherId, viewMode, isStudentRole]);
 
-  // Load Student Timetable (either logged-in student or preview for class)
+  // Load parent's children if role is PARENT
+  useEffect(() => {
+    if (isParent) {
+      api.get('/parents/my-children')
+        .then((res) => {
+          const list = Array.isArray(res.data) ? res.data : [];
+          setParentChildren(list);
+          if (list.length > 0 && !selectedChildId) {
+            setSelectedChildId(list[0].id);
+          }
+        })
+        .catch((err) => console.error('Failed to load children for timetable:', err));
+    }
+  }, [isParent]);
+
+  // Load Student Timetable (either logged-in student, parent's selected child, or preview for class)
   const fetchStudentTimetableData = async () => {
     try {
       setStudentLoading(true);
       setStudentError('');
       let res;
-      if (isStudentRole) {
+      if (isParent && selectedChildId) {
+        res = await api.get(`/timetables/student/${selectedChildId}`);
+      } else if (isStudentRole) {
         res = await api.get('/timetables/my-timetable');
       } else if (selectedClassId) {
         res = await api.get(`/timetables/class/${selectedClassId}/student-view`);
@@ -249,7 +268,7 @@ const Timetable = () => {
     if (isStudentRole || viewMode === 'student_view') {
       fetchStudentTimetableData();
     }
-  }, [isStudentRole, viewMode, selectedClassId]);
+  }, [isStudentRole, viewMode, selectedClassId, selectedChildId]);
 
   // 1. CREATE Timetable if not initialized (Staff only)
   const handleCreateTimetable = async () => {
@@ -500,16 +519,18 @@ const Timetable = () => {
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-2xl font-bold text-on-surface tracking-tight">
-              {isStudentRole ? 'My Class Timetable' : 'Timetable & Academic Scheduling'}
+              {isParent ? "Child's Class Timetable" : (isStudent ? 'My Class Timetable' : 'Timetable & Academic Scheduling')}
             </h2>
             {(isStudentRole || !canEdit) && (
               <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary-fixed text-on-primary-fixed">
-                {isStudentRole ? 'Student View' : 'Read only'}
+                {isParent ? 'Family View' : (isStudent ? 'Student View' : 'Read only')}
               </span>
             )}
           </div>
           <p className="text-sm text-on-surface-variant mt-1">
-            {isStudentRole
+            {isParent
+              ? "View your child's weekly class schedule, subject periods, assigned teachers, and classroom locations"
+              : isStudent
               ? 'View your weekly class schedule, subject periods, assigned teachers, and classroom locations'
               : 'Manage subjects, weekly class schedules, teacher allocations, classrooms, and time slots'}
           </p>
@@ -1077,6 +1098,38 @@ const Timetable = () => {
       {/* ========================================================================= */}
       {(isStudentRole || viewMode === 'student_view') && (
         <div className="space-y-6">
+          {/* Child Switcher for Parents */}
+          {isParent && parentChildren.length > 0 && (
+            <div className="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant/40 shadow-xs flex flex-wrap items-center justify-between gap-3 print:hidden">
+              <div className="flex items-center gap-2.5">
+                <span className="text-xl">👨‍👩‍👧‍👦</span>
+                <div>
+                  <div className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Select Child</div>
+                  <div className="text-sm font-bold text-on-surface">Viewing timetable for linked students</div>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {parentChildren.map((c) => {
+                  const isSelected = selectedChildId === c.id;
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => setSelectedChildId(c.id)}
+                      className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        isSelected
+                          ? 'bg-primary-container text-on-primary shadow-xs'
+                          : 'bg-surface-container-low text-on-surface hover:bg-surface-container-high border border-outline-variant/30'
+                      }`}
+                    >
+                      {c.firstName} {c.lastName} ({c.className || `Grade ${c.gradeLevel}`})
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {studentLoading && (
             <div className="bg-surface-container-lowest rounded-xl p-12 text-center text-on-surface-variant shadow-xs border border-outline-variant/40">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-3"></div>

@@ -52,6 +52,9 @@ class TimetableServiceTest {
     @Mock
     private com.sliit.sims.common.auth.repository.UserRepository userRepository;
 
+    @Mock
+    private com.sliit.sims.parent.repository.ParentRepository parentRepository;
+
     @InjectMocks
     private TimetableService timetableService;
 

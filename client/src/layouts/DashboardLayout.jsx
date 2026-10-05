@@ -34,6 +34,8 @@ const quickActionsByRole = {
   ],
   PARENT: [
     { label: 'View & pay fees', icon: 'payments', to: '/fees' },
+    { label: "Children's reports", icon: 'assignment', to: '/exams' },
+    { label: "Children's timetable", icon: 'calendar_month', to: '/timetable' },
   ],
 };
 

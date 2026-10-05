@@ -62,7 +62,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/assistant/**").hasRole("STUDENT")
 
                         // Role-scoped READ access (students & parents use only their self-scoped endpoints:
-                        // /assistant/overview, /timetables/my-timetable, /parents/by-user, parent fee portal)
+                        // /assistant/overview, /timetables/my-timetable, /parents/by-user, parent fee portal, /parents/my-children, /parents/children/**)
                         .requestMatchers(HttpMethod.GET, "/api/v1/teachers/staff", "/api/v1/teachers/staff/**").hasAnyRole("ADMIN", "HEAD_OF_ACADEMIC")
                         .requestMatchers(HttpMethod.GET, "/api/v1/students/**", "/api/v1/teachers/**", "/api/v1/exams/**", "/api/v1/attendance/**")
                                 .hasAnyRole("ADMIN", "HEAD_OF_ACADEMIC", "TEACHER")

@@ -14,6 +14,7 @@ import MyResults from './pages/MyResults';
 import Timetable from './pages/Timetable';
 import Fees from './pages/Fees';
 import ParentFees from './pages/ParentFees';
+import ParentExams from './pages/ParentExams';
 import Reports from './pages/Reports';
 import Assistant from './pages/Assistant';
 
@@ -32,10 +33,11 @@ function FeesRoute() {
   return <Fees />;
 }
 
-// Staff get exam management / marks entry; students get their own read-only report cards
+// Staff get exam management / marks entry; students get their own read-only report cards; parents get their children's reports
 function ExamsRoute() {
   const { user } = useContext(AuthContext);
   if (user?.role === 'STUDENT') return <MyResults />;
+  if (user?.role === 'PARENT') return <ParentExams />;
   return <Exams />;
 }
 

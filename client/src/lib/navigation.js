@@ -5,8 +5,8 @@ export const navItems = [
   { name: 'Students', path: '/students', icon: 'school', roles: ['ADMIN', 'HEAD_OF_ACADEMIC'] },
   { name: 'Teachers & Staff', path: '/teachers', icon: 'badge', roles: ['ADMIN', 'HEAD_OF_ACADEMIC'] },
   { name: 'Attendance', path: '/attendance', icon: 'fact_check', roles: ['ADMIN', 'HEAD_OF_ACADEMIC', 'TEACHER'] },
-  { name: 'Exams & Results', path: '/exams', icon: 'assignment', roles: ['ADMIN', 'HEAD_OF_ACADEMIC', 'TEACHER', 'STUDENT'], labels: { STUDENT: 'My Results', TEACHER: 'Exams & Marks' } },
-  { name: 'Timetable', path: '/timetable', icon: 'calendar_month', roles: ['ADMIN', 'HEAD_OF_ACADEMIC', 'TEACHER', 'STUDENT'], labels: { STUDENT: 'My Timetable' } },
+  { name: 'Exams & Results', path: '/exams', icon: 'assignment', roles: ['ADMIN', 'HEAD_OF_ACADEMIC', 'TEACHER', 'STUDENT', 'PARENT'], labels: { STUDENT: 'My Results', TEACHER: 'Exams & Marks', PARENT: "Children's Reports" } },
+  { name: 'Timetable', path: '/timetable', icon: 'calendar_month', roles: ['ADMIN', 'HEAD_OF_ACADEMIC', 'TEACHER', 'STUDENT', 'PARENT'], labels: { STUDENT: 'My Timetable', PARENT: "Children's Timetable" } },
   { name: 'Fees & Payments', path: '/fees', icon: 'payments', roles: ['ADMIN', 'PARENT'], labels: { PARENT: 'My Fees' } }, // Finance: Admin manages, Parent pays own children's fees
   { name: 'Reports', path: '/reports', icon: 'monitoring', roles: ['ADMIN', 'HEAD_OF_ACADEMIC', 'TEACHER'] },
   { name: 'AI Study Buddy', path: '/assistant', icon: 'smart_toy', roles: ['STUDENT'], badge: 'AI' },

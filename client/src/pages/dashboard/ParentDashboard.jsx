@@ -92,7 +92,13 @@ const ParentDashboard = () => {
           { label: 'Outstanding', value: loading ? '…' : formatLKR(totals.balance), color: 'text-rose-300' },
           { label: 'Paid', value: loading ? '…' : `${paidPct.toFixed(0)}%`, color: 'text-emerald-300' },
         ]}
-        actions={<BannerButton icon="payments" onClick={() => navigate('/fees')}>View &amp; pay fees</BannerButton>}
+        actions={(
+          <div className="flex flex-wrap items-center gap-2">
+            <BannerButton icon="assignment" onClick={() => navigate('/exams')}>Children's Reports</BannerButton>
+            <BannerButton icon="calendar_month" onClick={() => navigate('/timetable')}>Timetable</BannerButton>
+            <BannerButton icon="payments" onClick={() => navigate('/fees')}>Pay Fees</BannerButton>
+          </div>
+        )}
       />
 
       {error && (
