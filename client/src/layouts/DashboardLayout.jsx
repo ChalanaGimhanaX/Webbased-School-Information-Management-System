@@ -3,7 +3,6 @@ import { Outlet, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Icon from '../components/ui/Icon';
 import Crest from '../components/ui/Crest';
-import ChatWidget from '../components/assistant/ChatWidget';
 import { AuthContext } from '../context/AuthContext';
 import { pageTitleFor, visibleNavItems } from '../lib/navigation';
 import { getTermInfo, initials } from '../lib/schoolCalendar';
@@ -28,7 +27,6 @@ const quickActionsByRole = {
     { label: 'View class timetables', icon: 'calendar_month', to: '/timetable' },
   ],
   STUDENT: [
-    { label: 'Ask Study Buddy', icon: 'smart_toy', to: '/assistant' },
     { label: 'My timetable', icon: 'calendar_month', to: '/timetable' },
     { label: 'My results', icon: 'assignment', to: '/exams' },
   ],
@@ -126,8 +124,6 @@ const DashboardLayout = () => {
     setQuery('');
     navigate(to);
   };
-
-  const showChatWidget = role === 'STUDENT' && location.pathname !== '/assistant';
 
   return (
     <div className="min-h-screen bg-background text-on-surface">
@@ -283,8 +279,6 @@ const DashboardLayout = () => {
           <Outlet />
         </main>
       </div>
-
-      {showChatWidget && <ChatWidget />}
     </div>
   );
 };
