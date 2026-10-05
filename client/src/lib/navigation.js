@@ -1,7 +1,7 @@
-// UC-05: Timetable & Academic Scheduling (IT25101913 - Gimhana D.B.C)
+// UC-04: Examination & Academic Performance (IT25103724 - Pemadasa J.M.C.D)
 export const navItems = [
   { name: 'Dashboard', path: '/', icon: 'dashboard', roles: ['ADMIN', 'HEAD_OF_ACADEMIC', 'TEACHER', 'STUDENT', 'PARENT'] },
-  { name: 'Timetable & Scheduling', path: '/timetable', icon: 'calendar_month', roles: ['ADMIN', 'HEAD_OF_ACADEMIC', 'TEACHER', 'STUDENT'], labels: { STUDENT: 'My Timetable' } },
+  { name: 'Exams & Performance', path: '/exams', icon: 'assignment', roles: ['ADMIN', 'HEAD_OF_ACADEMIC', 'TEACHER', 'STUDENT'], labels: { STUDENT: 'My Results', TEACHER: 'Exams & Marks' } },
 ];
 
 export const roleLabels = {

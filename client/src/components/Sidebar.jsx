@@ -47,8 +47,8 @@ const Sidebar = ({ open = false, onClose = () => {} }) => {
             >
               <Icon name="close" size={20} />
             </button>
-            <BrandLogo subtitle="Timetable & Academic Scheduling" />
-            <div className="text-[10px] text-amber-400 font-mono mt-1 font-semibold text-center">UC-05 · IT25101913 (Gimhana D.B.C)</div>
+            <BrandLogo subtitle="Exams & Academic Performance" />
+            <div className="text-[10px] text-amber-400 font-mono mt-1 font-semibold text-center">UC-04 · IT25103724 (Pemadasa J.M.C.D)</div>
           </div>
 
           {/* Navigation */}
