@@ -1,7 +1,7 @@
-// UC-04: Examination & Academic Performance (IT25103724 - Pemadasa J.M.C.D)
+// UC-01: Student & Class Management (IT25100975 - Dissanayake D.M.R.S)
 export const navItems = [
   { name: 'Dashboard', path: '/', icon: 'dashboard', roles: ['ADMIN', 'HEAD_OF_ACADEMIC', 'TEACHER', 'STUDENT', 'PARENT'] },
-  { name: 'Exams & Performance', path: '/exams', icon: 'assignment', roles: ['ADMIN', 'HEAD_OF_ACADEMIC', 'TEACHER', 'STUDENT'], labels: { STUDENT: 'My Results', TEACHER: 'Exams & Marks' } },
+  { name: 'Student & Class Management', path: '/students', icon: 'school', roles: ['ADMIN', 'HEAD_OF_ACADEMIC'] },
 ];
 
 export const roleLabels = {

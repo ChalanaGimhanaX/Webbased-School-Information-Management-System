@@ -64,4 +64,16 @@ class OpenRouterChatClientTest {
         assertThat(client.modelName()).isEqualTo("apodex/apodex-1.1-mini:free");
         assertThat(client.isConfigured()).isTrue();
     }
+<<<<<<< HEAD
+=======
+
+    @Test
+    void sanitizesThinkingTagsAndReasoningBlocks() {
+        String dirty1 = "<think>internal reasoning steps</think>Hello! Here is your answer.";
+        assertThat(OpenRouterChatClient.sanitizeContent(dirty1)).isEqualTo("Hello! Here is your answer.");
+
+        String dirty2 = "Thinking Process:\nAnalyzing user query...\n\nHello Kasun!";
+        assertThat(OpenRouterChatClient.sanitizeContent(dirty2)).isEqualTo("Hello Kasun!");
+    }
+>>>>>>> 5eacfec731619621d70d9674e40f4c4bec09880d
 }

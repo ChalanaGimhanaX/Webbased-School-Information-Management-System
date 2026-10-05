@@ -178,16 +178,50 @@ public class OpenRouterChatClient implements AiChatClient {
         JsonNode messageNode = choices.get(0).path("message");
         String content = messageNode.path("content").asText("").trim();
 
-        // If content is empty but model provided reasoning text
+        // If content is empty but model only populated reasoning, extract only the final answer if present
         if (content.isEmpty()) {
-            content = messageNode.path("reasoning").asText("").trim();
+            String reasoning = messageNode.path("reasoning").asText("").trim();
+            content = extractFinalAnswerFromReasoning(reasoning);
         }
 
+        // Sanitize any leaked thinking/reasoning tags
+        content = sanitizeContent(content);
+
         if (content.isEmpty()) {
-            throw new AiProviderException("The AI service returned an empty answer. Please try again.");
+            throw new AiProviderException("The AI assistant was preparing your answer but needed more tokens. Please ask a more focused question or try again.");
         }
 
         return content;
+    }
+
+    static String sanitizeContent(String text) {
+        if (text == null) return "";
+        // Strip xml-like reasoning tags
+        String s = text.replaceAll("(?s)<think>.*?</think>", "")
+                       .replaceAll("(?s)<thought>.*?</thought>", "")
+                       .replaceAll("(?s)<reasoning>.*?</reasoning>", "");
+
+        // Strip "Thinking Process:" blocks if leaked at the start
+        if (s.startsWith("Thinking Process:") || s.startsWith("Thinking:")) {
+            int idx = s.indexOf("\n\n");
+            while (idx != -1 && (s.substring(0, idx).contains("Thinking Process:") || s.substring(0, idx).contains("Thinking:"))) {
+                s = s.substring(idx + 2).trim();
+                idx = s.indexOf("\n\n");
+            }
+        }
+        return s.trim();
+    }
+
+    private static String extractFinalAnswerFromReasoning(String reasoning) {
+        if (reasoning == null || reasoning.isBlank()) return "";
+        // If reasoning ends with a clear answer section
+        int answerIdx = reasoning.lastIndexOf("Answer:");
+        if (answerIdx == -1) answerIdx = reasoning.lastIndexOf("Response:");
+        if (answerIdx == -1) answerIdx = reasoning.lastIndexOf("Conclusion:");
+        if (answerIdx != -1 && answerIdx + 10 < reasoning.length()) {
+            return reasoning.substring(answerIdx).trim();
+        }
+        return "";
     }
 
     private String describeHttpFailure(int status, String body) {

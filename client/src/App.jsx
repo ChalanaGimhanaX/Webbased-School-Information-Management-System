@@ -1,22 +1,14 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, AuthContext } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
 import DashboardLayout from './layouts/DashboardLayout';
 
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import Exams from './pages/Exams';
-import MyResults from './pages/MyResults';
+import Students from './pages/Students';
 
-// Staff get exam management / batch marks entry; students get their own read-only report cards
-function ExamsRoute() {
-  const { user } = useContext(AuthContext);
-  if (user?.role === 'STUDENT') return <MyResults />;
-  return <Exams />;
-}
-
-// UC-04: Examination & Academic Performance
-// Assigned Member: IT25103724 - Pemadasa J.M.C.D
+// UC-01: Student & Class Management
+// Assigned Member: IT25100975 - Dissanayake D.M.R.S
 function App() {
   return (
     <AuthProvider>
@@ -25,8 +17,8 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<DashboardLayout />}>
             <Route index element={<Dashboard />} />
-            <Route path="exams" element={<ExamsRoute />} />
-            <Route path="*" element={<Navigate to="/exams" replace />} />
+            <Route path="students" element={<Students />} />
+            <Route path="*" element={<Navigate to="/students" replace />} />
           </Route>
         </Routes>
       </Router>
