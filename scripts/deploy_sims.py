@@ -51,8 +51,10 @@ def main():
             with tarfile.open(frontend, "w:gz") as archive:
                 archive.add(ROOT / "client/dist", arcname=".")
             with tarfile.open(source, "w:gz") as archive:
-                for relative in ["server/src", "server/pom.xml", "client/src", "client/scripts", "client/package.json", "client/package-lock.json", "scripts", "README.md"]:
-                    archive.add(ROOT / relative, arcname=relative)
+                for relative in ["server/src", "server/pom.xml", "client/src", "client/package.json", "client/package-lock.json", "scripts", "README.md"]:
+                    path = ROOT / relative
+                    if path.exists():
+                        archive.add(path, arcname=relative)
             with ssh.open_sftp() as sftp:
                 if not frontend_only:
                     sftp.put(str(jar), f"{REMOTE}/sims-server.jar")

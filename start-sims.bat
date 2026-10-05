@@ -1,20 +1,24 @@
 @echo off
 title SIMS - School Information Management System Launcher
 echo =====================================================================
-echo  SE2030 - School Information Management System (SIMS)
-echo  UC-06: Fee & Payment Management Module
+echo  SIMS - School Information Management System (Wycherley International)
 echo =====================================================================
 echo.
 
-set PATH=C:\Program Files\nodejs;C:\Program Files\MySQL\MySQL Server 8.4\bin;%PATH%
+set PATH=C:\Program Files\nodejs;C:\Program Files\MySQL\MySQL Server 8.4\bin;C:\Program Files\MySQL\MySQL Server 8.0\bin;%PATH%
 
-echo [1/4] Checking MySQL Service (MySQL84)...
-sc query MySQL84 | find "RUNNING" >nul
+echo [1/4] Checking MySQL Service...
+sc query MySQL80 | find "RUNNING" >nul
 if %ERRORLEVEL% equ 0 (
-    echo       MySQL84 service is RUNNING.
+    echo       MySQL80 service is RUNNING.
 ) else (
-    echo       Starting MySQL84 service...
-    net start MySQL84
+    sc query MySQL84 | find "RUNNING" >nul
+    if %ERRORLEVEL% equ 0 (
+        echo       MySQL84 service is RUNNING.
+    ) else (
+        echo       Attempting to start MySQL service...
+        net start MySQL80 >nul 2>&1 || net start MySQL84 >nul 2>&1
+    )
 )
 echo.
 

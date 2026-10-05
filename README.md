@@ -153,13 +153,26 @@ The six modules provide the operations listed below. Reporting and status change
    - **Update**: Modify fee amounts, descriptions, and due dates.
    - **Delete**: Remove unused fee structures.
 2. **Student Fee Accounts CRUD**:
-   - **Create**: Assign fee structures to students.
+   - **Create**: Assign fee structures to students or entire grade levels.
    - **Read**: View invoiced amounts, paid amounts, and arrears.
-   - **Delete / Cancel**: Cancel unpaid fee accounts.
+   - **Delete / Cancel**: Cancel unpaid fee accounts with balance rollback.
 3. **Payment Transactions & Official Receipts CRUD**:
    - **Create**: Record direct counter payments (Cash, Bank Transfer, Deposit, Cheque).
    - **Read**: Transaction histories and outstanding balances.
    - **Print / Read**: Generate and view **Official Payment Receipts** with unique receipt numbers and remaining balance tracking.
+
+### 3.7 Family & Parent Self-Service Portal
+1. **Child Roster & Profile Switcher**:
+   - Dynamic selection across multiple enrolled children linked to the parent account.
+   - Live display of child's grade, assigned section, class teacher, and cumulative attendance rate.
+2. **Academic Examination Reports**:
+   - Comprehensive terminal exam report cards detailing subjects, individual marks, max marks, and letter grades.
+   - Distinction / Pass / Fail performance badges, class averages, and print-ready signed transcript format.
+3. **Weekly Academic Timetable Schedule**:
+   - Live day-by-day period schedule (Periods 1–8) displaying assigned subject, classroom/lab, and teacher.
+4. **Fee Payment & Bank Slip Proof Submission**:
+   - Per-child invoiced fee accounts showing total fee, settled amount, and remaining balance.
+   - Secure digital bank slip upload (`Bank of Ceylon`, etc.) with reference number and depositor details for administrative approval.
 
 ---
 
@@ -227,36 +240,99 @@ develop (central integration branch)
 ## 7. Local Setup & Execution Guide
 
 ### Prerequisites
-- JDK 21 or 17
-- Node.js 18+ & npm
-- MySQL 8.0+
+- **Java Development Kit (JDK)**: JDK 21 or 17
+- **Node.js runtime**: Node.js 18+ & npm
+- **Database Engine**: MySQL 8.0+ / MariaDB 11+ (or embedded H2 file database)
 
-### Backend Setup
-For the SQL Server datasource configured in `src/main/resources/application.properties`, set the `DB_PASSWORD` environment variable before starting the backend.
+---
 
+### Option A: One-Click Portable Launcher (Windows)
+Requires no pre-installed Java, Node.js, or MySQL! The batch launcher automatically downloads portable, self-contained versions into `.runtime/`:
+```bat
+SIMS-Setup-and-Run.bat        :: First-time portable setup + starts full application
+SIMS-Setup-and-Run.bat h2     :: Run using embedded H2 file database without MariaDB
+SIMS-Setup-and-Run.bat stop   :: Gracefully stop all backend, frontend, and DB processes
+```
+
+### Option B: Quick Development Launcher
+If Java, Node, and MySQL are already installed on your machine:
+```bat
+start-local.bat               :: Checks MySQL, launches Spring Boot (:8080) & Vite (:5173)
+stop-local.bat                :: Stops local servers on port 8080 and 5173
+```
+
+### Option C: Manual CLI Execution
+1. **Database Preparation**:
+   Create the database schema using MySQL CLI or Workbench:
+   ```sql
+   CREATE DATABASE IF NOT EXISTS sim_system_db;
+   USE sim_system_db;
+   SOURCE database/schema.sql;
+   SOURCE database/vps_backup.sql; -- Optional realistic initial data
+   ```
+
+2. **Backend Server (`/server`)**:
+   ```bash
+   cd server
+   ./mvnw clean spring-boot:run
+   # Backend REST API starts on http://localhost:8080/api/v1
+   ```
+   *Optional configuration: customize database credentials via environment variables:*
+   ```bash
+   export DB_USERNAME=root
+   export DB_PASSWORD=your_password
+   ```
+
+3. **Frontend SPA (`/client`)**:
+   ```bash
+   cd client
+   npm install
+   npm run dev
+   # Vite development server starts on http://localhost:5173
+   ```
+
+---
+
+## 8. Production Packaging & Deployment
+
+### 8.1 Production Build
+To package production-ready artifacts:
 ```bash
+# 1. Package backend JAR
 cd server
-# Ensure MySQL is running and sim_system_db is created via database/schema.sql
-./mvnw clean spring-boot:run
-# Server starts on http://localhost:8080
+./mvnw clean package -DskipTests
+# Output: server/target/sims-server-0.0.1-SNAPSHOT.jar
+
+# 2. Compile frontend static assets
+cd ../client
+npm run build
+# Output: client/dist/
 ```
 
-### Frontend Setup
+### 8.2 Deployment Automation (`scripts/deploy_sims.py`)
+For automated deployments to Ubuntu Linux VPS servers hosting the production environment:
 ```bash
-cd client
-npm install
-npm run dev
-# React app available on http://localhost:5173
+export SIMS_HOST="your-vps-ip"
+export SIMS_SSH_PASSWORD="your-ssh-password"
+export SIMS_DB_PASSWORD="your-db-password"
+python scripts/deploy_sims.py
 ```
+The deploy script:
+- Creates timestamped rollbacks of previous JAR and frontend bundles under `/opt/sims/backups/`.
+- Executes zero-downtime mysqldump backups before applying updates.
+- Synchronizes optimized static web assets to Nginx webroot `/var/www/html`.
+- Restarts the `sims-backend.service` systemd daemon with SHA256 checksum verification.
 
-### AI Study Buddy (student assistant)
-Students get an AI chat assistant (`/assistant` page and a floating chat button) backed by Google Gemini. It answers study questions and explains the student's own class, timetable, attendance and **published** results. Staff and parents cannot access it (`/api/v1/assistant/**` is STUDENT-only).
+---
 
-Set the key as an environment variable before starting the backend. Do not commit it.
+## 9. AI Study Buddy (Student Assistant)
 
+Students have access to an AI chat assistant (`/assistant` page and floating chat widget) powered by OpenRouter / Google Gemini:
+- Answers curriculum questions and explains the student's own enrolled class timetable, attendance stats, and published examination transcripts.
+- Strict security guardrails prevent access by administrative, teacher, or parent roles (`/api/v1/assistant/**` is strictly STUDENT-role protected).
+
+To activate:
 ```bash
-export GEMINI_API_KEY=your-key          # PowerShell: $env:GEMINI_API_KEY="your-key"
-export GEMINI_MODEL=gemini-flash-latest # optional, this is the default (any generateContent model id works, e.g. gemini-2.5-flash)
+export OPENROUTER_API_KEY="your-openrouter-key"  # or export GEMINI_API_KEY="your-gemini-key"
 ```
-
-If no key is set, the chat UI shows that the assistant is not configured and the endpoint returns HTTP 503.
+If no key is configured, the assistant gracefully explains that AI assistance is unavailable without disrupting any core SIMS features.
