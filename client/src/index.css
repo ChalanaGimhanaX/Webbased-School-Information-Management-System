@@ -43,23 +43,23 @@
   --color-error-container: #ffdad6;
   --color-on-error-container: #93000a;
 
-  --color-background: #f9f9ff;
+  --color-background: #f1f4f9;
   --color-on-background: #151c27;
-  --color-surface: #f9f9ff;
-  --color-surface-bright: #f9f9ff;
-  --color-surface-dim: #d3daea;
-  --color-surface-variant: #dce2f3;
+  --color-surface: #f1f4f9;
+  --color-surface-bright: #f8fafc;
+  --color-surface-dim: #cbd5e1;
+  --color-surface-variant: #d9e2ec;
   --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #f0f3ff;
-  --color-surface-container: #e7eefe;
-  --color-surface-container-high: #e2e8f8;
-  --color-surface-container-highest: #dce2f3;
+  --color-surface-container-low: #e8ecf4;
+  --color-surface-container: #dfe5f0;
+  --color-surface-container-high: #d5dce8;
+  --color-surface-container-highest: #cad2df;
   --color-on-surface: #151c27;
   --color-on-surface-variant: #464555;
   --color-inverse-surface: #2a313d;
   --color-inverse-on-surface: #ebf1ff;
-  --color-outline: #777587;
-  --color-outline-variant: #c7c4d8;
+  --color-outline: #64748b;
+  --color-outline-variant: #b8bed1;
 
   --text-label-sm: 11px;
   --text-label-sm--line-height: 14px;
@@ -329,6 +329,56 @@ body {
   --color-error: #f87171;
   --color-error-container: #7f1d1d;
   --color-on-error-container: #fecaca;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Universal Light Mode Highlight for White Object Boxes & Cards
+   Gives white container boxes crisp definition, elegant shadow,
+   and clean border contrast so they stand out distinctly.
+   ────────────────────────────────────────────────────────────── */
+html:not(.dark) {
+  --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.05), 0 0 0 1px rgba(15, 23, 42, 0.06);
+  --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.05), 0 0 0 1px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 12px -2px rgba(15, 23, 42, 0.09), 0 2px 6px -2px rgba(15, 23, 42, 0.05), 0 0 0 1px rgba(15, 23, 42, 0.06);
+}
+
+/* Crisp elevation and border definition for card containers in light mode */
+html:not(.dark) div.bg-surface-container-lowest.rounded-xl,
+html:not(.dark) div.bg-surface-container-lowest.rounded-2xl,
+html:not(.dark) div.bg-surface-container-lowest.rounded-lg,
+html:not(.dark) div.bg-white.rounded-xl,
+html:not(.dark) div.bg-white.rounded-2xl,
+html:not(.dark) div.bg-white.rounded-lg,
+html:not(.dark) div.bg-white.rounded-md,
+html:not(.dark) section.bg-surface-container-lowest.rounded-xl,
+html:not(.dark) aside.bg-surface-container-lowest {
+  box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.07), 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 0 0 1px rgba(15, 23, 42, 0.06);
+}
+
+/* Sharpen borders on white containers in light mode */
+html:not(.dark) .border-gray-100 {
+  border-color: rgba(100, 116, 139, 0.22) !important;
+}
+html:not(.dark) .border-gray-200 {
+  border-color: rgba(100, 116, 139, 0.28) !important;
+}
+html:not(.dark) .border-outline-variant\/30 {
+  border-color: rgba(100, 116, 139, 0.24) !important;
+}
+html:not(.dark) .border-outline-variant\/40 {
+  border-color: rgba(100, 116, 139, 0.28) !important;
+}
+html:not(.dark) .border-outline-variant\/50 {
+  border-color: rgba(100, 116, 139, 0.34) !important;
+}
+html:not(.dark) .border-outline-variant\/60 {
+  border-color: rgba(100, 116, 139, 0.40) !important;
+}
+
+/* Elevated hover lift on white cards in light mode */
+html:not(.dark) .card-lift:hover {
+  border-color: rgba(79, 70, 229, 0.35) !important;
+  box-shadow: 0 12px 28px -10px rgba(79, 70, 229, 0.20), 0 4px 10px -2px rgba(15, 23, 42, 0.06), 0 0 0 1px rgba(79, 70, 229, 0.25) !important;
 }
 
 /* Universal Dark Mode overrides for utility classes and standard inputs */
