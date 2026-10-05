@@ -47,7 +47,8 @@ const Sidebar = ({ open = false, onClose = () => {} }) => {
             >
               <Icon name="close" size={20} />
             </button>
-            <BrandLogo subtitle="Wycherley Gampaha" />
+            <BrandLogo subtitle="Fee & Payment Management" />
+            <div className="text-[10px] text-amber-400 font-mono mt-1 font-semibold text-center">UC-06 · IT25103710 (Weerasekara K.T.J)</div>
           </div>
 
           {/* Navigation */}
